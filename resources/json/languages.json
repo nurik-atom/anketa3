@@ -1,0 +1,924 @@
+{
+    "languages": [
+      {
+        "iso639_1": "kk",
+        "name_ru": "казахский",
+        "name_en": "Kazakh"
+      },
+      {
+        "iso639_1": "en",
+        "name_ru": "английский",
+        "name_en": "English"
+      },
+      {
+        "iso639_1": "ru",
+        "name_ru": "русский",
+        "name_en": "Russian"
+      },
+      {
+        "iso639_1": "aa",
+        "name_ru": "афарский",
+        "name_en": "Afar"
+      },
+      {
+        "iso639_1": "ab",
+        "name_ru": "абхазский",
+        "name_en": "Abkhazian"
+      },
+      {
+        "iso639_1": "ae",
+        "name_ru": "авестийский",
+        "name_en": "Avestan"
+      },
+      {
+        "iso639_1": "af",
+        "name_ru": "африкаанс",
+        "name_en": "Afrikaans"
+      },
+      {
+        "iso639_1": "ak",
+        "name_ru": "акан",
+        "name_en": "Akan"
+      },
+      {
+        "iso639_1": "am",
+        "name_ru": "амхарский",
+        "name_en": "Amharic"
+      },
+      {
+        "iso639_1": "an",
+        "name_ru": "арагонский",
+        "name_en": "Aragonese"
+      },
+      {
+        "iso639_1": "ar",
+        "name_ru": "арабский",
+        "name_en": "Arabic"
+      },
+      {
+        "iso639_1": "as",
+        "name_ru": "ассамский",
+        "name_en": "Assamese"
+      },
+      {
+        "iso639_1": "av",
+        "name_ru": "аварский",
+        "name_en": "Avaric"
+      },
+      {
+        "iso639_1": "ay",
+        "name_ru": "аймара",
+        "name_en": "Aymara"
+      },
+      {
+        "iso639_1": "az",
+        "name_ru": "азербайджанский",
+        "name_en": "Azerbaijani"
+      },
+      {
+        "iso639_1": "ba",
+        "name_ru": "башкирский",
+        "name_en": "Bashkir"
+      },
+      {
+        "iso639_1": "be",
+        "name_ru": "белорусский",
+        "name_en": "Belarusian"
+      },
+      {
+        "iso639_1": "bg",
+        "name_ru": "болгарский",
+        "name_en": "Bulgarian"
+      },
+      {
+        "iso639_1": "bh",
+        "name_ru": "бихари",
+        "name_en": "Bihari"
+      },
+      {
+        "iso639_1": "bi",
+        "name_ru": "бислама",
+        "name_en": "Bislama"
+      },
+      {
+        "iso639_1": "bm",
+        "name_ru": "бамбара",
+        "name_en": "Bambara"
+      },
+      {
+        "iso639_1": "bn",
+        "name_ru": "бенгальский",
+        "name_en": "Bengali"
+      },
+      {
+        "iso639_1": "bo",
+        "name_ru": "тибетский",
+        "name_en": "Tibetan"
+      },
+      {
+        "iso639_1": "br",
+        "name_ru": "бретонский",
+        "name_en": "Breton"
+      },
+      {
+        "iso639_1": "bs",
+        "name_ru": "боснийский",
+        "name_en": "Bosnian"
+      },
+      {
+        "iso639_1": "ca",
+        "name_ru": "каталанский",
+        "name_en": "Catalan"
+      },
+      {
+        "iso639_1": "ce",
+        "name_ru": "чеченский",
+        "name_en": "Chechen"
+      },
+      {
+        "iso639_1": "ch",
+        "name_ru": "чаморро",
+        "name_en": "Chamorro"
+      },
+      {
+        "iso639_1": "co",
+        "name_ru": "корсиканский",
+        "name_en": "Corsican"
+      },
+      {
+        "iso639_1": "cr",
+        "name_ru": "кри",
+        "name_en": "Cree"
+      },
+      {
+        "iso639_1": "cs",
+        "name_ru": "чешский",
+        "name_en": "Czech"
+      },
+      {
+        "iso639_1": "cu",
+        "name_ru": "церковнославянский",
+        "name_en": "Church Slavic"
+      },
+      {
+        "iso639_1": "cv",
+        "name_ru": "чувашский",
+        "name_en": "Chuvash"
+      },
+      {
+        "iso639_1": "cy",
+        "name_ru": "валлийский",
+        "name_en": "Welsh"
+      },
+      {
+        "iso639_1": "da",
+        "name_ru": "датский",
+        "name_en": "Danish"
+      },
+      {
+        "iso639_1": "de",
+        "name_ru": "немецкий",
+        "name_en": "German"
+      },
+      {
+        "iso639_1": "dv",
+        "name_ru": "мальдивский",
+        "name_en": "Divehi"
+      },
+      {
+        "iso639_1": "dz",
+        "name_ru": "дзонг-кэ",
+        "name_en": "Dzongkha"
+      },
+      {
+        "iso639_1": "ee",
+        "name_ru": "эве",
+        "name_en": "Ewe"
+      },
+      {
+        "iso639_1": "el",
+        "name_ru": "греческий",
+        "name_en": "Greek"
+      },
+      {
+        "iso639_1": "eo",
+        "name_ru": "эсперанто",
+        "name_en": "Esperanto"
+      },
+      {
+        "iso639_1": "es",
+        "name_ru": "испанский",
+        "name_en": "Spanish"
+      },
+      {
+        "iso639_1": "et",
+        "name_ru": "эстонский",
+        "name_en": "Estonian"
+      },
+      {
+        "iso639_1": "eu",
+        "name_ru": "баскский",
+        "name_en": "Basque"
+      },
+      {
+        "iso639_1": "fa",
+        "name_ru": "персидский",
+        "name_en": "Persian"
+      },
+      {
+        "iso639_1": "ff",
+        "name_ru": "фула",
+        "name_en": "Fulah"
+      },
+      {
+        "iso639_1": "fi",
+        "name_ru": "финский",
+        "name_en": "Finnish"
+      },
+      {
+        "iso639_1": "fj",
+        "name_ru": "фиджийский",
+        "name_en": "Fijian"
+      },
+      {
+        "iso639_1": "fo",
+        "name_ru": "фарерский",
+        "name_en": "Faroese"
+      },
+      {
+        "iso639_1": "fr",
+        "name_ru": "французский",
+        "name_en": "French"
+      },
+      {
+        "iso639_1": "fy",
+        "name_ru": "фризский",
+        "name_en": "Western Frisian"
+      },
+      {
+        "iso639_1": "ga",
+        "name_ru": "ирландский",
+        "name_en": "Irish"
+      },
+      {
+        "iso639_1": "gd",
+        "name_ru": "шотландский (гэльский)",
+        "name_en": "Scottish Gaelic"
+      },
+      {
+        "iso639_1": "gl",
+        "name_ru": "галисийский",
+        "name_en": "Galician"
+      },
+      {
+        "iso639_1": "gn",
+        "name_ru": "гуарани",
+        "name_en": "Guarani"
+      },
+      {
+        "iso639_1": "gu",
+        "name_ru": "гуджарати",
+        "name_en": "Gujarati"
+      },
+      {
+        "iso639_1": "gv",
+        "name_ru": "мэнский",
+        "name_en": "Manx"
+      },
+      {
+        "iso639_1": "ha",
+        "name_ru": "хауса",
+        "name_en": "Hausa"
+      },
+      {
+        "iso639_1": "he",
+        "name_ru": "иврит",
+        "name_en": "Hebrew"
+      },
+      {
+        "iso639_1": "hi",
+        "name_ru": "хинди",
+        "name_en": "Hindi"
+      },
+      {
+        "iso639_1": "ho",
+        "name_ru": "хири-моту",
+        "name_en": "Hiri Motu"
+      },
+      {
+        "iso639_1": "hr",
+        "name_ru": "хорватский",
+        "name_en": "Croatian"
+      },
+      {
+        "iso639_1": "ht",
+        "name_ru": "гаитянский",
+        "name_en": "Haitian"
+      },
+      {
+        "iso639_1": "hu",
+        "name_ru": "венгерский",
+        "name_en": "Hungarian"
+      },
+      {
+        "iso639_1": "hy",
+        "name_ru": "армянский",
+        "name_en": "Armenian"
+      },
+      {
+        "iso639_1": "hz",
+        "name_ru": "гереро",
+        "name_en": "Herero"
+      },
+      {
+        "iso639_1": "ia",
+        "name_ru": "интерлингва",
+        "name_en": "Interlingua"
+      },
+      {
+        "iso639_1": "id",
+        "name_ru": "индонезийский",
+        "name_en": "Indonesian"
+      },
+      {
+        "iso639_1": "ie",
+        "name_ru": "интерлингве",
+        "name_en": "Interlingue"
+      },
+      {
+        "iso639_1": "ig",
+        "name_ru": "игбо",
+        "name_en": "Igbo"
+      },
+      {
+        "iso639_1": "ii",
+        "name_ru": "сычуань",
+        "name_en": "Sichuan Yi"
+      },
+      {
+        "iso639_1": "ik",
+        "name_ru": "инупиак",
+        "name_en": "Inupiaq"
+      },
+      {
+        "iso639_1": "io",
+        "name_ru": "идо",
+        "name_en": "Ido"
+      },
+      {
+        "iso639_1": "is",
+        "name_ru": "исландский",
+        "name_en": "Icelandic"
+      },
+      {
+        "iso639_1": "it",
+        "name_ru": "итальянский",
+        "name_en": "Italian"
+      },
+      {
+        "iso639_1": "iu",
+        "name_ru": "инуктитут",
+        "name_en": "Inuktitut"
+      },
+      {
+        "iso639_1": "ja",
+        "name_ru": "японский",
+        "name_en": "Japanese"
+      },
+      {
+        "iso639_1": "jv",
+        "name_ru": "яванский",
+        "name_en": "Javanese"
+      },
+      {
+        "iso639_1": "ka",
+        "name_ru": "грузинский",
+        "name_en": "Georgian"
+      },
+      {
+        "iso639_1": "kg",
+        "name_ru": "конго",
+        "name_en": "Kongo"
+      },
+      {
+        "iso639_1": "ki",
+        "name_ru": "кикуйю",
+        "name_en": "Kikuyu"
+      },
+      {
+        "iso639_1": "kj",
+        "name_ru": "кунама",
+        "name_en": "Kuanyama"
+      },
+      {
+        "iso639_1": "kl",
+        "name_ru": "гренландский",
+        "name_en": "Kalaallisut"
+      },
+      {
+        "iso639_1": "km",
+        "name_ru": "кхмерский",
+        "name_en": "Central Khmer"
+      },
+      {
+        "iso639_1": "kn",
+        "name_ru": "каннада",
+        "name_en": "Kannada"
+      },
+      {
+        "iso639_1": "ko",
+        "name_ru": "корейский",
+        "name_en": "Korean"
+      },
+      {
+        "iso639_1": "kr",
+        "name_ru": "канури",
+        "name_en": "Kanuri"
+      },
+      {
+        "iso639_1": "ks",
+        "name_ru": "кашмири",
+        "name_en": "Kashmiri"
+      },
+      {
+        "iso639_1": "ku",
+        "name_ru": "курдский",
+        "name_en": "Kurdish"
+      },
+      {
+        "iso639_1": "kv",
+        "name_ru": "коми",
+        "name_en": "Komi"
+      },
+      {
+        "iso639_1": "kw",
+        "name_ru": "корнский",
+        "name_en": "Cornish"
+      },
+      {
+        "iso639_1": "ky",
+        "name_ru": "киргизский",
+        "name_en": "Kirghiz"
+      },
+      {
+        "iso639_1": "la",
+        "name_ru": "латинский",
+        "name_en": "Latin"
+      },
+      {
+        "iso639_1": "lb",
+        "name_ru": "люксембургский",
+        "name_en": "Luxembourgish"
+      },
+      {
+        "iso639_1": "lg",
+        "name_ru": "ганда",
+        "name_en": "Ganda"
+      },
+      {
+        "iso639_1": "li",
+        "name_ru": "лимбургский",
+        "name_en": "Limburgan"
+      },
+      {
+        "iso639_1": "ln",
+        "name_ru": "лингала",
+        "name_en": "Lingala"
+      },
+      {
+        "iso639_1": "lo",
+        "name_ru": "лаосский",
+        "name_en": "Lao"
+      },
+      {
+        "iso639_1": "lt",
+        "name_ru": "литовский",
+        "name_en": "Lithuanian"
+      },
+      {
+        "iso639_1": "lu",
+        "name_ru": "луба-катанга",
+        "name_en": "Luba-Katanga"
+      },
+      {
+        "iso639_1": "lv",
+        "name_ru": "латышский",
+        "name_en": "Latvian"
+      },
+      {
+        "iso639_1": "mg",
+        "name_ru": "малагасийский",
+        "name_en": "Malagasy"
+      },
+      {
+        "iso639_1": "mh",
+        "name_ru": "маршалльский",
+        "name_en": "Marshallese"
+      },
+      {
+        "iso639_1": "mi",
+        "name_ru": "маори",
+        "name_en": "Maori"
+      },
+      {
+        "iso639_1": "mk",
+        "name_ru": "македонский",
+        "name_en": "Macedonian"
+      },
+      {
+        "iso639_1": "ml",
+        "name_ru": "малаялам",
+        "name_en": "Malayalam"
+      },
+      {
+        "iso639_1": "mn",
+        "name_ru": "монгольский",
+        "name_en": "Mongolian"
+      },
+      {
+        "iso639_1": "mr",
+        "name_ru": "маратхи",
+        "name_en": "Marathi"
+      },
+      {
+        "iso639_1": "ms",
+        "name_ru": "малайский",
+        "name_en": "Malay"
+      },
+      {
+        "iso639_1": "mt",
+        "name_ru": "мальтийский",
+        "name_en": "Maltese"
+      },
+      {
+        "iso639_1": "my",
+        "name_ru": "бирманский",
+        "name_en": "Burmese"
+      },
+      {
+        "iso639_1": "na",
+        "name_ru": "науру",
+        "name_en": "Nauru"
+      },
+      {
+        "iso639_1": "nb",
+        "name_ru": "норвежский букмол",
+        "name_en": "Norwegian Bokmål"
+      },
+      {
+        "iso639_1": "nd",
+        "name_ru": "северный ндебеле",
+        "name_en": "North Ndebele"
+      },
+      {
+        "iso639_1": "ne",
+        "name_ru": "непальский",
+        "name_en": "Nepali"
+      },
+      {
+        "iso639_1": "ng",
+        "name_ru": "ндонга",
+        "name_en": "Ndonga"
+      },
+      {
+        "iso639_1": "nl",
+        "name_ru": "нидерландский",
+        "name_en": "Dutch"
+      },
+      {
+        "iso639_1": "nn",
+        "name_ru": "норвежский нюнорск",
+        "name_en": "Norwegian Nynorsk"
+      },
+      {
+        "iso639_1": "no",
+        "name_ru": "норвежский",
+        "name_en": "Norwegian"
+      },
+      {
+        "iso639_1": "nr",
+        "name_ru": "южный ндебеле",
+        "name_en": "South Ndebele"
+      },
+      {
+        "iso639_1": "nv",
+        "name_ru": "навахо",
+        "name_en": "Navajo"
+      },
+      {
+        "iso639_1": "ny",
+        "name_ru": "ньянджа",
+        "name_en": "Chichewa"
+      },
+      {
+        "iso639_1": "oc",
+        "name_ru": "окситанский",
+        "name_en": "Occitan"
+      },
+      {
+        "iso639_1": "oj",
+        "name_ru": "оджибва",
+        "name_en": "Ojibwa"
+      },
+      {
+        "iso639_1": "om",
+        "name_ru": "оромо",
+        "name_en": "Oromo"
+      },
+      {
+        "iso639_1": "or",
+        "name_ru": "ория",
+        "name_en": "Oriya"
+      },
+      {
+        "iso639_1": "os",
+        "name_ru": "осетинский",
+        "name_en": "Ossetian"
+      },
+      {
+        "iso639_1": "pa",
+        "name_ru": "панджаби",
+        "name_en": "Panjabi"
+      },
+      {
+        "iso639_1": "pi",
+        "name_ru": "пали",
+        "name_en": "Pali"
+      },
+      {
+        "iso639_1": "pl",
+        "name_ru": "польский",
+        "name_en": "Polish"
+      },
+      {
+        "iso639_1": "ps",
+        "name_ru": "пушту",
+        "name_en": "Pushto"
+      },
+      {
+        "iso639_1": "pt",
+        "name_ru": "португальский",
+        "name_en": "Portuguese"
+      },
+      {
+        "iso639_1": "qu",
+        "name_ru": "кечуа",
+        "name_en": "Quechua"
+      },
+      {
+        "iso639_1": "rm",
+        "name_ru": "ретороманский",
+        "name_en": "Romansh"
+      },
+      {
+        "iso639_1": "rn",
+        "name_ru": "рунди",
+        "name_en": "Rundi"
+      },
+      {
+        "iso639_1": "ro",
+        "name_ru": "румынский",
+        "name_en": "Romanian"
+      },
+      {
+        "iso639_1": "rw",
+        "name_ru": "киньяруанда",
+        "name_en": "Kinyarwanda"
+      },
+      {
+        "iso639_1": "sa",
+        "name_ru": "санскрит",
+        "name_en": "Sanskrit"
+      },
+      {
+        "iso639_1": "sc",
+        "name_ru": "сардинский",
+        "name_en": "Sardinian"
+      },
+      {
+        "iso639_1": "sd",
+        "name_ru": "синдхи",
+        "name_en": "Sindhi"
+      },
+      {
+        "iso639_1": "se",
+        "name_ru": "северносаамский",
+        "name_en": "Northern Sami"
+      },
+      {
+        "iso639_1": "sg",
+        "name_ru": "санго",
+        "name_en": "Sango"
+      },
+      {
+        "iso639_1": "si",
+        "name_ru": "сингальский",
+        "name_en": "Sinhala"
+      },
+      {
+        "iso639_1": "sk",
+        "name_ru": "словацкий",
+        "name_en": "Slovak"
+      },
+      {
+        "iso639_1": "sl",
+        "name_ru": "словенский",
+        "name_en": "Slovenian"
+      },
+      {
+        "iso639_1": "sm",
+        "name_ru": "самоанский",
+        "name_en": "Samoan"
+      },
+      {
+        "iso639_1": "sn",
+        "name_ru": "шона",
+        "name_en": "Shona"
+      },
+      {
+        "iso639_1": "so",
+        "name_ru": "сомалийский",
+        "name_en": "Somali"
+      },
+      {
+        "iso639_1": "sq",
+        "name_ru": "албанский",
+        "name_en": "Albanian"
+      },
+      {
+        "iso639_1": "sr",
+        "name_ru": "сербский",
+        "name_en": "Serbian"
+      },
+      {
+        "iso639_1": "ss",
+        "name_ru": "свази",
+        "name_en": "Swati"
+      },
+      {
+        "iso639_1": "st",
+        "name_ru": "сесото",
+        "name_en": "Southern Sotho"
+      },
+      {
+        "iso639_1": "su",
+        "name_ru": "сунданский",
+        "name_en": "Sundanese"
+      },
+      {
+        "iso639_1": "sv",
+        "name_ru": "шведский",
+        "name_en": "Swedish"
+      },
+      {
+        "iso639_1": "sw",
+        "name_ru": "суахили",
+        "name_en": "Swahili"
+      },
+      {
+        "iso639_1": "ta",
+        "name_ru": "тамильский",
+        "name_en": "Tamil"
+      },
+      {
+        "iso639_1": "te",
+        "name_ru": "телугу",
+        "name_en": "Telugu"
+      },
+      {
+        "iso639_1": "tg",
+        "name_ru": "таджикский",
+        "name_en": "Tajik"
+      },
+      {
+        "iso639_1": "th",
+        "name_ru": "тайский",
+        "name_en": "Thai"
+      },
+      {
+        "iso639_1": "ti",
+        "name_ru": "тигринья",
+        "name_en": "Tigrinya"
+      },
+      {
+        "iso639_1": "tk",
+        "name_ru": "туркменский",
+        "name_en": "Turkmen"
+      },
+      {
+        "iso639_1": "tl",
+        "name_ru": "тагальский",
+        "name_en": "Tagalog"
+      },
+      {
+        "iso639_1": "tn",
+        "name_ru": "тсвана",
+        "name_en": "Tswana"
+      },
+      {
+        "iso639_1": "to",
+        "name_ru": "тонганский",
+        "name_en": "Tonga"
+      },
+      {
+        "iso639_1": "tr",
+        "name_ru": "турецкий",
+        "name_en": "Turkish"
+      },
+      {
+        "iso639_1": "ts",
+        "name_ru": "тсонга",
+        "name_en": "Tsonga"
+      },
+      {
+        "iso639_1": "tt",
+        "name_ru": "татарский",
+        "name_en": "Tatar"
+      },
+      {
+        "iso639_1": "tw",
+        "name_ru": "тви",
+        "name_en": "Twi"
+      },
+      {
+        "iso639_1": "ty",
+        "name_ru": "таитянский",
+        "name_en": "Tahitian"
+      },
+      {
+        "iso639_1": "ug",
+        "name_ru": "уйгурский",
+        "name_en": "Uighur"
+      },
+      {
+        "iso639_1": "uk",
+        "name_ru": "украинский",
+        "name_en": "Ukrainian"
+      },
+      {
+        "iso639_1": "ur",
+        "name_ru": "урду",
+        "name_en": "Urdu"
+      },
+      {
+        "iso639_1": "uz",
+        "name_ru": "узбекский",
+        "name_en": "Uzbek"
+      },
+      {
+        "iso639_1": "ve",
+        "name_ru": "венда",
+        "name_en": "Venda"
+      },
+      {
+        "iso639_1": "vi",
+        "name_ru": "вьетнамский",
+        "name_en": "Vietnamese"
+      },
+      {
+        "iso639_1": "vo",
+        "name_ru": "волапюк",
+        "name_en": "Volapük"
+      },
+      {
+        "iso639_1": "wa",
+        "name_ru": "валлонский",
+        "name_en": "Walloon"
+      },
+      {
+        "iso639_1": "wo",
+        "name_ru": "волоф",
+        "name_en": "Wolof"
+      },
+      {
+        "iso639_1": "xh",
+        "name_ru": "коса",
+        "name_en": "Xhosa"
+      },
+      {
+        "iso639_1": "yi",
+        "name_ru": "идиш",
+        "name_en": "Yiddish"
+      },
+      {
+        "iso639_1": "yo",
+        "name_ru": "йоруба",
+        "name_en": "Yoruba"
+      },
+      {
+        "iso639_1": "za",
+        "name_ru": "чжуанский",
+        "name_en": "Zhuang"
+      },
+      {
+        "iso639_1": "zh",
+        "name_ru": "китайский",
+        "name_en": "Chinese"
+      },
+      {
+        "iso639_1": "zu",
+        "name_ru": "зулу",
+        "name_en": "Zulu"
+      }
+    ]
+  }  

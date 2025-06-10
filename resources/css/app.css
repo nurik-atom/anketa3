@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@tailwind variants;
+
+/* Изолируем стили Filament только для админки */
+.fi-body {
+    /* Стили только для Filament */
+}
+
+/* Восстанавливаем ваши стили для основного сайта */
+.your-main-content {
+    /* Ваши оригинальные стили */
+}
