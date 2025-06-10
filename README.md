@@ -1,61 +1,175 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Anketa3 - Laravel Livewire Candidate Form Application
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Многошаговая форма анкеты кандидата с загрузкой файлов, фото и валидацией, построенная на Laravel + Livewire.
 
-## About Laravel
+## 🚀 Особенности
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Многошаговая форма** - 4 шага с плавными переходами
+- **Загрузка и обрезка фото** - интеграция с Cropper.js
+- **Загрузка PDF файлов** - для результатов Gallup теста
+- **Интерактивные слайдеры** - быстрая обратная связь без задержек
+- **Валидация в реальном времени** - Livewire валидация
+- **Сохранение прогресса** - автоматическое сохранение на каждом шаге
+- **История изменений** - отслеживание всех изменений анкеты
+- **Панель администратора** - Filament интеграция для управления
+- **Мультиязычность** - поддержка русского языка
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 📋 Структура формы
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Шаг 1: Основная информация
+- ФИО, email, телефон
+- Пол, семейное положение  
+- Дата и место рождения
+- Загрузка и обрезка фото
 
-## Learning Laravel
+### Шаг 2: Дополнительная информация
+- Религия и практика
+- Члены семьи
+- Хобби и интересы
+- Посещенные страны
+- Время на развлечения/обучение/соцсети
+- Водительские права
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Шаг 3: Образование и работа
+- Школа и университеты
+- Языковые навыки
+- Компьютерные навыки
+- Опыт работы
+- Желаемая должность и зарплата
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Шаг 4: Тесты
+- Загрузка PDF результатов Gallup теста
+- Выбор типа личности MBTI
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 🛠 Технологический стек
 
-## Laravel Sponsors
+- **Backend**: Laravel 11
+- **Frontend**: Livewire 3, Alpine.js
+- **Стили**: Tailwind CSS
+- **База данных**: MySQL/PostgreSQL
+- **Админка**: Filament
+- **Загрузка файлов**: Livewire File Uploads
+- **Обрезка изображений**: Cropper.js
+- **Маски ввода**: IMask.js
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## ⚙️ Установка
 
-### Premium Partners
+1. Клонируйте репозиторий:
+```bash
+git clone https://github.com/YOUR_USERNAME/anketa3.git
+cd anketa3
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+2. Установите зависимости:
+```bash
+composer install
+npm install
+```
 
-## Contributing
+3. Скопируйте файл окружения:
+```bash
+cp .env.example .env
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+4. Сгенерируйте ключ приложения:
+```bash
+php artisan key:generate
+```
 
-## Code of Conduct
+5. Настройте базу данных в `.env` файле и выполните миграции:
+```bash
+php artisan migrate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+6. Создайте символическую ссылку для storage:
+```bash
+php artisan storage:link
+```
 
-## Security Vulnerabilities
+7. Скомпилируйте ассеты:
+```bash
+npm run build
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+8. Запустите сервер:
+```bash
+php artisan serve
+```
 
-## License
+## 📁 Структура проекта
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```
+app/
+├── Livewire/
+│   ├── CandidateForm.php      # Основной компонент формы
+│   └── GardnerTest.php        # Тест Гарднера
+├── Models/
+│   ├── Candidate.php          # Модель кандидата
+│   ├── CandidateHistory.php   # История изменений
+│   └── ...
+└── Filament/
+    └── Resources/             # Ресурсы админки
+
+resources/
+├── views/livewire/candidate-form/
+│   ├── step1.blade.php        # Шаг 1: Основная информация
+│   ├── step2.blade.php        # Шаг 2: Дополнительная информация
+│   ├── step3.blade.php        # Шаг 3: Образование и работа
+│   └── step4.blade.php        # Шаг 4: Тесты
+└── json/
+    ├── countries.json         # Справочник стран
+    └── languages.json         # Справочник языков
+```
+
+## 🎯 Основные компоненты
+
+### CandidateForm.php
+Главный Livewire компонент, управляющий:
+- Навигацией между шагами
+- Валидацией данных
+- Сохранением прогресса
+- Загрузкой файлов
+
+### Валидация
+- Пошаговая валидация
+- Валидация файлов (размер, тип)
+- Динамические правила валидации
+
+### История изменений
+Автоматическое отслеживание:
+- Изменения полей
+- IP адрес пользователя
+- Временные метки
+
+## 🔧 Конфигурация
+
+### Загрузка файлов
+- Фото: максимум 2MB, форматы JPG/PNG
+- PDF: максимум 10MB, только PDF файлы
+
+### Локализация
+- Русский язык по умолчанию
+- Все сообщения валидации переведены
+
+## 📱 Адаптивность
+
+Полностью адаптивный дизайн:
+- Мобильные устройства
+- Планшеты  
+- Десктопы
+
+## 🤝 Вклад в проект
+
+1. Форкните проект
+2. Создайте ветку для новой функции (`git checkout -b feature/AmazingFeature`)
+3. Зафиксируйте изменения (`git commit -m 'Add some AmazingFeature'`)
+4. Отправьте ветку (`git push origin feature/AmazingFeature`)
+5. Откройте Pull Request
+
+## 📄 Лицензия
+
+Этот проект лицензирован под MIT License - см. файл [LICENSE](LICENSE) для деталей.
+
+## ✨ Автор
+
+Разработано с ❤️ используя Laravel Livewire
