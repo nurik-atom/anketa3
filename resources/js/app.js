@@ -3,13 +3,14 @@ import './candidate-form';
 
 import Alpine from 'alpinejs';
 
-// Make Alpine available globally
-window.Alpine = Alpine;
-
-// Start Alpine when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
+// Защита от повторной инициализации Alpine
+if (!window.Alpine) {
+    window.Alpine = Alpine;
     Alpine.start();
-});
+    console.log('Alpine.js initialized');
+} else {
+    console.log('Alpine.js already initialized, skipping...');
+}
 
 // For Livewire compatibility
 document.addEventListener('livewire:navigated', () => {
