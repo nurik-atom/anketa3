@@ -16,7 +16,7 @@ class CandidateForm extends Component
 {
     use WithFileUploads;
 
-    protected $listeners = ['removePhoto'];
+    protected $listeners = ['removePhoto' => 'removePhoto'];
 
     public $currentStep = 1;
     public $totalSteps = 4;

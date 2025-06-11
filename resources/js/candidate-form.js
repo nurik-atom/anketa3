@@ -61,22 +61,58 @@ export function getLivewireComponent() {
         return null;
     }
 
-    // Простой поиск по wire:id
-    const wireElements = document.querySelectorAll('[wire\\:id]');
-    
-    for (let element of wireElements) {
-        const wireId = element.getAttribute('wire:id');
-        if (wireId && Livewire.find) {
-            const component = Livewire.find(wireId);
-            if (component) {
-                console.log('Found Livewire component:', component);
-                return component;
+    try {
+        // Метод 1: Ищем по wire:id
+        const wireElements = document.querySelectorAll('[wire\\:id]');
+        
+        for (let element of wireElements) {
+            const wireId = element.getAttribute('wire:id');
+            if (wireId && Livewire.find) {
+                const component = Livewire.find(wireId);
+                if (component) {
+                    console.log('Found Livewire component by wire:id:', component);
+                    return component;
+                }
             }
         }
+        
+        // Метод 2: Ищем по data-livewire-id
+        const dataWireElements = document.querySelectorAll('[data-livewire-id]');
+        
+        for (let element of dataWireElements) {
+            const wireId = element.getAttribute('data-livewire-id');
+            if (wireId && Livewire.find) {
+                const component = Livewire.find(wireId);
+                if (component) {
+                    console.log('Found Livewire component by data-livewire-id:', component);
+                    return component;
+                }
+            }
+        }
+
+        // Метод 3: Ищем компонент CandidateForm через все компоненты
+        if (Livewire.all) {
+            const components = Livewire.all();
+            for (let component of components) {
+                if (component.name === 'candidate-form' || component.__name === 'candidate-form') {
+                    console.log('Found CandidateForm component by name:', component);
+                    return component;
+                }
+            }
+            
+            // Если есть хотя бы один компонент, возьмем первый
+            if (components.length > 0) {
+                console.log('Using first available Livewire component:', components[0]);
+                return components[0];
+            }
+        }
+
+        console.error('No Livewire component found');
+        return null;
+    } catch (error) {
+        console.error('Error finding Livewire component:', error);
+        return null;
     }
-    
-    console.error('No Livewire component found');
-    return null;
 }
 
 // Инициализация загрузки фото с кропом
@@ -327,35 +363,54 @@ export function cancelCrop() {
 
 // Функция удаления фото
 export function removePhoto() {
-    const component = getLivewireComponent();
-    
     console.log('removePhoto called');
     
-    if (component && component.call) {
-        component.call('removePhoto');
-    } else {
-        // Fallback через скрытую кнопку
+    try {
+        // Метод 1: Поиск и клик по скрытой кнопке (самый надежный)
         const removeBtn = document.getElementById('hidden-remove-photo-btn');
         if (removeBtn) {
+            console.log('Calling removePhoto via hidden button click');
             removeBtn.click();
+            return;
         }
+        
+        // Метод 2: Поиск кнопки с wire:click="removePhoto"
+        const wireRemoveBtn = document.querySelector('[wire\\:click="removePhoto"]');
+        if (wireRemoveBtn) {
+            console.log('Calling removePhoto via wire:click button');
+            wireRemoveBtn.click();
+            return;
+        }
+        
+        // Метод 3: Через Livewire.emit
+        if (typeof Livewire !== 'undefined' && Livewire.emit) {
+            console.log('Trying Livewire.emit for removePhoto');
+            Livewire.emit('removePhoto');
+            return;
+        }
+        
+        // Метод 4: Через dispatch event (Livewire v3)
+        if (typeof Livewire !== 'undefined' && Livewire.dispatch) {
+            console.log('Trying Livewire.dispatch for removePhoto');
+            Livewire.dispatch('removePhoto');
+            return;
+        }
+        
+        // Метод 5: Через найденный компонент
+        const component = getLivewireComponent();
+        if (component && component.call) {
+            console.log('Calling removePhoto via Livewire component');
+            component.call('removePhoto');
+            return;
+        }
+        
+        console.error('All methods failed to call removePhoto');
+        alert('Не удалось удалить фото. Попробуйте обновить страницу.');
+        
+    } catch (error) {
+        console.error('Error in removePhoto:', error);
+        alert('Ошибка при удалении фото: ' + error.message);
     }
-    
-    // Обновляем UI
-    const preview = document.getElementById('photo-preview');
-    const upload = document.getElementById('upload-area');
-    const photoInput = document.getElementById('photo-input');
-    const fallbackInput = document.getElementById('photo-livewire-fallback');
-    
-    if (preview && upload) {
-        preview.classList.add('hidden');
-        upload.classList.remove('hidden');
-    }
-    
-    if (photoInput) photoInput.value = '';
-    if (fallbackInput) fallbackInput.value = '';
-    
-    console.log('Photo removed');
 }
 
 // Функция инициализации всех компонентов
