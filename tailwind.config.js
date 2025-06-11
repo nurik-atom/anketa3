@@ -1,5 +1,6 @@
 import preset from './vendor/filament/support/tailwind.config.preset'
 import typography from '@tailwindcss/typography'
+import defaultTheme from 'tailwindcss/defaultTheme'
 
 export default {
     presets: [preset],
@@ -9,11 +10,9 @@ export default {
         './vendor/filament/**/*.blade.php',
     ],
     theme: {
-        extend: {
-            fontWeight: {
-                700: '700',
-            },
-        },
+        // 👇 это перекроет перезапись из filament preset
+        fontWeight: defaultTheme.fontWeight,
+        extend: {},
     },
     plugins: [typography],
 }
