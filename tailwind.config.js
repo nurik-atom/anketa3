@@ -10,9 +10,22 @@ export default {
         './vendor/filament/**/*.blade.php',
     ],
     theme: {
-        // 👇 это перекроет перезапись из filament preset
-        fontWeight: defaultTheme.fontWeight,
-        extend: {},
+        // Перезаписываем вручную необходимые свойства,
+        // потому что preset ломает даже fontWeight
+        fontWeight: {
+            thin: '100',
+            extralight: '200',
+            light: '300',
+            normal: '400',
+            medium: '500',
+            semibold: '600',
+            bold: '700',
+            extrabold: '800',
+            black: '900',
+        },
+        extend: {
+            fontFamily: defaultTheme.fontFamily,
+        },
     },
     plugins: [typography],
 }
