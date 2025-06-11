@@ -15,6 +15,5 @@ export default defineConfig({
                 'app/Tables/Columns/**',
             ],
         }),
-        livewire(), // 👈 обязательно!
     ],
 })
