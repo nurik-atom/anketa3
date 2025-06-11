@@ -414,8 +414,8 @@ export function removePhoto() {
 }
 
 // Функция инициализации всех компонентов
-function initializeComponents() {
-    if (isInitialized) {
+function initializeComponents(force = false) {
+    if (isInitialized && !force) {
         console.log('Components already initialized, skipping...');
         return;
     }
@@ -426,13 +426,15 @@ function initializeComponents() {
     setTimeout(() => {
         initPhoneMask();
         initPhotoUpload();
-        isInitialized = true;
+        if (!force) {
+            isInitialized = true;
+        }
         console.log('All components initialized');
     }, 100);
 }
 
 // Функция с повторными попытками инициализации
-function initializeWithRetry(maxAttempts = 5, currentAttempt = 1) {
+function initializeWithRetry(maxAttempts = 5, currentAttempt = 1, force = false) {
     console.log(`Initialization attempt ${currentAttempt}/${maxAttempts}`);
     
     // Проверяем наличие ключевых элементов
@@ -448,16 +450,26 @@ function initializeWithRetry(maxAttempts = 5, currentAttempt = 1) {
     
     // Если элементы найдены или достигли максимума попыток
     if ((phoneInput || photoInput) || currentAttempt >= maxAttempts) {
-        if (!isInitialized) {
-            initializeComponents();
+        if (!isInitialized || force) {
+            initializeComponents(force);
         }
         return;
     }
     
     // Повторная попытка через 500ms
     setTimeout(() => {
-        initializeWithRetry(maxAttempts, currentAttempt + 1);
+        initializeWithRetry(maxAttempts, currentAttempt + 1, force);
     }, 500);
+}
+
+// Функция для реинициализации при изменении DOM
+function reinitializeOnDOMChange() {
+    console.log('DOM potentially changed, checking for new elements...');
+    
+    // Всегда пытаемся реинициализировать элементы (с force = true)
+    setTimeout(() => {
+        initializeWithRetry(3, 1, true);
+    }, 200);
 }
 
 // Делаем функции глобальными для использования в HTML
@@ -484,13 +496,25 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(initWhenReady, 500);
 });
 
-// Только для случаев когда Livewire перезагружает страницу
+// События Livewire для отслеживания изменений
 document.addEventListener('livewire:navigated', () => {
     console.log('Livewire navigated event fired - reinitializing');
     isInitialized = false; // Сбрасываем флаг при навигации
     setTimeout(() => {
         initializeWithRetry();
     }, 200);
+});
+
+// Обработка обновлений компонента Livewire
+document.addEventListener('livewire:updated', () => {
+    console.log('Livewire updated event fired - checking for new elements');
+    reinitializeOnDOMChange();
+});
+
+// Обработка завершения сообщений Livewire
+document.addEventListener('livewire:message.processed', () => {
+    console.log('Livewire message processed - checking for new elements');
+    reinitializeOnDOMChange();
 });
 
 // Дополнительная инициализация при полной загрузке страницы
@@ -501,4 +525,42 @@ window.addEventListener('load', () => {
             initializeWithRetry();
         }, 300);
     }
-}); 
+});
+
+// Отслеживание изменений DOM с помощью MutationObserver
+if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver((mutations) => {
+        let shouldReinitialize = false;
+        
+        mutations.forEach((mutation) => {
+            // Проверяем добавление новых элементов
+            if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) { // Element node
+                        // Проверяем, появились ли нужные элементы
+                        if (node.id === 'phone-input' || node.id === 'photo-input' || 
+                            node.querySelector && (node.querySelector('#phone-input') || node.querySelector('#photo-input'))) {
+                            shouldReinitialize = true;
+                        }
+                    }
+                });
+            }
+        });
+        
+        if (shouldReinitialize) {
+            console.log('MutationObserver detected relevant DOM changes');
+            reinitializeOnDOMChange();
+        }
+    });
+    
+    // Начинаем наблюдение после загрузки DOM
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+            console.log('MutationObserver started');
+        }, 1000);
+    });
+} 
