@@ -239,17 +239,9 @@
 @endpush
 
 @push('scripts')
-<script src="https://unpkg.com/imask"></script>
 <script>
-// Проверяем, чтобы скрипт не выполнялся дважды
-if (typeof window.candidateFormPhotoHandlerLoaded === 'undefined') {
-    window.candidateFormPhotoHandlerLoaded = true;
-
-let stepCropper = null;
-let currentFile = null;
-let livewireComponent = null;
-
-// Глобальная функция для получения Livewire компонента
+// Основная логика теперь в resources/js/candidate-form.js
+console.log('Step1 script loaded');
 function getLivewireComponent() {
     if (livewireComponent) return livewireComponent;
     
