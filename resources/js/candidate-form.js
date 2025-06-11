@@ -421,10 +421,43 @@ function initializeComponents() {
     }
     
     console.log('Initializing components...');
-    initPhoneMask();
-    initPhotoUpload();
-    isInitialized = true;
-    console.log('All components initialized');
+    
+    // Добавляем небольшую задержку чтобы DOM точно загрузился
+    setTimeout(() => {
+        initPhoneMask();
+        initPhotoUpload();
+        isInitialized = true;
+        console.log('All components initialized');
+    }, 100);
+}
+
+// Функция с повторными попытками инициализации
+function initializeWithRetry(maxAttempts = 5, currentAttempt = 1) {
+    console.log(`Initialization attempt ${currentAttempt}/${maxAttempts}`);
+    
+    // Проверяем наличие ключевых элементов
+    const phoneInput = document.getElementById('phone-input');
+    const photoInput = document.getElementById('photo-input');
+    const fallbackInput = document.getElementById('photo-livewire-fallback');
+    
+    console.log('DOM elements check:', {
+        phoneInput: phoneInput ? 'found' : 'not found',
+        photoInput: photoInput ? 'found' : 'not found', 
+        fallbackInput: fallbackInput ? 'found' : 'not found'
+    });
+    
+    // Если элементы найдены или достигли максимума попыток
+    if ((phoneInput || photoInput) || currentAttempt >= maxAttempts) {
+        if (!isInitialized) {
+            initializeComponents();
+        }
+        return;
+    }
+    
+    // Повторная попытка через 500ms
+    setTimeout(() => {
+        initializeWithRetry(maxAttempts, currentAttempt + 1);
+    }, 500);
 }
 
 // Делаем функции глобальными для использования в HTML
@@ -441,7 +474,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Checking for Livewire...');
         if (typeof Livewire !== 'undefined') {
             console.log('Livewire found, initializing...');
-            initializeComponents();
+            initializeWithRetry();
         } else {
             setTimeout(initWhenReady, 200);
         }
@@ -456,6 +489,16 @@ document.addEventListener('livewire:navigated', () => {
     console.log('Livewire navigated event fired - reinitializing');
     isInitialized = false; // Сбрасываем флаг при навигации
     setTimeout(() => {
-        initializeComponents();
-    }, 100);
+        initializeWithRetry();
+    }, 200);
+});
+
+// Дополнительная инициализация при полной загрузке страницы
+window.addEventListener('load', () => {
+    console.log('Window load event fired');
+    if (!isInitialized) {
+        setTimeout(() => {
+            initializeWithRetry();
+        }, 300);
+    }
 }); 
