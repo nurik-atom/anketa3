@@ -247,7 +247,9 @@
                 </div>
                 <div class="relative mt-2">
                     <input type="range" 
-                           wire:model.live="books_per_year"
+                           wire:model="books_per_year"
+                           name="books_per_year"
+                           value="{{ $books_per_year ?? 0 }}"
                            min="1" 
                            max="100" 
                            step="1"
@@ -278,7 +280,9 @@
                 </div>
                 <div class="relative mt-2">
                     <input type="range" 
-                           wire:model.live="entertainment_hours_weekly"
+                           wire:model="entertainment_hours_weekly"
+                           name="entertainment_hours_weekly"
+                           value="{{ $entertainment_hours_weekly ?? 0 }}"
                            min="0" 
                            max="168" 
                            step="1"
@@ -309,7 +313,9 @@
                 </div>
                 <div class="relative mt-2">
                     <input type="range" 
-                           wire:model.live="educational_hours_weekly"
+                           wire:model="educational_hours_weekly"
+                           name="educational_hours_weekly"
+                           value="{{ $educational_hours_weekly ?? 0 }}"
                            min="0" 
                            max="168" 
                            step="1"
@@ -340,7 +346,9 @@
                 </div>
                 <div class="relative mt-2">
                     <input type="range" 
-                           wire:model.live="social_media_hours_weekly"
+                           wire:model="social_media_hours_weekly"
+                           name="social_media_hours_weekly"
+                           value="{{ $social_media_hours_weekly ?? 0 }}"
                            min="0" 
                            max="168" 
                            step="1"
@@ -369,82 +377,229 @@
 
 @push('scripts')
 <script>
-// Проверяем, чтобы скрипт не выполнялся дважды  
-if (typeof window.step2SliderHandlersLoaded === 'undefined') {
-    window.step2SliderHandlersLoaded = true;
-
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Initializing step2 slider handlers...');
+// Глобальный обработчик ползунков - версия 2.0
+(function() {
+    'use strict';
     
-    // Функция для мгновенного обновления значения
-    function updateSliderValue(slider, displayElement, formatter = null) {
-        if (!slider || !displayElement) return;
+    // Предотвращаем повторную загрузку
+    if (window.SliderManager) return;
+    
+    window.SliderManager = {
+        activeSliders: new Map(),
+        observer: null,
         
-        const updateDisplay = () => {
-            const value = slider.value;
-            if (formatter) {
-                displayElement.textContent = formatter(value);
-            } else {
-                displayElement.textContent = value;
+        init() {
+            console.log('🎚️ SliderManager: Initializing...');
+            this.setupMutationObserver();
+            this.scanAndInitSliders();
+            this.setupLivewireHooks();
+        },
+        
+        setupMutationObserver() {
+            // Отслеживаем изменения в DOM
+            this.observer = new MutationObserver((mutations) => {
+                let needsReinit = false;
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === 1) { // Element node
+                                if (node.matches('input[type="range"]') || 
+                                    node.querySelector('input[type="range"]')) {
+                                    needsReinit = true;
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                if (needsReinit) {
+                    console.log('🔄 DOM changed, reinitializing sliders...');
+                    setTimeout(() => this.scanAndInitSliders(), 50);
+                }
+            });
+            
+            this.observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        },
+        
+        setupLivewireHooks() {
+            if (typeof Livewire !== 'undefined') {
+                // Хук для обновлений Livewire
+                Livewire.hook('message.processed', () => {
+                    console.log('🔄 Livewire message processed');
+                    setTimeout(() => this.scanAndInitSliders(), 100);
+                });
+                
+                // Хук для навигации
+                document.addEventListener('livewire:navigated', () => {
+                    console.log('🔄 Livewire navigated');
+                    setTimeout(() => this.scanAndInitSliders(), 100);
+                });
             }
-        };
+        },
         
-        // Обновляем при движении (input событие)
-        slider.addEventListener('input', updateDisplay);
+        scanAndInitSliders() {
+            console.log('🔍 Scanning for sliders...');
+            
+            // Находим все ползунки на странице
+            const allSliders = document.querySelectorAll('input[type="range"]');
+            console.log(`Found ${allSliders.length} sliders total`);
+            
+            // Очищаем старые обработчики
+            this.clearAllHandlers();
+            
+            // Конфигурация всех ползунков
+            const sliderConfigs = [
+                // Step 2
+                { name: 'books_per_year', displaySelector: null },
+                { name: 'entertainment_hours_weekly', displaySelector: null },
+                { name: 'educational_hours_weekly', displaySelector: null },
+                { name: 'social_media_hours_weekly', displaySelector: null },
+                
+                // Step 3
+                { name: 'total_experience_years', displaySelector: '#experience-display', minValue: 0 },
+                { name: 'job_satisfaction', displaySelector: '#satisfaction-display', minValue: 1 }
+            ];
+            
+            // Инициализируем каждый ползунок
+            sliderConfigs.forEach(config => {
+                this.initSlider(config);
+            });
+            
+            // Инициализируем GPA ползунки отдельно (динамические)
+            this.initGpaSliders();
+            
+            console.log(`✅ SliderManager: ${this.activeSliders.size} sliders active`);
+        },
         
-        // Также обновляем при изменении (change событие)
-        slider.addEventListener('change', updateDisplay);
+        initSlider(config) {
+            const slider = document.querySelector(`input[name="${config.name}"]`);
+            if (!slider) return;
+            
+            let display;
+            if (config.displaySelector) {
+                display = document.querySelector(config.displaySelector);
+            } else {
+                // Ищем span в родительском элементе (для step2)
+                display = slider.closest('div')?.parentElement?.querySelector('span');
+            }
+            
+            if (!display) {
+                console.warn(`❌ Display not found for ${config.name}`);
+                return;
+            }
+            
+            console.log(`🎚️ Initializing ${config.name}`);
+            
+            const handlers = this.createSliderHandlers(slider, display, config);
+            this.activeSliders.set(config.name, handlers);
+        },
         
-        // Инициализируем начальное значение
-        updateDisplay();
-    }
+        initGpaSliders() {
+            const gpaSliders = document.querySelectorAll('input[type="range"][name*="universities"][name*="gpa"]');
+            console.log(`🎓 Found ${gpaSliders.length} GPA sliders`);
+            
+            gpaSliders.forEach((slider, index) => {
+                const display = slider.closest('div')?.parentElement?.querySelector('span');
+                if (display) {
+                    const key = `gpa_${index}`;
+                    console.log(`🎚️ Initializing GPA slider ${index}`);
+                    
+                    const handlers = this.createSliderHandlers(slider, display, {
+                        formatter: (value) => parseFloat(value).toFixed(2),
+                        minValue: 0
+                    });
+                    this.activeSliders.set(key, handlers);
+                }
+            });
+        },
+        
+        createSliderHandlers(slider, display, config = {}) {
+            const updateDisplay = () => {
+                const value = slider.value;
+                const numValue = parseFloat(value);
+                const minVal = config.minValue !== undefined ? config.minValue : parseFloat(slider.min);
+                
+                if (config.minValue !== undefined && numValue <= minVal) {
+                    // Специальная обработка минимальных значений
+                    if (slider.name === 'job_satisfaction') {
+                        display.textContent = '1';
+                    } else {
+                        display.textContent = '0';
+                    }
+                } else {
+                    // Применяем форматирование или выводим как есть
+                    if (config.formatter) {
+                        display.textContent = config.formatter(value);
+                    } else {
+                        display.textContent = value;
+                    }
+                }
+            };
+            
+            // Создаем обработчики событий
+            const inputHandler = (e) => {
+                updateDisplay();
+                // Не мешаем Livewire
+                e.stopPropagation();
+            };
+            
+            const changeHandler = (e) => {
+                updateDisplay();
+                // Позволяем Livewire обработать изменение
+            };
+            
+            // Добавляем обработчики
+            slider.addEventListener('input', inputHandler);
+            slider.addEventListener('change', changeHandler);
+            
+            // Инициализируем отображение
+            updateDisplay();
+            
+            return {
+                slider,
+                display,
+                inputHandler,
+                changeHandler,
+                cleanup: () => {
+                    slider.removeEventListener('input', inputHandler);
+                    slider.removeEventListener('change', changeHandler);
+                }
+            };
+        },
+        
+        clearAllHandlers() {
+            console.log('🧹 Clearing all slider handlers...');
+            this.activeSliders.forEach((handlers, key) => {
+                handlers.cleanup();
+            });
+            this.activeSliders.clear();
+        },
+        
+        destroy() {
+            this.clearAllHandlers();
+            if (this.observer) {
+                this.observer.disconnect();
+            }
+        }
+    };
     
-    // Настраиваем все ползунки step2
-    function initializeStep2Sliders() {
-        // Количество книг
-        const booksSlider = document.querySelector('input[wire\\:model\\.live="books_per_year"]');
-        const booksDisplay = booksSlider?.closest('div')?.parentElement?.querySelector('span');
-        if (booksSlider && booksDisplay) {
-            updateSliderValue(booksSlider, booksDisplay);
-            console.log('Books slider initialized');
-        }
-        
-        // Развлекательные видео
-        const entertainmentSlider = document.querySelector('input[wire\\:model\\.live="entertainment_hours_weekly"]');
-        const entertainmentDisplay = entertainmentSlider?.closest('div')?.parentElement?.querySelector('span');
-        if (entertainmentSlider && entertainmentDisplay) {
-            updateSliderValue(entertainmentSlider, entertainmentDisplay);
-            console.log('Entertainment slider initialized');
-        }
-        
-        // Образовательные видео
-        const educationalSlider = document.querySelector('input[wire\\:model\\.live="educational_hours_weekly"]');
-        const educationalDisplay = educationalSlider?.closest('div')?.parentElement?.querySelector('span');
-        if (educationalSlider && educationalDisplay) {
-            updateSliderValue(educationalSlider, educationalDisplay);
-            console.log('Educational slider initialized');
-        }
-        
-        // Социальные сети
-        const socialSlider = document.querySelector('input[wire\\:model\\.live="social_media_hours_weekly"]');
-        const socialDisplay = socialSlider?.closest('div')?.parentElement?.querySelector('span');
-        if (socialSlider && socialDisplay) {
-            updateSliderValue(socialSlider, socialDisplay);
-            console.log('Social media slider initialized');
-        }
-    }
-    
-    // Инициализируем сразу
-    initializeStep2Sliders();
-    
-    // Переинициализируем после обновлений Livewire
-    if (typeof Livewire !== 'undefined') {
-        Livewire.hook('message.processed', () => {
-            setTimeout(initializeStep2Sliders, 100); // Небольшая задержка для обновления DOM
+    // Автозапуск
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => window.SliderManager.init(), 100);
         });
+    } else {
+        setTimeout(() => window.SliderManager.init(), 100);
     }
-});
-
-} // Конец проверки window.step2SliderHandlersLoaded
+    
+    // Очистка при выгрузке страницы
+    window.addEventListener('beforeunload', () => {
+        window.SliderManager.destroy();
+    });
+    
+})();
 </script>
 @endpush 

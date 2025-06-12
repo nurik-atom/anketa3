@@ -24,7 +24,7 @@ class EducationWork extends Model
     protected $casts = [
         'universities' => 'array',
         'language_skills' => 'array',
-        'computer_skills' => 'array',
+        'computer_skills' => 'string',
         'work_experience' => 'array',
         'expected_salary' => 'decimal:2',
     ];

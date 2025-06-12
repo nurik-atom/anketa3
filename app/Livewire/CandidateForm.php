@@ -181,6 +181,11 @@ class CandidateForm extends Component
         $this->work_experience = [];
         $this->computer_skills = '';
 
+        // Инициализируем значения для step3 ползунков
+        $this->total_experience_years = 0;
+        $this->job_satisfaction = 1;
+        $this->expected_salary = 0;
+
         // Устанавливаем email из авторизованного пользователя
         $this->email = auth()->user()->email;
 
@@ -258,7 +263,7 @@ class CandidateForm extends Component
         $this->school = $this->candidate->school;
         $this->universities = $this->candidate->universities ?? [];
         $this->language_skills = $this->candidate->language_skills ?? [];
-        $this->computer_skills = $this->candidate->computer_skills ?? [];
+        $this->computer_skills = $this->candidate->computer_skills ?? '';
         $this->work_experience = $this->candidate->work_experience ?? [];
         $this->total_experience_years = $this->candidate->total_experience_years;
         $this->job_satisfaction = $this->candidate->job_satisfaction;
@@ -318,7 +323,7 @@ class CandidateForm extends Component
             'total_experience_years' => 'required|integer|min:0',
             'job_satisfaction' => 'nullable|integer|min:1|max:10',
             'desired_position' => 'required|string|max:255',
-            'expected_salary' => 'required|numeric|min:0',
+            'expected_salary' => 'required|numeric|min:0|max:999999999999',
             'employer_requirements' => 'nullable|string',
 
             // Step 4 validation rules
@@ -365,6 +370,12 @@ class CandidateForm extends Component
         'gallup_pdf.max' => 'Размер файла не должен превышать 10MB',
         'mbti_type.required' => 'Необходимо выбрать тип личности MBTI',
         'mbti_type.in' => 'Выбран некорректный тип личности MBTI',
+        'expected_salary.required' => 'Ожидаемая зарплата обязательна для заполнения',
+        'expected_salary.numeric' => 'Ожидаемая зарплата должна быть числом',
+        'expected_salary.min' => 'Ожидаемая зарплата должна быть больше 0',
+        'expected_salary.max' => 'Ожидаемая зарплата не может превышать 999,999,999,999 тенге',
+        'desired_position.required' => 'Желаемая должность обязательна для заполнения',
+        'desired_position.max' => 'Желаемая должность не должна превышать 255 символов',
     ];
 
     public function updated($propertyName)
@@ -704,16 +715,7 @@ class CandidateForm extends Component
         $this->language_skills = array_values($this->language_skills);
     }
 
-    public function addComputerSkill()
-    {
-        $this->computer_skills[] = ['skill' => '', 'level' => ''];
-    }
 
-    public function removeComputerSkill($index)
-    {
-        unset($this->computer_skills[$index]);
-        $this->computer_skills = array_values($this->computer_skills);
-    }
 
     public function addWorkExperience()
     {
@@ -981,7 +983,7 @@ class CandidateForm extends Component
         if ($this->school) $this->candidate->school = $this->school;
         if (!empty($this->universities)) $this->candidate->universities = $this->universities;
         if (!empty($this->language_skills)) $this->candidate->language_skills = $this->language_skills;
-        if (!empty($this->computer_skills)) $this->candidate->computer_skills = $this->computer_skills;
+        if ($this->computer_skills !== null) $this->candidate->computer_skills = $this->computer_skills;
         if (!empty($this->work_experience)) $this->candidate->work_experience = $this->work_experience;
         if ($this->total_experience_years !== null) $this->candidate->total_experience_years = $this->total_experience_years;
         if ($this->job_satisfaction !== null) $this->candidate->job_satisfaction = $this->job_satisfaction;

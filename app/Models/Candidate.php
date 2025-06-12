@@ -71,7 +71,7 @@ class Candidate extends Model
         'favorite_sports' => 'array',
         'universities' => 'array',
         'language_skills' => 'array',
-        'computer_skills' => 'array',
+        'computer_skills' => 'string',
         'work_experience' => 'array',
         'books_per_year' => 'integer',
         'entertainment_hours_weekly' => 'integer',
