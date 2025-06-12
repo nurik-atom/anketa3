@@ -742,8 +742,8 @@ class CandidateForm extends Component
 
         if ($this->photo) {
             try {
-                // Создаем временный предпросмотр
-                $this->photoPreview = $this->photo->temporaryUrl();
+                // Принудительно сохраняем фото в постоянное место хранения
+                $this->savePhotoImmediately();
                 
                 // Отправляем событие в браузер
                 $this->dispatch('photoUploaded');
@@ -753,6 +753,49 @@ class CandidateForm extends Component
                 $this->addError('photo', 'Ошибка при обработке фото: ' . $e->getMessage());
                 $this->dispatch('photo-error', ['message' => 'Ошибка при загрузке фото']);
             }
+        }
+    }
+
+    public function savePhotoImmediately()
+    {
+        if (!$this->photo || is_string($this->photo)) {
+            return; // Фото уже сохранено или отсутствует
+        }
+
+        try {
+            // Создаем или обновляем кандидата если его нет
+            if (!$this->candidate) {
+                $this->candidate = new Candidate();
+                $this->candidate->user_id = auth()->id();
+                $this->candidate->step = $this->currentStep;
+                // Сохраняем базовую информацию если есть
+                if ($this->last_name || $this->first_name) {
+                    $this->candidate->full_name = trim($this->last_name . ' ' . $this->first_name . ' ' . $this->middle_name);
+                }
+                if ($this->email) $this->candidate->email = $this->email;
+            }
+
+            // Удаляем старое фото если есть
+            if ($this->candidate->photo) {
+                Storage::disk('public')->delete($this->candidate->photo);
+            }
+
+            // Сохраняем новое фото
+            $photoPath = $this->photo->store('photos', 'public');
+            $this->candidate->photo = $photoPath;
+            $this->candidate->save();
+
+            // Обновляем предпросмотр на постоянный URL
+            $this->photoPreview = Storage::disk('public')->url($photoPath);
+            
+            // Устанавливаем фото как строку, чтобы указать что оно уже сохранено
+            $this->photo = $photoPath;
+
+            logger()->info('Photo saved immediately', ['path' => $photoPath, 'candidate_id' => $this->candidate->id]);
+
+        } catch (\Exception $e) {
+            logger()->error('Error saving photo immediately: ' . $e->getMessage());
+            throw $e;
         }
     }
 
