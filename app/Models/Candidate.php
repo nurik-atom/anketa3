@@ -16,8 +16,7 @@ class Candidate extends Model
         // Basic Information
         'user_id',
         'step',
-        'surname',
-        'name',
+        'full_name',
         'patronymic',
         'email',
         'phone',
@@ -131,4 +130,14 @@ class Candidate extends Model
     {
         return $this->latest_status?->status ?? 'draft';
     }
-} 
+
+    public function gallupTalents()
+    {
+        return $this->hasMany(GallupTalent::class);
+    }
+
+    public function gallupReports()
+    {
+        return $this->hasMany(GallupReport::class);
+    }
+}

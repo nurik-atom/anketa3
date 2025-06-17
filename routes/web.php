@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\GallupController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\DashboardController;
@@ -18,3 +19,5 @@ Route::middleware([
     Route::get('/candidate/form/{id?}', [CandidateController::class, 'create'])->name('candidate.form');
     Route::get('/candidate/test', [CandidateController::class, 'test'])->name('candidate.test');
 });
+
+Route::post('/gallup/process', [GallupController::class, 'process']);

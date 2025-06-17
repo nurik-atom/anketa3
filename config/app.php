@@ -123,4 +123,19 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'google_sheet' => [
+        'dps' => [
+            'spreadsheet_id' => env('GOOGLE_SHEET_DPS_INFO_SPREADSHEET_ID', ''),
+            'gid' => env('GOOGLE_SHEET_DPS_INFO_GID', ''),
+        ],
+        'dpt' => [
+            'spreadsheet_id' => env('GOOGLE_SHEET_DPT_INFO_SPREADSHEET_ID', ''),
+            'gid' => env('GOOGLE_SHEET_DPT_INFO_GID', ''),
+        ],
+        'fmd' =>[
+            'spreadsheet_id' => env('GOOGLE_SHEET_FMD_INFO_SPREADSHEET_ID', ''),
+            'gid' => env('GOOGLE_SHEET_FMD_INFO_GID', ''),
+        ]
+    ]
+
 ];
