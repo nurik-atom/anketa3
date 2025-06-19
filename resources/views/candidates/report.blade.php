@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Отчет о кандидате - {{ $candidate->full_name }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         @media print {
             body { font-size: 12px; }
@@ -19,6 +19,67 @@
             background: linear-gradient(to right, #f8fafc, #e2e8f0);
             border-left: 4px solid #3b82f6;
         }
+        
+        /* Fallback TailwindCSS базовые стили если основные не загрузились */
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-white { background-color: #ffffff; }
+        .bg-gray-100 { background-color: #f3f4f6; }
+        .text-gray-800 { color: #1f2937; }
+        .text-gray-600 { color: #4b5563; }
+        .text-gray-500 { color: #6b7280; }
+        .text-blue-600 { color: #2563eb; }
+        .font-sans { font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+        .font-bold { font-weight: 700; }
+        .font-medium { font-weight: 500; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-3xl { font-size: 1.875rem; line-height: 2.25rem; }
+        .max-w-4xl { max-width: 56rem; }
+        .mx-auto { margin-left: auto; margin-right: auto; }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .p-6 { padding: 1.5rem; }
+        .p-4 { padding: 1rem; }
+        .p-3 { padding: 0.75rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-8 { margin-bottom: 2rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .ml-8 { margin-left: 2rem; }
+        .mt-4 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .gap-6 { gap: 1.5rem; }
+        .gap-8 { gap: 2rem; }
+        .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
+        .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+        .items-start { align-items: flex-start; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .w-150 { width: 37.5rem; }
+        .w-40 { width: 10rem; }
+        .w-20 { width: 5rem; }
+        .w-32 { width: 8rem; }
+        .w-8 { width: 2rem; }
+        .w-72 { width: 18rem; }
+        .w-48 { width: 12rem; }
+        .w-auto { width: auto; }
+        .h-14 { height: 3.5rem; }
+        .h-12 { height: 3rem; }
+        .h-90 { height: 22.5rem; }
+        .h-60 { height: 15rem; }
+        .flex-1 { flex: 1 1 0%; }
+        .border-b { border-bottom-width: 1px; }
+        .border-2 { border-width: 2px; }
+        .border-gray-200 { border-color: #e5e7eb; }
+        .border-gray-300 { border-color: #d1d5db; }
+        .rounded { border-radius: 0.25rem; }
+        .object-cover { object-fit: cover; }
+        .block { display: block; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
