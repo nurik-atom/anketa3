@@ -1,20 +1,13 @@
 <?php
 
-/*
- * ЗАКОММЕНТИРОВАННАЯ ВЕРСИЯ - Постраничный тест Гарднера
- * Оставлен только вариант GardnerTestAllQuestions.php (все вопросы сразу)
- */
-
-/*
 namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\GardnerTestResult;
 use Illuminate\Support\Facades\Auth;
 
-class GardnerTest extends Component
+class GardnerTestAllQuestions extends Component
 {
-    public $currentQuestion = 0;
     public $answers = [];
     public $questions = [];
     public $totalQuestions = 44;
@@ -28,16 +21,26 @@ class GardnerTest extends Component
         // Убеждаемся, что totalQuestions соответствует реальному количеству вопросов
         $this->totalQuestions = count($this->questions);
         
+        logger()->debug('GardnerTestAllQuestions initialization', [
+            'questions_count' => count($this->questions),
+            'totalQuestions' => $this->totalQuestions
+        ]);
+        
         // Проверяем, есть ли уже результаты теста для пользователя
         $existingResult = GardnerTestResult::where('user_id', Auth::id())->first();
         
         if ($existingResult) {
             $this->isCompleted = true;
-            $this->results = $existingResult->results; // Убираем json_decode, так как модель автоматически декодирует
+            $this->results = $existingResult->results;
             return;
         }
 
         $this->answers = array_fill(0, $this->totalQuestions, null);
+        
+        logger()->debug('Answers array initialized', [
+            'answers_count' => count($this->answers),
+            'answers_keys' => array_keys($this->answers)
+        ]);
     }
 
     private function initializeQuestions()
@@ -91,37 +94,20 @@ class GardnerTest extends Component
         ];
     }
 
-    public function selectAnswer($value)
-    {
-        $this->answers[$this->currentQuestion] = $value;
-    }
-
     public function selectAnswerByIndex($index, $value)
     {
-        $this->answers[$index] = $value;
-    }
-
-    public function nextQuestion()
-    {
-        if ($this->currentQuestion < $this->totalQuestions - 1) {
-            $this->currentQuestion++;
-        }
-    }
-
-    public function previousQuestion()
-    {
-        if ($this->currentQuestion > 0) {
-            $this->currentQuestion--;
+        // Проверяем, что индекс находится в допустимом диапазоне
+        if ($index >= 0 && $index < count($this->questions)) {
+            $this->answers[$index] = $value;
         }
     }
 
     public function submitTest()
     {
         try {
-            logger()->debug('Gardner test submission started', [
+            logger()->debug('Gardner test submission started (all questions)', [
                 'user_id' => Auth::id(),
                 'answers_count' => count($this->answers),
-                'answers' => $this->answers
             ]);
 
             // Проверяем, что все вопросы отвечены
@@ -203,7 +189,6 @@ class GardnerTest extends Component
         GardnerTestResult::where('user_id', Auth::id())->delete();
         
         $this->isCompleted = false;
-        $this->currentQuestion = 0;
         $this->answers = array_fill(0, $this->totalQuestions, null);
         $this->results = [];
     }
@@ -225,12 +210,6 @@ class GardnerTest extends Component
 
     public function render()
     {
-        return view('livewire.gardner-test')->layout('layouts.app');
-    }
-
-    public function renderAllQuestions()
-    {
         return view('livewire.gardner-test-all-questions')->layout('layouts.app');
     }
-}
-*/ 
+} 

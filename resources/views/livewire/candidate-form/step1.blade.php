@@ -175,8 +175,8 @@
             </label>
             <select wire:model="gender" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option value="">Выберите пол</option>
-                <option value="male">Мужской</option>
-                <option value="female">Женский</option>
+                <option value="Мужской">Мужской</option>
+                <option value="Женский">Женский</option>
             </select>
             @error('gender') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
@@ -188,10 +188,10 @@
             </label>
             <select wire:model="marital_status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option value="">Выберите семейное положение</option>
-                <option value="single">Холост/Не замужем</option>
-                <option value="married">Женат/Замужем</option>
-                <option value="divorced">Разведен(а)</option>
-                <option value="widowed">Вдовец/Вдова</option>
+                <option value="Холост/Не замужем">Холост/Не замужем</option>
+                <option value="Женат/Замужем">Женат/Замужем</option>
+                <option value="Разведен(а)">Разведен(а)</option>
+                <option value="Вдовец/Вдова">Вдовец/Вдова</option>
             </select>
             @error('marital_status') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>

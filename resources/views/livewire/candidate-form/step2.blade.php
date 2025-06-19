@@ -25,7 +25,7 @@
             <select wire:model="religion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option value="">Выберите религию</option>
                 @foreach($religions as $key => $value)
-                    <option value="{{ $key }}">{{ $value }}</option>
+                    <option value="{{ $value }}">{{ $value }}</option>
                 @endforeach
             </select>
             @error('religion') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -52,32 +52,7 @@
                     <div class="flex items-center space-x-2 p-2 bg-gray-50 rounded">
                         <div class="flex-1">
                             <span class="font-medium">
-                                @switch($member['type'])
-                                    @case('father')
-                                        Отец
-                                        @break
-                                    @case('mother')
-                                        Мать
-                                        @break
-                                    @case('brother')
-                                        Брат
-                                        @break
-                                    @case('sister')
-                                        Сестра
-                                        @break
-                                    @case('wife')
-                                        Жена
-                                        @break
-                                    @case('husband')
-                                        Муж
-                                        @break
-                                    @case('son')
-                                        Сын
-                                        @break
-                                    @case('daughter')
-                                        Дочь
-                                        @break
-                                @endswitch
+                                {{ $member['type'] }}
                             </span>
                             <span class="mx-2">|</span>
                             <span>{{ $member['birth_year'] }} г.р.</span>
@@ -101,14 +76,14 @@
                         <select wire:model="familyMemberType" 
                                 class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Выберите тип родства</option>
-                            <option value="father">Отец</option>
-                            <option value="mother">Мать</option>
-                            <option value="brother">Брат</option>
-                            <option value="sister">Сестра</option>
-                            <option value="wife">Жена</option>
-                            <option value="husband">Муж</option>
-                            <option value="son">Сын</option>
-                            <option value="daughter">Дочь</option>
+                            <option value="Отец">Отец</option>
+                            <option value="Мать">Мать</option>
+                            <option value="Брат">Брат</option>
+                            <option value="Сестра">Сестра</option>
+                            <option value="Жена">Жена</option>
+                            <option value="Муж">Муж</option>
+                            <option value="Сын">Сын</option>
+                            <option value="Дочь">Дочь</option>
                         </select>
                         @error('familyMemberType') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                     </div>
@@ -208,7 +183,7 @@
                     <div class="flex flex-wrap gap-2 mb-2 min-h-[2.5rem] bg-gray-50 p-2 rounded-md">
                         @foreach($favorite_sports as $index => $sport)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {{ $sports[$sport] ?? $sport }}
+                                {{ $sport }}
                                 <button type="button" wire:click="removeSport({{ $index }})" class="ml-1 text-green-400 hover:text-green-600">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
@@ -221,7 +196,7 @@
                         <select wire:model="newSport" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                             <option value="">Выберите вид спорта</option>
                             @foreach($sports as $key => $value)
-                                <option value="{{ $key }}">{{ $value }}</option>
+                                <option value="{{ $value }}">{{ $value }}</option>
                             @endforeach
                         </select>
                         <button type="button" 

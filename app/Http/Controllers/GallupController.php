@@ -15,27 +15,27 @@ class GallupController extends Controller
 {
 
     // этот метод только для тестирования, чтобы проверить, что всё работает
-    public function process(Request $request)
-    {
-        // Шаг 1: загрузка файла
-        $path = $request->file('pdf')->store('gallup', 'public');
-
-        // Шаг 2: Извлечение текста
-        $parser = new Parser();
-        $pdf = $parser->parseFile(storage_path('app/public/' . $path));
-        $text = $pdf->getText();
-
-        // Шаг 3: Извлечение списка талантов
-        preg_match_all('/\d{1,2}\.\s+(.*)/', $text, $matches);
-        $talents = $matches[1] ?? [];
-
-        // Пример: сохранить топ-10 в лог
-//        logger()->info('Top 10 Talents:', array_slice($talents, 0, 34));
-
-        return response()->json([
-            'top_10_talents' => array_slice($talents, 0, 34),
-        ]);
-    }
+//    public function process(Request $request)
+//    {
+//        // Шаг 1: загрузка файла
+//        $path = $request->file('pdf')->store('gallup', 'public');
+//
+//        // Шаг 2: Извлечение текста
+//        $parser = new Parser();
+//        $pdf = $parser->parseFile(storage_path('app/public/' . $path));
+//        $text = $pdf->getText();
+//
+//        // Шаг 3: Извлечение списка талантов
+//        preg_match_all('/\d{1,2}\.\s+(.*)/', $text, $matches);
+//        $talents = $matches[1] ?? [];
+//
+//        // Пример: сохранить топ-10 в лог
+////        logger()->info('Top 10 Talents:', array_slice($talents, 0, 34));
+//
+//        return response()->json([
+//            'top_10_talents' => array_slice($talents, 0, 34),
+//        ]);
+//    }
 
     public function parseGallupFromCandidateFile_404(Candidate $candidate)
     {

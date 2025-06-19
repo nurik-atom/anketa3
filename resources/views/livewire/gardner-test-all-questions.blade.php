@@ -1,23 +1,13 @@
 <div class="py-12">
-    <div class="max-w-4xl mx-auto sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto sm:px-6 lg:px-8">
         <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
             @if(!$isCompleted)
-                <!-- Тест в процессе -->
                 <div class="p-6">
                     <div class="flex justify-between items-center mb-6">
                         <h1 class="text-2xl font-bold text-gray-900">Тест Гарднера - Множественные интеллекты</h1>
-                        <div class="flex items-center space-x-4">
-                            <a href="{{ route('gardner-test-all') }}" class="text-blue-600 hover:text-blue-800 text-sm">Все вопросы сразу →</a>
-                            <div class="text-sm text-gray-500">
-                                Вопрос {{ $currentQuestion + 1 }} из {{ $totalQuestions }}
-                            </div>
+                        <div class="text-sm text-gray-500">
+                            Все {{ $totalQuestions }} вопросов
                         </div>
-                    </div>
-
-                    <!-- Прогресс бар -->
-                    <div class="w-full bg-gray-200 rounded-full h-2 mb-6">
-                        <div class="bg-indigo-600 h-2 rounded-full transition-all duration-300" 
-                             style="width: {{ (($currentQuestion + 1) / $totalQuestions) * 100 }}%"></div>
                     </div>
 
                     @if (session()->has('error'))
@@ -26,78 +16,75 @@
                         </div>
                     @endif
 
-                    <!-- Индикатор прогресса ответов -->
                     @php
                         $answeredCount = count(array_filter($answers, fn($x) => $x !== null));
                         $allAnswered = !in_array(null, $answers);
+                        $progressPercentage = ($answeredCount / $totalQuestions) * 100;
                     @endphp
                     
-                    @if($answeredCount > 0)
-                        <div class="mb-4 p-3 bg-blue-50 rounded-lg">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-blue-800">
-                                    Отвечено: {{ $answeredCount }} из {{ $totalQuestions }} вопросов
-                                </span>
-                                @if($allAnswered)
-                                    <button type="button" 
-                                            wire:click="submitTest"
-                                            class="inline-flex items-center px-3 py-1 bg-green-600 border border-transparent rounded text-xs text-white font-semibold uppercase tracking-wider hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
-                                        🎉 Завершить тест
-                                    </button>
-                                @endif
-                            </div>
+                    <div class="mb-6 sticky top-0 bg-white p-4 border-b z-10">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-gray-700">
+                                Прогресс: {{ $answeredCount }} из {{ $totalQuestions }}
+                            </span>
+                            <span class="text-sm font-medium text-gray-700">{{ round($progressPercentage, 1) }}%</span>
                         </div>
-                    @endif
-
-                    <!-- Текущий вопрос -->
-                    <div class="mb-8">
-                        <h2 class="text-lg font-semibold mb-4">{{ $questions[$currentQuestion]['text'] }}</h2>
                         
-                        <div class="space-y-3">
-                            @foreach([1 => 'Полностью согласен', 2 => 'Согласен', 3 => 'Частично согласен', 4 => 'Не согласен', 5 => 'Совершенно не согласен'] as $value => $label)
-                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer {{ isset($answers[$currentQuestion]) && $answers[$currentQuestion] == $value ? 'bg-indigo-50 border-indigo-500' : '' }}">
-                                    <input type="radio" 
-                                           name="question_{{ $currentQuestion }}" 
-                                           value="{{ $value }}"
-                                           wire:click="selectAnswer({{ $value }})"
-                                           {{ isset($answers[$currentQuestion]) && $answers[$currentQuestion] == $value ? 'checked' : '' }}
-                                           class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300">
-                                    <span class="ml-3 text-gray-700">{{ $label }}</span>
-                                </label>
-                            @endforeach
+                        <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
+                            <div class="bg-indigo-600 h-3 rounded-full transition-all duration-300" 
+                                 style="width: {{ $progressPercentage }}%"></div>
                         </div>
+                        
+                        @if($allAnswered)
+                            <div class="flex justify-center">
+                                <button type="button" 
+                                        wire:click="submitTest"
+                                        class="inline-flex items-center px-6 py-3 bg-green-600 border border-transparent rounded-lg font-semibold text-sm text-white uppercase tracking-wider hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+                                    🎉 Завершить тест
+                                </button>
+                            </div>
+                        @endif
                     </div>
 
-                    <!-- Навигация -->
-                    <div class="flex justify-between">
-                        <button type="button" 
-                                wire:click="previousQuestion"
-                                @if($currentQuestion == 0) disabled @endif
-                                class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-700 uppercase tracking-widest hover:bg-gray-400 active:bg-gray-500 focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition">
-                            ← Предыдущий
-                        </button>
+                    <div class="space-y-6">
+                        @foreach($questions as $index => $question)
+                            <div class="bg-gray-50 rounded-lg p-4 border">
+                                <div class="mb-3">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mr-2">
+                                        Вопрос {{ $index + 1 }}
+                                    </span>
+                                    <span class="text-gray-900 font-medium">{{ $question['text'] }}</span>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 gap-2">
+                                    @foreach([1 => 'Полностью согласен', 2 => 'Согласен', 3 => 'Частично согласен', 4 => 'Не согласен', 5 => 'Совершенно не согласен'] as $value => $label)
+                                        <label class="flex items-center p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer {{ isset($answers[$index]) && $answers[$index] == $value ? 'bg-blue-100 border-blue-500' : '' }}">
+                                            <input type="radio" 
+                                                   name="question_{{ $index }}" 
+                                                   value="{{ $value }}"
+                                                   wire:click="selectAnswerByIndex({{ $index }}, {{ $value }})"
+                                                   {{ isset($answers[$index]) && $answers[$index] == $value ? 'checked' : '' }}
+                                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300">
+                                            <span class="ml-3 text-gray-700">{{ $label }}</span>
+                                        </label>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
 
-                        @if($currentQuestion == $totalQuestions - 1)
-                            @php
-                                $allAnswered = !in_array(null, $answers);
-                            @endphp
+                    <div class="mt-8 text-center">
+                        @if($allAnswered)
                             <button type="button" 
                                     wire:click="submitTest"
-                                    {{ !$allAnswered ? 'disabled' : '' }}
-                                    class="inline-flex items-center px-4 py-2 {{ $allAnswered ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 focus:border-green-700 focus:ring-green-200' : 'bg-gray-400 cursor-not-allowed' }} border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest focus:outline-none focus:ring transition">
-                                @if($allAnswered)
-                                    Завершить тест
-                                @else
-                                    Ответьте на все вопросы
-                                @endif
+                                    class="inline-flex items-center px-8 py-4 bg-green-600 border border-transparent rounded-lg font-semibold text-lg text-white uppercase tracking-wider hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 transition">
+                                🎉 Завершить тест и получить результаты
                             </button>
                         @else
-                            <button type="button" 
-                                    wire:click="nextQuestion"
-                                    {{ !isset($answers[$currentQuestion]) || $answers[$currentQuestion] === null ? 'disabled' : '' }}
-                                    class="inline-flex items-center px-4 py-2 bg-indigo-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-700 active:bg-indigo-800 focus:outline-none focus:border-indigo-700 focus:ring focus:ring-indigo-200 disabled:opacity-50 disabled:cursor-not-allowed transition">
-                                Следующий →
-                            </button>
+                            <div class="bg-gray-100 rounded-lg p-6">
+                                <p class="text-gray-600 mb-2">Для завершения теста ответьте на все {{ $totalQuestions }} вопросов</p>
+                                <p class="text-sm text-gray-500">Осталось: {{ $totalQuestions - $answeredCount }} вопросов</p>
+                            </div>
                         @endif
                     </div>
                 </div>

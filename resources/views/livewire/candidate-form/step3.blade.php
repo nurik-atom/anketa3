@@ -99,6 +99,70 @@
             </div>
         </div>
 
+        <!-- Опыт работы -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">Опыт работы</label>
+            <div class="space-y-4">
+                @foreach($work_experience as $index => $experience)
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Годы <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       wire:model="work_experience.{{ $index }}.years" 
+                                       placeholder="например: 2020-2023"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error("work_experience.{$index}.years") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Название компании <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       wire:model="work_experience.{{ $index }}.company" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error("work_experience.{$index}.company") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Город <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       wire:model="work_experience.{{ $index }}.city" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error("work_experience.{$index}.city") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Должность <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       wire:model="work_experience.{{ $index }}.position" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error("work_experience.{$index}.position") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button type="button" wire:click="removeWorkExperience({{ $index }})" class="text-red-600 hover:text-red-800">
+                                Удалить
+                            </button>
+                        </div>
+                    </div>
+                @endforeach
+
+                <button type="button" 
+                        wire:click="addWorkExperience" 
+                        class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Добавить место работы
+                </button>
+            </div>
+        </div>
+
         <!-- Языковые навыки -->
         <div>
             <label class="block text-sm font-medium text-gray-700">Языковые навыки</label>
@@ -123,10 +187,10 @@
                                 <select wire:model="language_skills.{{ $index }}.level" 
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Выберите уровень</option>
-                                    <option value="beginner">Начальный</option>
-                                    <option value="intermediate">Средний</option>
-                                    <option value="advanced">Продвинутый</option>
-                                    <option value="native">Родной</option>
+                                    <option value="Начальный">Начальный</option>
+                                    <option value="Средний">Средний</option>
+                                    <option value="Продвинутый">Продвинутый</option>
+                                    <option value="Родной">Родной</option>
                                 </select>
                                 @error("language_skills.{$index}.level") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>

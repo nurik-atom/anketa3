@@ -201,7 +201,14 @@ function fileUpload() {
                 window.addEventListener('livewire:updated', () => {
                     setTimeout(() => {
                         this.checkExistingFile();
+                        this.checkForErrors();
                     }, 100);
+                });
+
+                // Слушаем событие сброса файла
+                this.$wire.on('gallup-file-reset', () => {
+                    console.log('Gallup file reset event received');
+                    this.resetFileState();
                 });
             });
         },
@@ -253,6 +260,28 @@ function fileUpload() {
             
             console.log('No existing file found');
         },
+
+        checkForErrors() {
+            // Проверяем есть ли ошибки валидации для gallup_pdf
+            if (typeof @this !== 'undefined') {
+                const errors = @this.get('errors');
+                if (errors && errors.gallup_pdf) {
+                    console.log('Gallup PDF validation error detected, hiding file block');
+                    // Скрываем блок загруженного файла при ошибке
+                    this.fileUploaded = false;
+                    this.isExistingFile = false;
+                    this.fileName = '';
+                    this.fileSize = '';
+                    this.downloadUrl = '';
+                    
+                    // Очищаем input
+                    const fileInput = this.$el.querySelector('input[type="file"]');
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                }
+            }
+        },
         
         extractFileNameFromPath(path) {
             if (!path) return 'Gallup результаты';
@@ -292,15 +321,21 @@ function fileUpload() {
         removeFile() {
             console.log('Removing file...');
             
+            // Очищаем Livewire
+            if (typeof @this !== 'undefined' && @this.set) {
+                @this.set('gallup_pdf', null);
+            }
+            
+            this.resetFileState();
+        },
+
+        resetFileState() {
+            console.log('Resetting file state...');
+            
             // Очищаем input
             const fileInput = this.$el.querySelector('input[type="file"]');
             if (fileInput) {
                 fileInput.value = '';
-            }
-            
-            // Очищаем Livewire
-            if (typeof @this !== 'undefined' && @this.set) {
-                @this.set('gallup_pdf', null);
             }
             
             // Сбрасываем состояние
@@ -310,7 +345,7 @@ function fileUpload() {
             this.fileSize = '';
             this.downloadUrl = '';
             
-            console.log('File removed');
+            console.log('File state reset');
         },
 
         formatFileSize(bytes) {

@@ -6,11 +6,13 @@ use App\Models\Candidate;
 use App\Models\CandidateFile;
 use App\Models\CandidateHistory;
 use App\Models\CandidateStatus;
+use App\Jobs\ProcessGallupFile;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Smalot\PdfParser\Parser;
 
 class CandidateForm extends Component
 {
@@ -180,6 +182,8 @@ class CandidateForm extends Component
         $this->language_skills = [];
         $this->work_experience = [];
         $this->computer_skills = '';
+        
+        logger()->debug('Mount: work_experience initialized as empty array');
 
         // Инициализируем значения для step3 ползунков
         $this->total_experience_years = 0;
@@ -209,8 +213,10 @@ class CandidateForm extends Component
                     // Если анкета завершена (step >= 5), показываем первый шаг для редактирования
                     $this->currentStep = $this->candidate->step >= 5 ? 1 : $this->candidate->step;
                 } else {
-                    // Инициализируем пустой массив для family_members
+                    // Инициализируем пустые массивы для нового кандидата
                     $this->family_members = [];
+                    // Убеждаемся что work_experience пустой массив
+                    $this->work_experience = [];
                 }
             }
         }
@@ -245,8 +251,9 @@ class CandidateForm extends Component
                 : null;
         }
 
-        // Additional Information
-        $this->religion = $this->candidate->religion;
+        // Additional Information  
+        $this->religion = $this->convertReligionToRussian($this->candidate->religion);
+        logger()->debug('Loading candidate religion:', ['original' => $this->candidate->religion, 'converted' => $this->religion]);
         $this->is_practicing = $this->candidate->is_practicing;
         $this->family_members = $this->candidate->family_members ?? [];
         $this->hobbies = $this->candidate->hobbies;
@@ -264,7 +271,8 @@ class CandidateForm extends Component
         $this->universities = $this->candidate->universities ?? [];
         $this->language_skills = $this->candidate->language_skills ?? [];
         $this->computer_skills = $this->candidate->computer_skills ?? '';
-        $this->work_experience = $this->candidate->work_experience ?? [];
+        $this->work_experience = $this->convertWorkExperienceFormat($this->candidate->work_experience ?? []);
+        logger()->debug('Work experience loaded:', ['original' => $this->candidate->work_experience, 'converted' => $this->work_experience]);
         $this->total_experience_years = $this->candidate->total_experience_years;
         $this->job_satisfaction = $this->candidate->job_satisfaction;
         $this->desired_position = $this->candidate->desired_position;
@@ -287,22 +295,22 @@ class CandidateForm extends Component
             'middle_name' => 'nullable|string|max:255',
         'email' => 'required|email|max:255',
             'phone' => ['required', 'string', 'regex:/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/'],
-            'gender' => 'required|in:male,female',
-            'marital_status' => 'required|in:single,married,divorced,widowed',
+            'gender' => 'required|in:Мужской,Женский',
+            'marital_status' => 'required|in:Холост/Не замужем,Женат/Замужем,Разведен(а),Вдовец/Вдова',
             'birth_date' => 'required|date|before:today',
             'birth_place' => 'required|string|max:255',
         'current_city' => 'required|string|max:255',
             'photo' => !$this->candidate?->photo ? 'required|image|max:2048' : 'nullable|image|max:2048',
 
             // Step 2 validation rules
-            'religion' => 'required|string|in:' . implode(',', array_keys(config('lists.religions'))),
+            'religion' => 'required|string|in:' . implode(',', array_values(config('lists.religions'))),
             'is_practicing' => 'nullable|boolean',
             'family_members' => 'nullable|array',
             'visited_countries' => 'nullable|array',
             'visited_countries.*' => 'string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
             'books_per_year' => 'nullable|integer|min:0',
             'favorite_sports' => 'nullable|array',
-            'favorite_sports.*' => 'in:' . implode(',', array_keys(config('lists.sports'))),
+            'favorite_sports.*' => 'in:' . implode(',', array_values(config('lists.sports'))),
             'entertainment_hours_weekly' => 'nullable|integer|min:0|max:168',
             'educational_hours_weekly' => 'nullable|integer|min:0|max:168',
             'social_media_hours_weekly' => 'nullable|integer|min:0|max:168',
@@ -317,9 +325,13 @@ class CandidateForm extends Component
             'universities.*.gpa' => 'required|numeric|min:0|max:4',
             'language_skills' => 'nullable|array',
             'language_skills.*.language' => 'required|string' . (!empty($this->languages) ? '|in:' . implode(',', $this->languages) : ''),
-            'language_skills.*.level' => 'required|in:beginner,intermediate,advanced,native',
+            'language_skills.*.level' => 'required|in:Начальный,Средний,Продвинутый,Родной',
             'computer_skills' => 'nullable|string',
             'work_experience' => 'nullable|array',
+            'work_experience.*.years' => 'required_with:work_experience.*|string|max:255',
+            'work_experience.*.company' => 'required_with:work_experience.*|string|max:255',
+            'work_experience.*.city' => 'required_with:work_experience.*|string|max:255',
+            'work_experience.*.position' => 'required_with:work_experience.*|string|max:255',
             'total_experience_years' => 'required|integer|min:0',
             'job_satisfaction' => 'nullable|integer|min:1|max:10',
             'desired_position' => 'required|string|max:255',
@@ -328,7 +340,11 @@ class CandidateForm extends Component
 
             // Step 4 validation rules
             'gallup_pdf' => [
-                Rule::when($this->currentStep === 4, ['required', 'file', 'mimes:pdf', 'max:10240']),
+                Rule::when($this->currentStep === 4, ['required', 'file', 'mimes:pdf', 'max:10240', function ($attribute, $value, $fail) {
+                    if ($value && !is_string($value) && !$this->isGallupPdf($value)) {
+                        $fail('Загруженный файл не является корректным отчетом Gallup.');
+                    }
+                }]),
                 Rule::when($this->currentStep !== 4, ['nullable']),
             ],
             'mbti_type' => [
@@ -383,6 +399,30 @@ class CandidateForm extends Component
         // Если обновляется поле университета
         if (strpos($propertyName, 'universities.') === 0) {
             $this->validateOnly($propertyName);
+            return;
+        }
+        
+        // Если обновляется поле опыта работы
+        if (strpos($propertyName, 'work_experience.') === 0) {
+            // Извлекаем индекс из имени свойства
+            if (preg_match('/work_experience\.(\d+)\./', $propertyName, $matches)) {
+                $index = (int)$matches[1];
+                // Проверяем, что элемент с таким индексом существует
+                if (!isset($this->work_experience[$index])) {
+                    logger()->warning('Attempted to access non-existent work experience index', [
+                        'property' => $propertyName,
+                        'index' => $index,
+                        'work_experience_count' => count($this->work_experience)
+                    ]);
+                    return;
+                }
+                // Валидируем только если все обязательные поля заполнены
+                $experience = $this->work_experience[$index];
+                if (!empty($experience['years']) && !empty($experience['company']) && 
+                    !empty($experience['city']) && !empty($experience['position'])) {
+                    $this->validateOnly($propertyName);
+                }
+            }
             return;
         }
 
@@ -518,8 +558,8 @@ class CandidateForm extends Component
                 'middle_name' => 'nullable|string|max:255',
                 'email' => 'required|email|max:255',
                 'phone' => ['required', 'string', 'regex:/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/'],
-                'gender' => 'required|in:male,female',
-                'marital_status' => 'required|in:single,married,divorced,widowed',
+                'gender' => 'required|in:Мужской,Женский',
+                'marital_status' => 'required|in:Холост/Не замужем,Женат/Замужем,Разведен(а),Вдовец/Вдова',
                 'birth_date' => 'required|date|before:today',
                 'birth_place' => 'required|string|max:255',
                 'current_city' => 'required|string|max:255',
@@ -551,9 +591,17 @@ class CandidateForm extends Component
                 'employer_requirements' => $this->rules()['employer_requirements'],
             ],
             4 => [
-                'gallup_pdf' => $this->currentStep === 4 && $this->candidate && $this->candidate->gallup_pdf 
-                    ? 'nullable|file|mimes:pdf|max:10240' 
-                    : 'required|file|mimes:pdf|max:10240',
+                'gallup_pdf' => [
+                    $this->currentStep === 4 && $this->candidate && $this->candidate->gallup_pdf ? 'nullable' : 'required',
+                    'file',
+                    'mimes:pdf',
+                    'max:10240',
+                    function ($attribute, $value, $fail) {
+                        if ($value && !is_string($value) && !$this->isGallupPdf($value)) {
+                            $fail('Загруженный файл не является корректным отчетом Gallup.');
+                        }
+                    }
+                ],
                 'mbti_type' => 'required|string|in:INTJ-A,INTJ-T,INTP-A,INTP-T,ENTJ-A,ENTJ-T,ENTP-A,ENTP-T,INFJ-A,INFJ-T,INFP-A,INFP-T,ENFJ-A,ENFJ-T,ENFP-A,ENFP-T,ISTJ-A,ISTJ-T,ISFJ-A,ISFJ-T,ESTJ-A,ESTJ-T,ESFJ-A,ESFJ-T,ISTP-A,ISTP-T,ISFP-A,ISFP-T,ESTP-A,ESTP-T,ESFP-A,ESFP-T',
             ],
             default => [],
@@ -564,7 +612,7 @@ class CandidateForm extends Component
     public function addFamilyMember()
     {
         $this->validate([
-            'familyMemberType' => 'required|string|in:father,mother,brother,sister,wife,husband,son,daughter',
+            'familyMemberType' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
             'familyMemberBirthYear' => 'required|integer|min:1900|max:' . date('Y'),
             'familyMemberProfession' => 'required|string|max:255',
         ]);
@@ -671,7 +719,7 @@ class CandidateForm extends Component
         
         $this->language_skills[] = [
             'language' => $firstLanguage,
-            'level' => 'beginner'
+            'level' => 'Начальный'
         ];
     }
 
@@ -720,11 +768,10 @@ class CandidateForm extends Component
     public function addWorkExperience()
     {
         $this->work_experience[] = [
+            'years' => '',
             'company' => '',
-            'position' => '',
-            'start_date' => '',
-            'end_date' => '',
-            'responsibilities' => ''
+            'city' => '',
+            'position' => ''
         ];
     }
 
@@ -827,16 +874,38 @@ class CandidateForm extends Component
     public function updatedGallupPdf()
     {
         if ($this->gallup_pdf) {
-            // Валидируем файл
-            $this->validate([
-                'gallup_pdf' => 'file|mimes:pdf|max:10240'
-            ]);
-            
-            // Отправляем событие в JavaScript
-            $this->dispatch('gallup-file-uploaded');
-            
-            session()->flash('message', 'PDF файл загружен');
+            try {
+                // Базовая валидация файла
+                $this->validate([
+                    'gallup_pdf' => 'file|mimes:pdf|max:10240'
+                ]);
+                
+                // Проверяем, что это корректный Gallup PDF
+                if (!$this->isGallupPdf($this->gallup_pdf)) {
+                    $this->addError('gallup_pdf', 'Загруженный файл не является корректным отчетом Gallup. Убедитесь, что это официальный PDF с результатами теста Gallup.');
+                    $this->resetGallupFile();
+                    return;
+                }
+                
+                // Отправляем событие в JavaScript
+                $this->dispatch('gallup-file-uploaded');
+                
+                session()->flash('message', 'PDF файл загружен и проверен');
+            } catch (\Exception $e) {
+                $this->addError('gallup_pdf', 'Ошибка при обработке файла: ' . $e->getMessage());
+                $this->resetGallupFile();
+                logger()->error('Error processing Gallup PDF: ' . $e->getMessage());
+            }
         }
+    }
+
+    /**
+     * Сбрасывает состояние gallup_pdf файла
+     */
+    private function resetGallupFile()
+    {
+        $this->gallup_pdf = null;
+        $this->dispatch('gallup-file-reset'); // Отправляем событие в JavaScript для сброса UI
     }
 
     public function submit()
@@ -866,11 +935,28 @@ class CandidateForm extends Component
                 logger()->debug('Gallup PDF validation removed (existing file)');
             } else if ($this->candidate && $this->candidate->gallup_pdf) {
                 // Если есть сохраненный файл, но загружается новый
-                $rules['gallup_pdf'] = ['nullable', 'file', 'mimes:pdf', 'max:10240'];
-                logger()->debug('Gallup PDF rule modified to nullable (file exists in DB)');
+                $rules['gallup_pdf'] = [
+                    'nullable', 
+                    'file', 
+                    'mimes:pdf', 
+                    'max:10240',
+                    function ($attribute, $value, $fail) {
+                        if ($value && !is_string($value) && !$this->isGallupPdf($value)) {
+                            $fail('Загруженный файл не является корректным отчетом Gallup.');
+                        }
+                    }
+                ];
+                logger()->debug('Gallup PDF rule modified to nullable with validation (file exists in DB)');
             }
             
             logger()->debug('Validation rules for submit:', ['photo' => $rules['photo'] ?? 'not set', 'gallup_pdf' => $rules['gallup_pdf'] ?? 'not set', 'mbti_type' => $rules['mbti_type'] ?? 'not set']);
+            
+            // Отладка значения религии
+            logger()->debug('Religion debug:', [
+                'current_religion_value' => $this->religion,
+                'allowed_religions' => array_values(config('lists.religions')),
+                'religion_validation_rule' => $rules['religion'] ?? 'not set'
+            ]);
             
             $this->validate($rules);
             logger()->debug('Validation passed');
@@ -950,6 +1036,15 @@ class CandidateForm extends Component
                 'changed_by' => auth()->user()?->name ?? 'Guest',
                 'ip_address' => request()->ip()
             ]);
+
+            // Запускаем обработку Gallup файла в фоновом режиме
+            if ($this->candidate->gallup_pdf) {
+                ProcessGallupFile::dispatch($this->candidate);
+                logger()->info('Gallup file processing job dispatched', [
+                    'candidate_id' => $this->candidate->id,
+                    'gallup_pdf' => $this->candidate->gallup_pdf
+                ]);
+            }
 
             session()->flash('message', 'Анкета успешно сохранена!');
             
@@ -1158,6 +1253,99 @@ class CandidateForm extends Component
         $i = floor(log($bytes) / log($k));
         
         return round($bytes / pow($k, $i), 2) . ' ' . $sizes[$i];
+    }
+
+    /**
+     * Проверяет, является ли загруженный файл корректным Gallup PDF
+     */
+    private function isGallupPdf($file): bool
+    {
+        try {
+            // Получаем временный путь к файлу
+            $tempPath = $file->getRealPath();
+            
+            $parser = new \Smalot\PdfParser\Parser();
+            $pdf = $parser->parseFile($tempPath);
+            $text = $pdf->getText();
+            $pages = $pdf->getPages();
+
+            // Ключевые признаки Gallup-отчета
+            $hasCorrectPageCount = count($pages) === 26;
+            $containsCliftonHeader = str_contains($text, 'Gallup, Inc. All rights reserved.');
+            $containsGallupCopyright = str_contains($text, 'Gallup, Inc.');
+            $containsTalentList = preg_match('/1\.\s+[A-Za-z-]+/', $text);
+
+            return $hasCorrectPageCount && $containsCliftonHeader && $containsGallupCopyright && $containsTalentList;
+        } catch (\Exception $e) {
+            logger()->error('Error checking Gallup PDF: ' . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Конвертирует английские значения религии в русские для совместимости
+     */
+    private function convertReligionToRussian($religion)
+    {
+        $religions = config('lists.religions');
+        
+        // Если это уже русское значение, возвращаем как есть
+        if (in_array($religion, array_values($religions))) {
+            return $religion;
+        }
+        
+        // Если это английский ключ, конвертируем в русское значение
+        if (array_key_exists($religion, $religions)) {
+            return $religions[$religion];
+        }
+        
+        return $religion;
+    }
+
+    /**
+     * Конвертирует старый формат опыта работы в новый
+     */
+    private function convertWorkExperienceFormat($workExperience)
+    {
+        logger()->debug('Converting work experience format:', ['input' => $workExperience]);
+        
+        if (empty($workExperience)) {
+            logger()->debug('Work experience is empty, returning empty array');
+            return [];
+        }
+
+        $converted = [];
+        
+        foreach ($workExperience as $experience) {
+            // Если это уже новый формат (есть поле 'years'), оставляем как есть
+            if (isset($experience['years'])) {
+                $converted[] = [
+                    'years' => $experience['years'] ?? '',
+                    'company' => $experience['company'] ?? '',
+                    'city' => $experience['city'] ?? '',
+                    'position' => $experience['position'] ?? '',
+                ];
+            } 
+            // Если это старый формат, конвертируем
+            else {
+                $years = '';
+                if (isset($experience['start_date']) && isset($experience['end_date'])) {
+                    $startYear = $experience['start_date'] ? date('Y', strtotime($experience['start_date'])) : '';
+                    $endYear = $experience['end_date'] ? date('Y', strtotime($experience['end_date'])) : '';
+                    $years = $startYear && $endYear ? "$startYear-$endYear" : ($startYear ?: $endYear);
+                }
+                
+                $converted[] = [
+                    'years' => $years,
+                    'company' => $experience['company'] ?? '',
+                    'city' => '', // В старом формате не было города
+                    'position' => $experience['position'] ?? '',
+                ];
+            }
+        }
+        
+        logger()->debug('Work experience conversion completed:', ['output' => $converted]);
+        return $converted;
     }
 
     public function render()

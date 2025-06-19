@@ -26,9 +26,16 @@
                                     <p class="text-sm text-gray-500">Текущий шаг: {{ $candidate->step }} из 4</p>
                                 @endif
                             </div>
-                            <a href="{{ route('candidate.form', ['id' => $candidate->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 disabled:opacity-25 transition">
-                                Изменить анкету
-                            </a>
+                            <div class="flex gap-3">
+                                <a href="{{ route('candidate.form', ['id' => $candidate->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 disabled:opacity-25 transition">
+                                    Изменить анкету
+                                </a>
+                                @if($candidate->step >= 5)
+                                    <a href="{{ route('candidate.report', $candidate) }}" class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-600 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 disabled:opacity-25 transition">
+                                        Посмотреть отчет
+                                    </a>
+                                @endif
+                            </div>
                             @if($lastUpdate)
                                 <p class="mt-2 text-sm text-gray-500">обновлено в {{ $lastUpdate }}</p>
                             @endif
@@ -49,24 +56,24 @@
                                     <div class="w-3 h-3 rounded-full bg-green-500 mr-2"></div>
                                     <p class="text-gray-600">Статус: Завершен</p>
                                 </div>
-                                @php
-                                    $results = is_string($gardnerTest->results) ? json_decode($gardnerTest->results, true) : $gardnerTest->results;
-                                    $maxScore = max($results);
-                                    $dominantType = array_search($maxScore, $results);
-                                    $typeNames = [
-                                        'linguistic' => 'Лингвистический',
-                                        'logical_mathematical' => 'Логико-математический',
-                                        'spatial' => 'Пространственный',
-                                        'musical' => 'Музыкальный',
-                                        'bodily_kinesthetic' => 'Телесно-кинестетический',
-                                        'intrapersonal' => 'Внутриличностный',
-                                        'interpersonal' => 'Межличностный',
-                                        'naturalistic' => 'Натуралистический',
-                                    ];
-                                @endphp
-                                <p class="text-sm text-gray-500 mb-2">
-                                    Доминирующий тип: {{ $typeNames[$dominantType] ?? 'Неизвестен' }}
-                                </p>
+{{--                                @php--}}
+{{--                                    $results = is_string($gardnerTest->results) ? json_decode($gardnerTest->results, true) : $gardnerTest->results;--}}
+{{--                                    $maxScore = max($results);--}}
+{{--                                    $dominantType = array_search($maxScore, $results);--}}
+{{--                                    $typeNames = [--}}
+{{--                                        'linguistic' => 'Лингвистический',--}}
+{{--                                        'logical_mathematical' => 'Логико-математический',--}}
+{{--                                        'spatial' => 'Пространственный',--}}
+{{--                                        'musical' => 'Музыкальный',--}}
+{{--                                        'bodily_kinesthetic' => 'Телесно-кинестетический',--}}
+{{--                                        'intrapersonal' => 'Внутриличностный',--}}
+{{--                                        'interpersonal' => 'Межличностный',--}}
+{{--                                        'naturalistic' => 'Натуралистический',--}}
+{{--                                    ];--}}
+{{--                                @endphp--}}
+{{--                                <p class="text-sm text-gray-500 mb-2">--}}
+{{--                                    Доминирующий тип: {{ $typeNames[$dominantType] ?? 'Неизвестен' }}--}}
+{{--                                </p>--}}
                             </div>
                             <a href="{{ route('candidate.test') }}" class="inline-flex items-center px-4 py-2 bg-indigo-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-indigo-600 active:bg-indigo-700 focus:outline-none focus:border-indigo-700 focus:ring focus:ring-indigo-200 disabled:opacity-25 transition">
                                 Посмотреть результаты
