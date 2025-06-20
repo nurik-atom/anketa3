@@ -346,16 +346,16 @@ class CandidateResource extends Resource
                         !empty($record->gallup_pdf) || $record->gallupReports()->exists()
                     ),
                 Tables\Actions\Action::make('viewGardnerTest')
-                    ->label('Тест Гарднера')
+                    ->label('Результаты теста')
                     ->icon('heroicon-o-chart-bar')
                     ->color('info')
                     ->url(fn (Candidate $record): string => 
-                        $record->user?->gardnerTestResult 
-                            ? route('candidate.test') . '?user=' . $record->user_id
-                            : route('gardner-test')
+                        route('candidate.test') . '?user=' . $record->user_id
                     )
                     ->openUrlInNewTab()
-                    ->visible(fn (Candidate $record): bool => $record->user_id !== null),
+                    ->visible(fn (Candidate $record): bool => 
+                        $record->user_id !== null && $record->user?->gardnerTestResult !== null
+                    ),
                 Tables\Actions\DeleteAction::make()
                     ->label('Удалить'),
             ])
