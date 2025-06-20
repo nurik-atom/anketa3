@@ -308,6 +308,17 @@ class CandidateResource extends Resource
                     ),
             ])
             ->actions([
+                Tables\Actions\Action::make('viewGardnerTest')
+                ->label('Гарднер')
+                ->icon('heroicon-o-chart-bar')
+                ->color('info')
+                ->url(fn (Candidate $record): string => 
+                    route('candidate.test') . '?user=' . $record->user_id
+                )
+                ->openUrlInNewTab()
+                ->visible(fn (Candidate $record): bool => 
+                    $record->user_id !== null && $record->user?->gardnerTestResult !== null
+                ),
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('downloadGallup')
                         ->label('Исходный Gallup')
@@ -344,17 +355,6 @@ class CandidateResource extends Resource
                     ->button()
                     ->visible(fn (Candidate $record): bool => 
                         !empty($record->gallup_pdf) || $record->gallupReports()->exists()
-                    ),
-                Tables\Actions\Action::make('viewGardnerTest')
-                    ->label('Результаты теста')
-                    ->icon('heroicon-o-chart-bar')
-                    ->color('info')
-                    ->url(fn (Candidate $record): string => 
-                        route('candidate.test') . '?user=' . $record->user_id
-                    )
-                    ->openUrlInNewTab()
-                    ->visible(fn (Candidate $record): bool => 
-                        $record->user_id !== null && $record->user?->gardnerTestResult !== null
                     ),
                 Tables\Actions\DeleteAction::make()
                     ->label('Удалить'),
