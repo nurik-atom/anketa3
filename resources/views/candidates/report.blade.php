@@ -80,6 +80,27 @@
         .rounded { border-radius: 0.25rem; }
         .object-cover { object-fit: cover; }
         .block { display: block; }
+        .bg-gray-50 { background-color: #f9fafb; }
+        .bg-blue-500 { background-color: #3b82f6; }
+        .bg-gray-200 { background-color: #e5e7eb; }
+        .bg-green-50 { background-color: #f0fdf4; }
+        .bg-green-500 { background-color: #22c55e; }
+        .text-gray-700 { color: #374151; }
+        .text-green-800 { color: #166534; }
+        .text-green-600 { color: #16a34a; }
+        .text-green-700 { color: #15803d; }
+        .border { border-width: 1px; }
+        .border-2 { border-width: 2px; }
+        .border-gray-200 { border-color: #e5e7eb; }
+        .border-green-200 { border-color: #bbf7d0; }
+        .items-center { align-items: center; }
+        .justify-between { justify-content: space-between; }
+        .rounded-full { border-radius: 9999px; }
+        .mr-3 { margin-right: 0.75rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .flex-col { flex-direction: column; }
+        .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
+        .font-extrabold { font-weight: 800; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -153,10 +174,7 @@
                                  <span class="w-40 text-sm text-gray-600">Водительские права:</span>
                                  <span class="text-sm font-medium">{{ $candidate->has_driving_license ? 'Есть' : 'Нет' }}</span>
                              </div>                             
-                             <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Школа:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->school ?: 'Не указано' }}</span>
-                             </div>
+
                          </div>
                      </div>
                 </div>
@@ -200,8 +218,13 @@
             <!-- Образование -->
             <div class="mb-8">
                 <h2 class="section-header text-lg font-bold p-3 mb-4">Образование</h2>
+                
                 @if($candidate->universities && count($candidate->universities) > 0)
                     <div class="space-y-2">
+                    <div class="flex text-sm">
+                                 <span class="w-20 text-sm text-gray-600">Школа:</span>
+                                 <span class="font-medium">{{ $candidate->school ?: 'Не указано' }}</span>
+                             </div>
                         @foreach($candidate->universities as $index => $university)
                             <div class="flex text-sm">
                                 <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
@@ -216,6 +239,7 @@
                             </div>
                         @endforeach
                     </div>
+                    
                 @else
                     <p class="text-sm text-gray-500">Информация об образовании не указана</p>
                 @endif
@@ -261,6 +285,10 @@
                 <div class="grid grid-cols-2 gap-6">
                     <div class="space-y-3">
                         <div>
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Кол-во книг в год:</span>
+                            <span class="text-sm text-gray-800">{{ $candidate->books_per_year ?? 'Не указано' }}</span>
+                        </div>
+                        <div>
                             <span class="block text-sm font-medium text-gray-600 mb-1">Хобби:</span>
                             <span class="text-sm text-gray-800">{{ $candidate->hobbies ?: 'Не указано' }}</span>
                         </div>
@@ -268,16 +296,7 @@
                             <span class="block text-sm font-medium text-gray-600 mb-1">Интересы:</span>
                             <span class="text-sm text-gray-800">{{ $candidate->interests ?: 'Не указано' }}</span>
                         </div>
-                        <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Любимые развлечения:</span>
-                            <span class="text-sm text-gray-800">
-                                @if($candidate->entertainment_hours_weekly)
-                                    {{ $candidate->entertainment_hours_weekly }} часов в неделю
-                                @else
-                                    Не указано
-                                @endif
-                            </span>
-                        </div>
+                        
                         <div>
                             <span class="block text-sm font-medium text-gray-600 mb-1">Любимые виды спорта:</span>
                             <span class="text-sm text-gray-800">
@@ -291,17 +310,23 @@
                     </div>
                     <div class="space-y-3">
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Кол-во книг в год:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->books_per_year ?? 'Не указано' }}</span>
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Развлекательные видео:</span>
+                            <span class="text-sm text-gray-800">
+                                @if($candidate->entertainment_hours_weekly)
+                                    {{ $candidate->entertainment_hours_weekly }} часов в неделю
+                                @else
+                                    Не указано
+                                @endif
+                            </span>
                         </div>
                     
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Часы на обр. видео в неделю:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->educational_hours_weekly ?? 'Не указано' }}</span>
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Образовательные видео:</span>
+                            <span class="text-sm text-gray-800">{{ $candidate->educational_hours_weekly ?? 'Не указано' }} часов в неделю</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Часы на соц. сети в неделю:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->social_media_hours_weekly ?? 'Не указано' }}</span>
+                            <span class="block text-sm font-medium text-gray-600 mb-1">Социальные сети:</span>
+                            <span class="text-sm text-gray-800">{{ $candidate->social_media_hours_weekly ?? 'Не указано' }} часов в неделю</span>
                         </div>
                         <div>
                             <span class="block text-sm font-medium text-gray-600 mb-1">Посетившие места:</span>
@@ -348,6 +373,53 @@
                     <span class="text-sm font-medium text-blue-600">{{ $candidate->mbti_type ?: 'Не указано' }}</span>
                 </div>
             </div>
+
+            <!-- Тест Гарднера -->
+            @if($candidate->user && $candidate->user->gardnerTestResult)
+            @php
+                // Находим доминирующий тип интеллекта
+                $results = $candidate->user->gardnerTestResult->results;
+                $maxPercentage = 0;
+                $dominantType = '';
+                
+                foreach($results as $type => $percentage) {
+                    $numericPercentage = (int) str_replace('%', '', $percentage);
+                    if ($numericPercentage > $maxPercentage) {
+                        $maxPercentage = $numericPercentage;
+                        $dominantType = $type;
+                    }
+                }
+            @endphp
+            <div class="mb-8">
+                <h2 class="section-header text-lg font-bold p-3 mb-4">Тест типов интеллекта (Гарднер)</h2>
+                <div class="grid grid-cols-2 gap-6">
+                    @foreach($candidate->user->gardnerTestResult->results as $intelligenceType => $percentage)
+                    @php
+                        $isDominant = ($intelligenceType === $dominantType);
+                        $bgClass = $isDominant ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200';
+                        $textClass = $isDominant ? 'text-green-800' : 'text-gray-700';
+                        $barClass = $isDominant ? 'bg-green-500' : 'bg-blue-500';
+                        $percentageClass = $isDominant ? 'text-green-700 font-extrabold' : 'text-blue-600 font-bold';
+                    @endphp
+                    <div class="flex items-center justify-between p-3 {{ $bgClass }} rounded border-2 {{ $isDominant ? 'shadow-md' : '' }}">
+                        <div class="flex flex-col">
+                            <span class="text-sm font-medium {{ $textClass }}">{{ $intelligenceType }}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <div class="w-24 h-2 bg-gray-200 rounded-full mr-3">
+                                <div class="h-2 {{ $barClass }} rounded-full" style="width: {{ $percentage }}"></div>
+                            </div>
+                            <span class="text-sm {{ $percentageClass }}">{{ $percentage }}</span>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                <div class="mt-4 text-xs text-gray-500">
+                    <p>Тест пройден: {{ $candidate->user->gardnerTestResult->created_at->format('d.m.Y в H:i') }}</p>
+                    <p class="mt-1"><span class="text-green-600 font-medium">Доминирующий тип:</span> {{ $dominantType }} ({{ $maxPercentage }}%)</p>
+                </div>
+            </div>
+            @endif
         </div>
 
         <!-- Footer -->

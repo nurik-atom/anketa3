@@ -140,4 +140,9 @@ class Candidate extends Model
     {
         return $this->hasMany(GallupReport::class);
     }
+
+    public function gardnerTestResult()
+    {
+        return $this->hasOneThrough(GardnerTestResult::class, User::class);
+    }
 }

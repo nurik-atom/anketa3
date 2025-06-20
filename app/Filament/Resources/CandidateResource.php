@@ -20,7 +20,7 @@ class CandidateResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $modelLabel = 'Анкета кандидата';
-    
+
     protected static ?string $pluralModelLabel = 'Анкеты кандидатов';
 
     protected static ?string $navigationLabel = 'Анкеты кандидатов';
@@ -163,6 +163,7 @@ class CandidateResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query->with(['gallupReports', 'user.gardnerTestResult']))
             ->columns([
                 Tables\Columns\TextColumn::make('full_name')
                     ->label('Полное имя')
@@ -171,6 +172,7 @@ class CandidateResource extends Resource
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
                     ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->copyable(),
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Телефон')
@@ -179,15 +181,17 @@ class CandidateResource extends Resource
                 Tables\Columns\TextColumn::make('desired_position')
                     ->label('Желаемая должность')
                     ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->limit(30),
                 Tables\Columns\TextColumn::make('total_experience_years')
                     ->label('Стаж (лет)')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('expected_salary')
-                    ->label('Зарплата')
+                    ->label('Ожидаемая зарплата')
                     ->numeric()
                     ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->formatStateUsing(fn ($state) => $state ? number_format($state, 0, ',', ' ') . ' ₸' : null),
                 Tables\Columns\TextColumn::make('current_city')
                     ->label('Город')
@@ -197,32 +201,84 @@ class CandidateResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         '1' => 'danger',
-                        '2' => 'warning', 
+                        '2' => 'warning',
                         '3' => 'info',
                         '4' => 'success',
                         default => 'gray',
                     })
                     ->sortable(),
                 Tables\Columns\IconColumn::make('has_driving_license')
-                    ->label('Права')
-                    ->boolean(),
+                    ->label('Вод. права')
+                    ->boolean()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('gallup_status')
+                    ->label('Gallup')
+                    ->getStateUsing(function (Candidate $record): string {
+                        $hasOriginal = !empty($record->gallup_pdf);
+                        $reportsCount = $record->gallupReports()->count();
+                        
+                        if ($hasOriginal && $reportsCount > 0) {
+                            return "PDF + {$reportsCount} отчета";
+                        } elseif ($hasOriginal) {
+                            return 'PDF';
+                        } elseif ($reportsCount > 0) {
+                            return "{$reportsCount} отчета";
+                        }
+                        
+                        return 'Нет';
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => match (true) {
+                        str_contains($state, 'PDF +') => 'success',
+                        str_contains($state, 'PDF') => 'info',
+                        str_contains($state, 'отчета') => 'warning',
+                        default => 'gray',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('gardner_status')
+                    ->label('Тест Гарднера')
+                    ->getStateUsing(function (Candidate $record): string {
+                        $testResult = $record->user?->gardnerTestResult;
+                        
+                        if (!$testResult) {
+                            return 'Не пройден';
+                        }
+                        
+                        $answers = is_string($testResult->answers) ? json_decode($testResult->answers, true) : $testResult->answers;
+                        $totalQuestions = 56; // 7 вопросов × 8 типов
+                        $answeredQuestions = $answers ? count($answers) : 0;
+                        $percentage = round(($answeredQuestions / $totalQuestions) * 100);
+                        
+                        if ($percentage == 100) {
+                            return 'Завершен';
+                        } else {
+                            return "В процессе ({$percentage}%)";
+                        }
+                    })
+                    ->badge()
+                    ->color(fn (string $state): string => match (true) {
+                        $state === 'Завершен' => 'success',
+                        str_contains($state, 'В процессе') => 'warning',
+                        default => 'gray',
+                    })
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Дата создания')
                     ->dateTime('d.m.Y H:i')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
                     ->label('Обновлено')
                     ->dateTime('d.m.Y H:i')
                     ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->toggleable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('step')
                     ->label('Шаг анкеты')
                     ->options([
                         1 => 'Основная информация',
-                        2 => 'Дополнительная информация', 
+                        2 => 'Дополнительная информация',
                         3 => 'Образование и работа',
                         4 => 'Тесты',
                     ]),
@@ -238,10 +294,70 @@ class CandidateResource extends Resource
                 Tables\Filters\Filter::make('created_this_month')
                     ->label('Созданы в этом месяце')
                     ->query(fn (Builder $query): Builder => $query->whereMonth('created_at', now()->month)),
+                Tables\Filters\Filter::make('has_gardner_test')
+                    ->label('Прошли тест Гарднера')
+                    ->query(fn (Builder $query): Builder => 
+                        $query->whereHas('user.gardnerTestResult')
+                    ),
+                Tables\Filters\Filter::make('gardner_test_completed')
+                    ->label('Завершили тест Гарднера')
+                    ->query(fn (Builder $query): Builder => 
+                        $query->whereHas('user.gardnerTestResult', function ($q) {
+                            $q->whereRaw('JSON_LENGTH(answers) >= 56');
+                        })
+                    ),
             ])
             ->actions([
-                Tables\Actions\EditAction::make()
-                    ->label('Редактировать'),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('downloadGallup')
+                        ->label('Исходный Gallup')
+                        ->icon('heroicon-o-document-arrow-up')
+                        ->color('success')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup.download', $record))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => !empty($record->gallup_pdf)),
+                    Tables\Actions\Action::make('downloadDPs')
+                        ->label('DPs отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('info')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'DPs']))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPs')->exists()),
+                    Tables\Actions\Action::make('downloadDPT')
+                        ->label('DPT отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('warning')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'DPT']))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPT')->exists()),
+                    Tables\Actions\Action::make('downloadFMD')
+                        ->label('FMD отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('danger')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'FMD']))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'FMD')->exists()),
+                ])
+                    ->label('Gallup')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success')
+                    ->button()
+                    ->visible(fn (Candidate $record): bool => 
+                        !empty($record->gallup_pdf) || $record->gallupReports()->exists()
+                    ),
+                Tables\Actions\Action::make('viewGardnerTest')
+                    ->label('Тест Гарднера')
+                    ->icon('heroicon-o-chart-bar')
+                    ->color('info')
+                    ->url(fn (Candidate $record): string => 
+                        $record->user?->gardnerTestResult 
+                            ? route('candidate.test') . '?user=' . $record->user_id
+                            : route('gardner-test')
+                    )
+                    ->openUrlInNewTab()
+                    ->visible(fn (Candidate $record): bool => $record->user_id !== null),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Удалить'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

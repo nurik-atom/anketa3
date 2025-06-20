@@ -64,4 +64,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function gardnerTestResult()
+    {
+        return $this->hasOne(GardnerTestResult::class);
+    }
 }
