@@ -46,13 +46,13 @@ class ProcessGallupFile implements ShouldQueue
             }
 
             // Создаем экземпляр GallupController и вызываем метод обработки
-            $gallupController = new GallupController();
+            $gallupController = app(GallupController::class);
             $result = $gallupController->parseGallupFromCandidateFile($this->candidate);
 
             // Проверяем результат обработки
             if ($result instanceof \Illuminate\Http\JsonResponse) {
                 $data = $result->getData(true);
-                
+
                 if ($result->getStatusCode() === 200) {
                     Log::info('Gallup file processed successfully', [
                         'candidate_id' => $this->candidate->id,

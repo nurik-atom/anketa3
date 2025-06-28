@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Candidate;
 use App\Models\GallupReport;
+use App\Models\GallupReportSheet;
+use App\Models\GallupReportSheetIndex;
+use App\Models\GallupReportSheetValue;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Smalot\PdfParser\Parser;
 use Illuminate\Support\Facades\Storage;
 use Google\Client;
@@ -134,6 +138,10 @@ class GallupController extends Controller
             return response()->json(['error' => 'Файл не найден.'], 404);
         }
 
+        if (!$this->isGallupPdf($candidate->gallup_pdf)) {
+            return response()->json(['error' => 'Файл не является корректным Gallup PDF.'], 422);
+        }
+
         $fullPath = storage_path('app/public/' . $candidate->gallup_pdf);
 
         $parser = new Parser();
@@ -166,44 +174,42 @@ class GallupController extends Controller
             ]);
         }
 
-        // DPs Отчет
-        // Обновление Google Sheets
-        $this->updateGoogleSheetByCellMap($candidate, $talents, Config::get('app.google_sheet.dps.spreadsheet_id'));
-        // Скачивание PDF листа Main (Russian)
-        $this->downloadSheetPdf(
-            $candidate,
-            Config::get('app.google_sheet.dps.spreadsheet_id'), // Spreadsheet ID
-            Config::get('app.google_sheet.dps.gid'), // GID листа Main (Russian)
-            'DPs');
+        // Получаем все активные листы отчетов из базы данных
+        $reportSheets = GallupReportSheet::with('indices')->get();
 
-        // DPT Отчет
-        $this->updateGoogleSheetByCellMap($candidate, $talents, Config::get('app.google_sheet.dpt.spreadsheet_id'));
-        $this->downloadSheetPdf(
-            $candidate,
-            Config::get('app.google_sheet.dpt.spreadsheet_id'), // Spreadsheet ID
-            Config::get('app.google_sheet.dpt.gid'), // GID листа Main (Russian)
-            'DPT');
+        foreach ($reportSheets as $reportSheet) {
+            // Обновление Google Sheets
+            $this->updateGoogleSheetByCellMap($candidate, $talents, $reportSheet);
 
-        // FMD Отчет
-        $this->updateGoogleSheetByCellMap($candidate, $talents, Config::get('app.google_sheet.fmd.spreadsheet_id'));
-        $this->downloadSheetPdf(
-            $candidate,
-            Config::get('app.google_sheet.fmd.spreadsheet_id'), // Spreadsheet ID
-            Config::get('app.google_sheet.fmd.gid'), // GID листа Main (Russian)
-            'FMD');
+            Log::info('Перед вызовом importFormulaValues', [
+                'reportSheet_id' => $reportSheet->id,
+                'candidate_id' => $candidate->id,
+            ]);
+
+            $this->importFormulaValues($reportSheet, $candidate);
+            // Скачивание PDF листа
+            $this->downloadSheetPdf(
+                $candidate,
+                $reportSheet->spreadsheet_id,
+                $reportSheet->gid,
+                $reportSheet->name_report
+            );
+
+
+        }
 
         return response()->json([
             'message' => 'Данные Gallup обновлены, Google Sheet заполнен, PDF сохранён.',
         ]);
     }
 
-    protected function updateGoogleSheetByCellMap(Candidate $candidate, array $talents, $spreadsheetId)
+    protected function updateGoogleSheetByCellMap(Candidate $candidate, array $talents, GallupReportSheet $reportSheet)
     {
         $client = new \Google\Client();
         $client->setAuthConfig(storage_path('app/google/credentials.json'));
         $client->addScope(\Google\Service\Sheets::SPREADSHEETS);
         $client->useApplicationDefaultCredentials();
-
+        $spreadsheetId = $reportSheet->spreadsheet_id;
         $sheets = new \Google\Service\Sheets($client);
 //        $spreadsheetId = '1k8RZfrwWyivGJqLZ9IXYsBi55tyX4oGZDsVtTWRR1Xw';
 
@@ -296,4 +302,156 @@ class GallupController extends Controller
         ]);
     }
 
+    public function importFormulaValues_old(GallupReportSheet $reportSheet, Candidate $candidate)
+    {
+        Log::info('Импорт психотипов начат', ['report_id' => $candidate->id]);
+        $spreadsheetId = $reportSheet->spreadsheet_id;
+        $sheetName = 'Formula';
+
+        // Авторизация Google
+        $client = new \Google\Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope(Sheets::SPREADSHEETS_READONLY);
+        $client->useApplicationDefaultCredentials();
+
+        $service = new Sheets($client);
+
+        // Удаляем старые значения (если нужно)
+        GallupReportSheetValue::where('gallup_report_sheet_id', $reportSheet->id)->where('candidate_id', $candidate->id)->delete();
+
+        // Получаем список нужных ячеек
+        $indexes = GallupReportSheetIndex::where('gallup_report_sheet_id', $reportSheet->id)->get();
+        Log::info('GallupReportSheetIndex values', ['indexes' => $indexes->toArray()]);
+        foreach ($indexes as $index) {
+            $range = "{$sheetName}!{$index->index}";
+            $response = $service->spreadsheets_values->get($spreadsheetId, $range);
+            $value = $response->getValues()[0][0] ?? null;
+
+            if ($value === null) continue;
+
+            GallupReportSheetValue::create([
+                'gallup_report_sheet_id' => $reportSheet->id,
+                'candidate_id' => $candidate->id,
+                'user_id' => $candidate->user_id,
+                'type' => $index->type,
+                'name' => $index->name,
+                'value' => $value,
+            ]);
+
+            Log::info('Импорт значения', [
+                'index' => $index->index,
+                'name' => $index->name,
+                'value' => $value,
+            ]);
+        }
+
+        Log::info('Импорт психотипов завершён');
+    }
+
+    public function importFormulaValues(GallupReportSheet $reportSheet, Candidate $candidate)
+    {
+        Log::info('Импорт психотипов начат', ['report_id' => $candidate->id]);
+        $spreadsheetId = $reportSheet->spreadsheet_id;
+        $sheetName = 'Formula';
+
+        // Авторизация Google
+        $client = new \Google\Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope(\Google\Service\Sheets::SPREADSHEETS_READONLY);
+        $client->useApplicationDefaultCredentials();
+
+        $service = new Sheets($client);
+
+        // Получаем список нужных ячеек
+        $indexes = GallupReportSheetIndex::where('gallup_report_sheet_id', $reportSheet->id)->get();
+        if ($indexes->isEmpty()) return;
+
+        // Определяем минимальную и максимальную ячейку (например: O21:AJ24)
+        $minRow = $maxRow = null;
+        $minCol = $maxCol = null;
+
+        $positions = [];
+
+        foreach ($indexes as $index) {
+            [$col, $row] = $this->cellToCoordinates($index->index);
+
+            $minRow = is_null($minRow) ? $row : min($minRow, $row);
+            $maxRow = is_null($maxRow) ? $row : max($maxRow, $row);
+            $minCol = is_null($minCol) ? $col : min($minCol, $col);
+            $maxCol = is_null($maxCol) ? $col : max($maxCol, $col);
+
+            $positions[$index->index] = [
+                'row' => $row,
+                'col' => $col,
+                'type' => $index->type,
+                'name' => $index->name,
+            ];
+        }
+
+        // Преобразуем координаты обратно в строку
+        $minCell = $this->coordinatesToCell($minCol, $minRow);
+        $maxCell = $this->coordinatesToCell($maxCol, $maxRow);
+        $range = "{$sheetName}!{$minCell}:{$maxCell}";
+
+        Log::info('Запрашиваем диапазон: ' . $range);
+
+        $response = $service->spreadsheets_values->get($spreadsheetId, $range);
+        $matrix = $response->getValues();
+
+        // Удаляем старые значения
+        GallupReportSheetValue::where('gallup_report_sheet_id', $reportSheet->id)
+            ->where('candidate_id', $candidate->id)
+            ->delete();
+
+        foreach ($positions as $cell => $meta) {
+            $relativeRow = $meta['row'] - $minRow;
+            $relativeCol = $meta['col'] - $minCol;
+
+            $value = $matrix[$relativeRow][$relativeCol] ?? null;
+            if ($value === null) continue;
+
+            GallupReportSheetValue::create([
+                'gallup_report_sheet_id' => $reportSheet->id,
+                'candidate_id' => $candidate->id,
+                'user_id' => $candidate->user_id,
+                'type' => $meta['type'],
+                'name' => $meta['name'],
+                'value' => $value,
+            ]);
+
+            Log::info('Импорт значения', [
+                'cell' => $cell,
+                'name' => $meta['name'],
+                'value' => $value,
+            ]);
+        }
+
+        Log::info('Импорт психотипов завершён');
+    }
+
+    protected function cellToCoordinates($cell)
+    {
+        preg_match('/^([A-Z]+)(\d+)$/', strtoupper($cell), $matches);
+        $letters = $matches[1];
+        $row = (int)$matches[2];
+
+        $col = 0;
+        foreach (str_split($letters) as $char) {
+            $col = $col * 26 + (ord($char) - 64);
+        }
+
+        return [$col, $row];
+    }
+
+    protected function coordinatesToCell($col, $row)
+    {
+        $letters = '';
+        while ($col > 0) {
+            $col--;
+            $letters = chr($col % 26 + 65) . $letters;
+            $col = intdiv($col, 26);
+        }
+
+        return $letters . $row;
+    }
 }

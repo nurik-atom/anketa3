@@ -308,17 +308,17 @@ class CandidateResource extends Resource
                     ),
             ])
             ->actions([
-                Tables\Actions\Action::make('viewGardnerTest')
-                ->label('Гарднер')
-                ->icon('heroicon-o-chart-bar')
-                ->color('info')
-                ->url(fn (Candidate $record): string => 
-                    route('candidate.test') . '?user=' . $record->user_id
-                )
-                ->openUrlInNewTab()
-                ->visible(fn (Candidate $record): bool => 
-                    $record->user_id !== null && $record->user?->gardnerTestResult !== null
-                ),
+                // Tables\Actions\Action::make('viewGardnerTest')
+                // ->label('Гарднер')
+                // ->icon('heroicon-o-chart-bar')
+                // ->color('info')
+                // ->url(fn (Candidate $record): string => 
+                //     route('candidate.test') . '?user=' . $record->user_id
+                // )
+                // ->openUrlInNewTab()
+                // ->visible(fn (Candidate $record): bool => 
+                //     $record->user_id !== null && $record->user?->gardnerTestResult !== null
+                // ),
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('downloadGallup')
                         ->label('Исходный Gallup')
@@ -365,7 +365,8 @@ class CandidateResource extends Resource
                         ->label('Удалить'),
                 ]),
             ])
-            ->defaultSort('created_at', 'desc');
+            ->defaultSort('created_at', 'desc')
+            ->recordUrl(fn (Candidate $record): string => route('candidate.report', $record));
     }
 
     public static function getRelations(): array
@@ -380,7 +381,7 @@ class CandidateResource extends Resource
         return [
             'index' => Pages\ListCandidates::route('/'),
             'create' => Pages\CreateCandidate::route('/create'),
-            'edit' => Pages\EditCandidate::route('/{record}/edit'),
+            // 'edit' => Pages\EditCandidate::route('/{record}/edit'), // Отключено - анкеты нельзя редактировать
         ];
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\GallupController;
+use App\Models\Candidate;
+use App\Models\GallupReportSheet;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\DashboardController;
@@ -19,18 +21,18 @@ Route::middleware([
 
     Route::get('/candidate/form/{id?}', [CandidateController::class, 'create'])->name('candidate.form');
     Route::get('/candidate/test', [CandidateController::class, 'test'])->name('candidate.test');
-    
+
     // Отчеты кандидатов
     Route::get('/candidate/{candidate}/report', [CandidateReportController::class, 'show'])->name('candidate.report');
     Route::get('/candidate/{candidate}/report/pdf', [CandidateReportController::class, 'pdf'])->name('candidate.report.pdf');
     Route::get('/candidate/{candidate}/gallup/download', [CandidateReportController::class, 'downloadGallup'])->name('candidate.gallup.download');
     Route::get('/candidate/{candidate}/gallup-report/{type}/download', [CandidateReportController::class, 'downloadGallupReport'])->name('candidate.gallup-report.download');
-    
+
     // Тест Гарднера - основной роут (все вопросы сразу)
     Route::get('/gardner-test', function () {
         return view('candidate.gardner-test-all');
     })->name('gardner-test');
-    
+
     // ЗАКОММЕНТИРОВАННЫЙ роут - постраничный режим
     // Route::get('/gardner-test-all', function () {
     //     return view('candidate.gardner-test-all');
@@ -44,3 +46,14 @@ Route::get('/test-gallup-job/{candidate}', function(App\Models\Candidate $candid
     App\Jobs\ProcessGallupFile::dispatch($candidate);
     return response()->json(['message' => 'Job dispatched successfully', 'candidate_id' => $candidate->id]);
 })->middleware('auth');
+
+
+
+Route::get('/import-formula/{sheetId}/{candidateId}', function ($sheetId, $candidateId) {
+    $sheet = GallupReportSheet::findOrFail($sheetId);
+    $candidate = Candidate::findOrFail($candidateId);
+
+    app(GallupController::class)->importFormulaValues($sheet, $candidate);
+
+    return 'Импорт завершён';
+});
