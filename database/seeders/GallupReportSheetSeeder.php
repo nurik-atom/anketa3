@@ -61,32 +61,75 @@ class GallupReportSheetSeeder extends Seeder
             ]);
         }
 
-        // Добавляем некоторые индексы для DPT (пример - только топ-5 талантов)
-        $topTalents = array_slice($talents, 0, 5);
-        $topColumns = array_slice($columns, 0, 5);
+        // Добавляем индексы для DPT отчета (психотипы)
+        $dptPsychotypes = [
+            'Паранойял' => 'C3',
+            'Эпилептоид' => 'D3',
+            'Истероид' => 'E3',
+            'Гипертим' => 'F3',
+            'Шизоид' => 'G3',
+            'Психастеноид' => 'H3',
+            'Эмотив' => 'I3',
+            'Депрессивный' => 'J3'
+        ];
 
-        foreach ($topTalents as $index => $talent) {
+        foreach ($dptPsychotypes as $name => $column) {
             GallupReportSheetIndex::create([
                 'gallup_report_sheet_id' => $dptSheet->id,
-                'type' => 'talent',
-                'name' => $talent,
-                'index' => $topColumns[$index]
+                'type' => 'Психотипы',
+                'name' => $name,
+                'index' => $column
             ]);
         }
 
-        // Добавляем темы для FMD отчета
-        $themes = [
-            'Executing' => 'E',
-            'Influencing' => 'F',
-            'Relationship Building' => 'G',
-            'Strategic Thinking' => 'H'
+        // Добавляем дополнительные параметры для DPT
+        $dptAdditional = [
+            'Стрессоустойчивость' => 'K3',
+            'Лидерство' => 'L3',
+            'Коммуникабельность' => 'M3'
         ];
 
-        foreach ($themes as $theme => $column) {
+        foreach ($dptAdditional as $name => $column) {
+            GallupReportSheetIndex::create([
+                'gallup_report_sheet_id' => $dptSheet->id,
+                'type' => 'Дополнительные параметры',
+                'name' => $name,
+                'index' => $column
+            ]);
+        }
+
+        // Добавляем индексы для FMD отчета
+        $fmdCharacteristics = [
+            'Физическая выносливость' => 'C4',
+            'Умственная работоспособность' => 'D4',
+            'Концентрация внимания' => 'E4',
+            'Память' => 'F4',
+            'Реакция на стресс' => 'G4',
+            'Адаптивность' => 'H4'
+        ];
+
+        foreach ($fmdCharacteristics as $name => $column) {
             GallupReportSheetIndex::create([
                 'gallup_report_sheet_id' => $fmdSheet->id,
-                'type' => 'theme',
-                'name' => $theme,
+                'type' => 'Медицинские показатели',
+                'name' => $name,
+                'index' => $column
+            ]);
+        }
+
+        // Добавляем психологические параметры для FMD
+        $fmdPsychological = [
+            'Тревожность' => 'I4',
+            'Депрессивность' => 'J4',
+            'Агрессивность' => 'K4',
+            'Социальность' => 'L4'
+        ];
+
+        foreach ($fmdPsychological as $name => $column) {
+            GallupReportSheetIndex::create([
+                'gallup_report_sheet_id' => $fmdSheet->id,
+                'type' => 'Психологические параметры',
+                'name' => $name,
                 'index' => $column
             ]);
         }
