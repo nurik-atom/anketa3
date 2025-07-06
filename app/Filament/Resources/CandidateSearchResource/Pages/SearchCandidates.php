@@ -15,75 +15,86 @@ class SearchCandidates extends ListRecords
 {
     protected static string $resource = CandidateSearchResource::class;
 
-
-
     protected function getSearchFormSchema(): array
     {
         return [
-            Forms\Components\Section::make('Параметры поиска кандидатов')
-                ->schema([
-                    Forms\Components\Select::make('report_type')
-                        ->label('Тип отчета')
-                        ->options([
-                            'DPs' => 'DPs - Диагностический психологический скрининг',
-                            'DPT' => 'DPT - Диагностический психологический тест', 
-                            'FMD' => 'FMD - Функциональная медицинская диагностика',
-                        ])
-                        ->default('DPs')
-                        ->reactive()
-                        ->afterStateUpdated(function ($state, callable $set) {
-                            $set('characteristics', []);
-                        })
-                        ->required(),
-
-                    Forms\Components\CheckboxList::make('characteristics')
-                        ->label('Характеристики для поиска')
-                        ->options(function (callable $get) {
-                            $reportType = $get('report_type') ?? 'DPs';
-                            
-                            // Получаем все доступные характеристики для выбранного типа отчета из индексов
-                            $sheet = GallupReportSheet::where('name_report', $reportType)->first();
-                            if (!$sheet) {
-                                return [];
-                            }
-                            
-                            $characteristics = GallupReportSheetIndex::where('gallup_report_sheet_id', $sheet->id)
-                                ->get(['type', 'name'])
-                                ->groupBy('type');
-                            
-                            $options = [];
-                            foreach ($characteristics as $type => $items) {
-                                foreach ($items as $item) {
-                                    $key = trim($type) . '|' . $item->name;
-                                    $options[$key] = trim($type) . ': ' . $item->name;
-                                }
-                            }
-                            
-                            return $options;
-                        })
-                        ->reactive()
-                        ->columns(2)
-                        ->required()
-                        ->minItems(1),
-
-                    Forms\Components\TextInput::make('min_value')
-                        ->label('Минимальное значение')
-                        ->numeric()
-                        ->default(70)
-                        ->minValue(0)
-                        ->maxValue(100)
-                        ->suffix('%')
-                        ->required(),
+            Forms\Components\Select::make('report_type')
+                ->label('Тип отчета')
+                ->options([
+                    'DPs' => 'DPs - Диагностический психологический скрининг',
+                    'DPT' => 'DPT - Диагностический психологический тест', 
+                    'FMD' => 'FMD - Функциональная медицинская диагностика',
                 ])
+                ->default(session('candidate_search.report_type', 'DPs'))
+                ->reactive()
+                ->afterStateUpdated(function ($state, callable $set) {
+                    // При смене типа отчета очищаем все поля характеристик
+                    // (это приведет к перестройке формы с новыми полями)
+                })
+                ->required(),
+
+            Forms\Components\Group::make()
+                ->schema(function (callable $get) {
+                    $reportType = $get('report_type') ?? 'DPs';
+                    
+                    // Получаем все доступные характеристики для выбранного типа отчета из индексов
+                    $sheet = GallupReportSheet::where('name_report', $reportType)->first();
+                    if (!$sheet) {
+                        return [];
+                    }
+                    
+                    $characteristics = GallupReportSheetIndex::where('gallup_report_sheet_id', $sheet->id)
+                        ->get(['type', 'name'])
+                        ->groupBy('type');
+                    
+                    // Получаем сохраненные характеристики для предварительного заполнения
+                    $savedCharacteristics = session('candidate_search.characteristics', []);
+                    
+                    $sections = [];
+                    foreach ($characteristics as $type => $items) {
+                        $typeName = trim($type);
+                        $fieldName = 'characteristics_' . str_replace([' ', ':', '(', ')'], '_', strtolower($typeName));
+                        
+                        $options = [];
+                        $defaultValues = [];
+                        
+                        foreach ($items as $item) {
+                            $key = trim($type) . '|' . $item->name;
+                            $options[$key] = $item->name;
+                            
+                            // Проверяем, была ли эта характеристика выбрана ранее
+                            if (in_array($key, $savedCharacteristics)) {
+                                $defaultValues[] = $key;
+                            }
+                        }
+                        
+                        if (!empty($options)) {
+                            $sections[] = Forms\Components\Fieldset::make($typeName)
+                                ->schema([
+                                    Forms\Components\CheckboxList::make($fieldName)
+                                        ->label('')
+                                        ->options($options)
+                                        ->columns(2)
+                                        ->default($defaultValues)
+                                ]);
+                        }
+                    }
+                    
+                    return $sections;
+                })
+                ->reactive()
                 ->columns(1),
+
+            Forms\Components\TextInput::make('min_value')
+                ->label('Минимальное значение')
+                ->numeric()
+                ->default(session('candidate_search.min_value', 70))
+                ->minValue(0)
+                ->maxValue(100)
+                ->suffix('%')
+                ->required(),
         ];
     }
-
-
-
-
-
-
 
     protected function getHeaderActions(): array
     {
@@ -94,11 +105,36 @@ class SearchCandidates extends ListRecords
                 ->icon('heroicon-o-magnifying-glass')
                 ->form($this->getSearchFormSchema())
                 ->action(function (array $data) {
+                    // Собираем все характеристики из разных полей
+                    $allCharacteristics = [];
+                    foreach ($data as $key => $value) {
+                        if (str_starts_with($key, 'characteristics_') && is_array($value)) {
+                            $allCharacteristics = array_merge($allCharacteristics, $value);
+                        }
+                    }
+                    
+                    // Проверяем, что выбрана хотя бы одна характеристика
+                    if (empty($allCharacteristics)) {
+                        Notification::make()
+                            ->title('Ошибка')
+                            ->body('Выберите хотя бы одну характеристику для поиска')
+                            ->danger()
+                            ->send();
+                        return;
+                    }
+                    
+                    // Подготавливаем данные для сохранения
+                    $searchData = [
+                        'report_type' => $data['report_type'],
+                        'characteristics' => $allCharacteristics,
+                        'min_value' => $data['min_value']
+                    ];
+                    
                     // Сохраняем параметры поиска в сессии
-                    session(['candidate_search' => $data]);
+                    session(['candidate_search' => $searchData]);
                     
                     // Показываем уведомление
-                    $characteristicsCount = count($data['characteristics'] ?? []);
+                    $characteristicsCount = count($allCharacteristics);
                     
                     Notification::make()
                         ->title('Поиск выполнен')
