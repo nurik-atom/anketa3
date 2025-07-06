@@ -51,16 +51,22 @@ class SearchCandidates extends ListRecords
                     $savedCharacteristics = session('candidate_search.characteristics', []);
                     
                     $sections = [];
+                    $typeIndex = 0; // Добавляем индекс для уникальности
+                    
                     foreach ($characteristics as $type => $items) {
                         $typeName = trim($type);
-                        $fieldName = 'characteristics_' . str_replace([' ', ':', '(', ')'], '_', strtolower($typeName));
+                        // Улучшаем генерацию имени поля - добавляем индекс для уникальности
+                        $fieldName = 'characteristics_' . $typeIndex . '_' . 
+                                   str_replace([' ', ':', '(', ')', '-', '.'], '_', 
+                                   mb_strtolower($typeName, 'UTF-8'));
                         
                         $options = [];
                         $defaultValues = [];
                         
                         foreach ($items as $item) {
-                            $key = trim($type) . '|' . $item->name;
-                            $options[$key] = $item->name;
+                            // Улучшаем генерацию ключа - добавляем ID или уникальный идентификатор
+                            $key = $reportType . '|' . trim($type) . '|' . trim($item->name);
+                            $options[$key] = trim($item->name);
                             
                             // Проверяем, была ли эта характеристика выбрана ранее
                             if (in_array($key, $savedCharacteristics)) {
@@ -78,6 +84,8 @@ class SearchCandidates extends ListRecords
                                         ->default($defaultValues)
                                 ]);
                         }
+                        
+                        $typeIndex++; // Увеличиваем индекс для следующего типа
                     }
                     
                     return $sections;
@@ -108,7 +116,8 @@ class SearchCandidates extends ListRecords
                     // Собираем все характеристики из разных полей
                     $allCharacteristics = [];
                     foreach ($data as $key => $value) {
-                        if (str_starts_with($key, 'characteristics_') && is_array($value)) {
+                        // Обновляем паттерн для новых имен полей с индексами
+                        if (preg_match('/^characteristics_\d+_/', $key) && is_array($value)) {
                             $allCharacteristics = array_merge($allCharacteristics, $value);
                         }
                     }

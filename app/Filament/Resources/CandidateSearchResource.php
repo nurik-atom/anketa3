@@ -121,19 +121,20 @@ class CandidateSearchResource extends Resource
 
                         $matches = [];
                         foreach ($search['characteristics'] as $characteristic) {
-                            if (strpos($characteristic, '|') === false) continue;
+                            $parts = explode('|', $characteristic);
+                            if (count($parts) < 3) continue;
                             
-                            [$type, $name] = explode('|', $characteristic, 2);
+                            [$charReportType, $type, $name] = $parts;
                             
                             $value = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
                                 ->where('candidate_id', $record->id)
                                 ->where('type', trim($type))
-                                ->where('name', $name)
+                                ->where('name', trim($name))
                                 ->where('value', '>=', $minValue)
                                 ->first();
                             
                             if ($value) {
-                                $matches[] = $name . ': ' . $value->value . '%';
+                                $matches[] = trim($name) . ': ' . $value->value . '%';
                             }
                         }
 
@@ -185,13 +186,14 @@ class CandidateSearchResource extends Resource
                 $allCandidateIds = collect();
                 
                 foreach ($search['characteristics'] as $characteristic) {
-                    if (strpos($characteristic, '|') === false) continue;
+                    $parts = explode('|', $characteristic);
+                    if (count($parts) < 3) continue;
                     
-                    [$type, $name] = explode('|', $characteristic, 2);
+                    [$charReportType, $type, $name] = $parts;
                     
                     $ids = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
                         ->where('type', trim($type))
-                        ->where('name', $name)
+                        ->where('name', trim($name))
                         ->where('value', '>=', $minValue)
                         ->pluck('candidate_id');
                     
