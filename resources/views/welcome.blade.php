@@ -369,16 +369,16 @@
                     min-height: auto;
                     margin: 10px;
                 }
-                
+
                 .right-panel {
                     order: -1;
                     padding: 50px 40px;
                 }
-                
+
                 .left-panel {
                     padding: 50px 40px;
                 }
-                
+
                 .login-section h1 {
                     font-size: 2rem;
                 }
@@ -392,10 +392,10 @@
     <body>
         <!-- Animated Background Stars -->
         <div class="stars"></div>
-        
+
         <!-- Light Rays Effect -->
         <div class="light-rays"></div>
-        
+
         <!-- Floating Shapes -->
         <div class="floating-shapes">
             <div class="shape"></div>
@@ -410,7 +410,7 @@
                     <div class="login-section">
                         <h1>Добро пожаловать</h1>
                         <p>Войдите в систему управления обучением Divergents</p>
-                        
+
                         @if (Route::has('login'))
                             @auth
                                 <!-- User is authenticated -->
@@ -425,11 +425,11 @@
                                 <form method="POST" action="{{ route('login') }}">
                                     @csrf
                                     <div class="form-group">
-                                        <input 
-                                            type="email" 
-                                            id="email" 
-                                            name="email" 
-                                            class="form-input" 
+                                        <input
+                                            type="email"
+                                            id="email"
+                                            name="email"
+                                            class="form-input"
                                             placeholder="Email адрес"
                                             value="{{ old('email') }}"
                                             required
@@ -438,13 +438,13 @@
                                             <div class="error-message">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    
+
                                     <div class="form-group">
-                                        <input 
-                                            type="password" 
-                                            id="password" 
-                                            name="password" 
-                                            class="form-input" 
+                                        <input
+                                            type="password"
+                                            id="password"
+                                            name="password"
+                                            class="form-input"
                                             placeholder="Пароль"
                                             required
                                         >
@@ -452,12 +452,12 @@
                                             <div class="error-message">{{ $message }}</div>
                                         @enderror
                                     </div>
-                                    
+
                                     <button type="submit" class="btn-login">
                                         Войти в систему
                                     </button>
                                 </form>
-                                
+
                                 <div class="login-footer">
                                     @if (Route::has('register'))
                                         Нет аккаунта? <a href="{{ route('register') }}">Создать аккаунт</a>
@@ -474,7 +474,7 @@
                     <p class="brand-description">
                         Инновационная платформа для управления обучением и комплексной оценки персонала с использованием современных методик
                     </p>
-                    
+
                     <div class="features-list">
                         <div class="feature-item">
                             <div class="feature-icon">📋</div>
@@ -524,14 +524,14 @@
             // Form interactions
             document.addEventListener('DOMContentLoaded', function() {
                 createStars();
-                
+
                 // Add glow effect to inputs on focus
                 const inputs = document.querySelectorAll('.form-input');
                 inputs.forEach(input => {
                     input.addEventListener('focus', function() {
                         this.parentElement.style.transform = 'scale(1.02)';
                     });
-                    
+
                     input.addEventListener('blur', function() {
                         this.parentElement.style.transform = 'scale(1)';
                     });
@@ -540,11 +540,11 @@
                 // Add parallax effect to logo
                 const logo = document.querySelector('.brand-logo');
                 let mouseX = 0, mouseY = 0;
-                
+
                 document.addEventListener('mousemove', function(e) {
                     mouseX = (e.clientX / window.innerWidth) * 100;
                     mouseY = (e.clientY / window.innerHeight) * 100;
-                    
+
                     if (logo) {
                         logo.style.transform = `translate(${mouseX * 0.02}px, ${mouseY * 0.02}px) scale(1.02)`;
                     }

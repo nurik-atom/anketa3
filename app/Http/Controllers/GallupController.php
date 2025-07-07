@@ -99,10 +99,9 @@ class GallupController extends Controller
             // Ключевые признаки Gallup-отчета
             $hasCorrectPageCount = count($pages) === 26;
             $containsCliftonHeader = str_contains($text, 'Gallup, Inc. All rights reserved.');
-            $containsGallupCopyright = str_contains($text, 'Gallup, Inc.');
             $containsTalentList = preg_match('/1\.\s+[A-Za-z-]+/', $text);
 
-            return $hasCorrectPageCount && $containsCliftonHeader && $containsGallupCopyright && $containsTalentList;
+            return $hasCorrectPageCount && $containsCliftonHeader && $containsTalentList;
         } catch (\Exception $e) {
             return false;
         }

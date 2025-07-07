@@ -6,7 +6,7 @@
                 <!-- Logo -->
                 <div class="shrink-0 flex items-center">
                     <a href="{{ route('dashboard') }}">
-                        <x-application-mark class="block h-9 w-auto" />
+                        <img src="{{ asset('logo.svg') }}" alt="Divergents Logo" class="brand-logo" style="width: auto; height: 60px">
                     </a>
                 </div>
 

@@ -815,9 +815,11 @@ class CandidateForm extends Component
                 $this->candidate = new Candidate();
                 $this->candidate->user_id = auth()->id();
                 $this->candidate->step = $this->currentStep;
-                // Сохраняем базовую информацию если есть
+                // Сохраняем базовую информацию если есть, иначе оставляем null
                 if ($this->last_name || $this->first_name) {
                     $this->candidate->full_name = trim($this->last_name . ' ' . $this->first_name . ' ' . $this->middle_name);
+                } else {
+                    $this->candidate->full_name = null; // Явно устанавливаем null
                 }
                 if ($this->email) $this->candidate->email = $this->email;
             }
@@ -1073,6 +1075,8 @@ class CandidateForm extends Component
         // Базовые данные всегда сохраняем, если они есть
         if ($this->last_name || $this->first_name) {
             $this->candidate->full_name = trim($this->last_name . ' ' . $this->first_name . ' ' . $this->middle_name);
+        } else {
+            $this->candidate->full_name = null; // Явно устанавливаем null если имя не введено
         }
         if ($this->email) $this->candidate->email = $this->email;
         if ($this->phone) $this->candidate->phone = $this->phone;
