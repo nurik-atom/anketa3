@@ -43,6 +43,70 @@ class CandidateSearchResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->description(function () {
+                // Получаем условия поиска из сессии
+                $search = session('candidate_search', []);
+                
+                if (empty($search['conditions']) && empty($search['min_age']) && empty($search['max_age']) && empty($search['desired_position']) && empty($search['cities'])) {
+                    return 'Условия поиска не заданы. Используйте кнопку "Найти кандидатов" для настройки поиска.';
+                }
+                
+                $searchBadges = [];
+                
+                // Добавляем условия по характеристикам
+                if (!empty($search['conditions'])) {
+                    foreach ($search['conditions'] as $condition) {
+                        if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
+                            continue;
+                        }
+                        
+                        $parts = explode('|', $condition['characteristic']);
+                        if (count($parts) >= 3) {
+                            $reportType = $parts[0];
+                            $name = $parts[2];
+                            $operatorText = $condition['operator'] === '>=' ? '>' : '<';
+                            $conditionText = "{$reportType}: {$name} {$operatorText} {$condition['value']}%";
+                            $searchBadges[] = '<span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">🎯 ' . $conditionText . '</span>';
+                        }
+                    }
+                }
+                
+                // Добавляем возрастные фильтры
+                if (!empty($search['min_age']) || !empty($search['max_age'])) {
+                    $ageText = '';
+                    if (!empty($search['min_age']) && !empty($search['max_age'])) {
+                        $ageText = "от {$search['min_age']} до {$search['max_age']} лет";
+                    } elseif (!empty($search['min_age'])) {
+                        $ageText = "от {$search['min_age']} лет";
+                    } else {
+                        $ageText = "до {$search['max_age']} лет";
+                    }
+                    $searchBadges[] = '<span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">👤 ' . $ageText . '</span>';
+                }
+                
+                // Добавляем фильтр по должности
+                if (!empty($search['desired_position'])) {
+                    $searchBadges[] = '<span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">💼 "' . $search['desired_position'] . '"</span>';
+                }
+                
+                // Добавляем фильтр по городам
+                if (!empty($search['cities'])) {
+                    $citiesCount = count($search['cities']);
+                    if ($citiesCount == 1) {
+                        $cityText = $search['cities'][0];
+                    } else {
+                        $cityText = implode(', ', $search['cities']) . " ({$citiesCount} городов)";
+                    }
+                    $searchBadges[] = '<span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">🏙️ ' . $cityText . '</span>';
+                }
+                
+                return new \Illuminate\Support\HtmlString(
+                    '<div class="flex flex-wrap gap-2"><span class="text-sm font-medium text-gray-700">Активные условия поиска:</span> ' . 
+                    implode(' ', $searchBadges) . 
+                    '</div>'
+                );
+            })
+            ->searchable(false)
             ->columns([
                 Tables\Columns\TextColumn::make('full_name')
                     ->label('ФИО')
