@@ -18,89 +18,139 @@ class SearchCandidates extends ListRecords
     protected function getSearchFormSchema(): array
     {
         return [
-            Forms\Components\Select::make('report_type')
-                ->label('Тип отчета')
-                ->options([
-                    'DPs' => 'DPs - Диагностический психологический скрининг',
-                    'DPT' => 'DPT - Диагностический психологический тест', 
-                    'FMD' => 'FMD - Функциональная медицинская диагностика',
-                ])
-                ->default(session('candidate_search.report_type', 'DPs'))
-                ->reactive()
-                ->afterStateUpdated(function ($state, callable $set) {
-                    // При смене типа отчета очищаем все поля характеристик
-                    // (это приведет к перестройке формы с новыми полями)
-                })
-                ->required(),
-
-            Forms\Components\Group::make()
-                ->schema(function (callable $get) {
-                    $reportType = $get('report_type') ?? 'DPs';
-                    
-                    // Получаем все доступные характеристики для выбранного типа отчета из индексов
-                    $sheet = GallupReportSheet::where('name_report', $reportType)->first();
-                    if (!$sheet) {
-                        return [];
-                    }
-                    
-                    $characteristics = GallupReportSheetIndex::where('gallup_report_sheet_id', $sheet->id)
-                        ->get(['type', 'name'])
-                        ->groupBy('type');
-                    
-                    // Получаем сохраненные характеристики для предварительного заполнения
-                    $savedCharacteristics = session('candidate_search.characteristics', []);
-                    
-                    $sections = [];
-                    $typeIndex = 0; // Добавляем индекс для уникальности
-                    
-                    foreach ($characteristics as $type => $items) {
-                        $typeName = trim($type);
-                        // Улучшаем генерацию имени поля - добавляем индекс для уникальности
-                        $fieldName = 'characteristics_' . $typeIndex . '_' . 
-                                   str_replace([' ', ':', '(', ')', '-', '.'], '_', 
-                                   mb_strtolower($typeName, 'UTF-8'));
-                        
-                        $options = [];
-                        $defaultValues = [];
-                        
-                        foreach ($items as $item) {
-                            // Улучшаем генерацию ключа - добавляем ID или уникальный идентификатор
-                            $key = $reportType . '|' . trim($type) . '|' . trim($item->name);
-                            $options[$key] = trim($item->name);
-                            
-                            // Проверяем, была ли эта характеристика выбрана ранее
-                            if (in_array($key, $savedCharacteristics)) {
-                                $defaultValues[] = $key;
+            Forms\Components\Section::make('Условия поиска')
+                ->schema([
+                    Forms\Components\Repeater::make('conditions')
+                        ->label('Условия')
+                        ->schema([
+                            Forms\Components\Select::make('characteristic')
+                                ->label('Характеристика')
+                                ->options(function () {
+                                    // Получаем все характеристики из всех типов отчетов
+                                    $allSheets = GallupReportSheet::all();
+                                    $options = [];
+                                    
+                                    foreach ($allSheets as $sheet) {
+                                        $reportType = $sheet->name_report;
+                                        
+                                        $characteristics = GallupReportSheetIndex::where('gallup_report_sheet_id', $sheet->id)
+                                            ->get(['type', 'name'])
+                                            ->groupBy('type');
+                                        
+                                        foreach ($characteristics as $type => $items) {
+                                            $typeName = trim($type);
+                                            
+                                            foreach ($items as $item) {
+                                                $key = $reportType . '|' . trim($type) . '|' . trim($item->name);
+                                                $options[$key] = $reportType . ' - ' . $typeName . ': ' . trim($item->name);
+                                            }
+                                        }
+                                    }
+                                    
+                                    return $options;
+                                })
+                                ->searchable()
+                                ->required()
+                                ->columnSpan(2),
+                                
+                            Forms\Components\Select::make('operator')
+                                ->label('Операция')
+                                ->options([
+                                    '>=' => 'Больше или равно (≥)',
+                                    '<=' => 'Меньше или равно (≤)',
+                                ])
+                                ->required()
+                                ->default('>=')
+                                ->columnSpan(1),
+                                
+                            Forms\Components\TextInput::make('value')
+                                ->label('Значение')
+                                ->numeric()
+                                ->required()
+                                ->minValue(0)
+                                ->maxValue(100)
+                                ->suffix('%')
+                                ->columnSpan(1),
+                        ])
+                        ->columns(4)
+                        ->defaultItems(1)
+                        ->addActionLabel('Добавить условие')
+                        ->reorderable()
+                        ->collapsible()
+                        ->itemLabel(function (array $state): ?string {
+                            if (!isset($state['characteristic'], $state['operator'], $state['value'])) {
+                                return 'Новое условие';
                             }
-                        }
-                        
-                        if (!empty($options)) {
-                            $sections[] = Forms\Components\Fieldset::make($typeName)
-                                ->schema([
-                                    Forms\Components\CheckboxList::make($fieldName)
-                                        ->label('')
-                                        ->options($options)
-                                        ->columns(2)
-                                        ->default($defaultValues)
-                                ]);
-                        }
-                        
-                        $typeIndex++; // Увеличиваем индекс для следующего типа
-                    }
-                    
-                    return $sections;
-                })
-                ->reactive()
+                            
+                            // Парсим название характеристики для краткого отображения
+                            $parts = explode('|', $state['characteristic']);
+                            if (count($parts) >= 3) {
+                                $reportType = $parts[0];
+                                $name = $parts[2];
+                                return "{$reportType}: {$name} {$state['operator']} {$state['value']}%";
+                            }
+                            
+                            return "Условие: {$state['operator']} {$state['value']}%";
+                        }),
+                ])
                 ->columns(1),
-
-            Forms\Components\TextInput::make('min_value')
-                ->label('Минимальное значение')
-                ->numeric()
-                ->default(session('candidate_search.min_value', 70))
-                ->minValue(0)
-                ->maxValue(100)
-                ->suffix('%')
-                ->required(),
+                
+            Forms\Components\Section::make('Фильтр по возрасту')
+                ->schema([
+                    Forms\Components\Grid::make(2)
+                        ->schema([
+                            Forms\Components\TextInput::make('min_age')
+                                ->label('Минимальный возраст')
+                                ->numeric()
+                                ->minValue(16)
+                                ->maxValue(100)
+                                ->suffix('лет')
+                                ->placeholder('Например: 25'),
+                                
+                            Forms\Components\TextInput::make('max_age')
+                                ->label('Максимальный возраст')
+                                ->numeric()
+                                ->minValue(16)
+                                ->maxValue(100)
+                                ->suffix('лет')
+                                ->placeholder('Например: 35'),
+                        ])
+                ])
+                ->collapsible()
+                ->collapsed(),
+                
+            Forms\Components\Section::make('Поиск по должности')
+                ->schema([
+                    Forms\Components\TextInput::make('desired_position')
+                        ->label('Желаемая должность')
+                        ->placeholder('Введите часть названия должности (например: "менеджер", "разработчик")')
+                        ->helperText('Поиск будет осуществляться по частичному совпадению текста')
+                        ->maxLength(255),
+                ])
+                ->collapsible()
+                ->collapsed(),
+                
+            Forms\Components\Section::make('Поиск по городу')
+                ->schema([
+                    Forms\Components\Select::make('cities')
+                        ->label('Город проживания')
+                        ->multiple()
+                        ->options(function () {
+                            // Получаем уникальные города из таблицы кандидатов
+                            return \App\Models\Candidate::whereNotNull('current_city')
+                                ->where('current_city', '!=', '')
+                                ->distinct()
+                                ->orderBy('current_city')
+                                ->pluck('current_city', 'current_city')
+                                ->toArray();
+                        })
+                        ->searchable()
+                        ->placeholder('Выберите один или несколько городов')
+                        ->helperText('Можно выбрать несколько городов. Будут найдены кандидаты из любого из выбранных городов.')
+                        ->maxItems(10),
+                ])
+                ->collapsible()
+                ->collapsed(),
         ];
     }
 
@@ -112,42 +162,149 @@ class SearchCandidates extends ListRecords
                 ->color('primary')
                 ->icon('heroicon-o-magnifying-glass')
                 ->form($this->getSearchFormSchema())
-                ->action(function (array $data) {
-                    // Собираем все характеристики из разных полей
-                    $allCharacteristics = [];
-                    foreach ($data as $key => $value) {
-                        // Обновляем паттерн для новых имен полей с индексами
-                        if (preg_match('/^characteristics_\d+_/', $key) && is_array($value)) {
-                            $allCharacteristics = array_merge($allCharacteristics, $value);
-                        }
+                ->fillForm(function () {
+                    // Предзаполняем форму сохраненными условиями
+                    $search = session('candidate_search', []);
+                    $formData = [];
+                    
+                    if (!empty($search['conditions'])) {
+                        $formData['conditions'] = $search['conditions'];
+                    } else {
+                        $formData['conditions'] = [];
                     }
                     
-                    // Проверяем, что выбрана хотя бы одна характеристика
-                    if (empty($allCharacteristics)) {
+                    if (isset($search['min_age'])) {
+                        $formData['min_age'] = $search['min_age'];
+                    }
+                    
+                    if (isset($search['max_age'])) {
+                        $formData['max_age'] = $search['max_age'];
+                    }
+                    
+                    if (isset($search['desired_position'])) {
+                        $formData['desired_position'] = $search['desired_position'];
+                    }
+                    
+                    if (isset($search['cities'])) {
+                        $formData['cities'] = $search['cities'];
+                    }
+                    
+                    return $formData;
+                })
+                ->action(function (array $data) {
+                    // Проверяем, что есть хотя бы одно условие поиска
+                    $hasConditions = !empty($data['conditions']);
+                    $hasAgeFilter = !empty($data['min_age']) || !empty($data['max_age']);
+                    $hasPositionFilter = !empty($data['desired_position']);
+                    $hasCityFilter = !empty($data['cities']);
+                    
+                    if (!$hasConditions && !$hasAgeFilter && !$hasPositionFilter && !$hasCityFilter) {
                         Notification::make()
                             ->title('Ошибка')
-                            ->body('Выберите хотя бы одну характеристику для поиска')
+                            ->body('Добавьте хотя бы одно условие поиска: характеристики, возраст, должность или город')
                             ->danger()
                             ->send();
                         return;
                     }
                     
-                    // Подготавливаем данные для сохранения
-                    $searchData = [
-                        'report_type' => $data['report_type'],
-                        'characteristics' => $allCharacteristics,
-                        'min_value' => $data['min_value']
-                    ];
+                    // Валидируем условия (если есть)
+                    $validConditions = [];
+                    if (!empty($data['conditions'])) {
+                        foreach ($data['conditions'] as $condition) {
+                            if (isset($condition['characteristic']) && 
+                                isset($condition['operator']) && 
+                                isset($condition['value']) &&
+                                !empty($condition['characteristic']) &&
+                                !empty($condition['operator']) &&
+                                is_numeric($condition['value'])) {
+                                $validConditions[] = $condition;
+                            }
+                        }
+                    }
                     
-                    // Сохраняем параметры поиска в сессии
+                    // Подготавливаем данные для сохранения
+                    $searchData = ['conditions' => $validConditions];
+                    
+                    // Добавляем возрастные фильтры если указаны
+                    if (!empty($data['min_age']) && is_numeric($data['min_age'])) {
+                        $searchData['min_age'] = (int)$data['min_age'];
+                    }
+                    
+                    if (!empty($data['max_age']) && is_numeric($data['max_age'])) {
+                        $searchData['max_age'] = (int)$data['max_age'];
+                    }
+                    
+                    // Добавляем фильтр по должности если указан
+                    if (!empty($data['desired_position'])) {
+                        $searchData['desired_position'] = trim($data['desired_position']);
+                    }
+                    
+                    // Добавляем фильтр по городам если указан
+                    if (!empty($data['cities']) && is_array($data['cities'])) {
+                        $searchData['cities'] = array_filter($data['cities']);
+                    }
+                    
+                    // Валидация возрастного диапазона
+                    if (isset($searchData['min_age']) && isset($searchData['max_age'])) {
+                        if ($searchData['min_age'] > $searchData['max_age']) {
+                            Notification::make()
+                                ->title('Ошибка')
+                                ->body('Минимальный возраст не может быть больше максимального')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+                    }
+                    
+                    // Сохраняем условия поиска в сессии
                     session(['candidate_search' => $searchData]);
                     
-                    // Показываем уведомление
-                    $characteristicsCount = count($allCharacteristics);
+                    // Формируем описание для уведомления
+                    $searchDescription = [];
+                    
+                    if (!empty($validConditions)) {
+                        $conditionsText = [];
+                        foreach ($validConditions as $condition) {
+                            $parts = explode('|', $condition['characteristic']);
+                            if (count($parts) >= 3) {
+                                $reportType = $parts[0];
+                                $name = $parts[2];
+                                $conditionsText[] = "{$reportType}: {$name} {$condition['operator']} {$condition['value']}%";
+                            }
+                        }
+                        if (!empty($conditionsText)) {
+                            $searchDescription[] = 'Условия: ' . implode(', ', $conditionsText);
+                        }
+                    }
+                    
+                    if (!empty($searchData['min_age']) || !empty($searchData['max_age'])) {
+                        $ageText = 'Возраст: ';
+                        if (!empty($searchData['min_age']) && !empty($searchData['max_age'])) {
+                            $ageText .= "от {$searchData['min_age']} до {$searchData['max_age']} лет";
+                        } elseif (!empty($searchData['min_age'])) {
+                            $ageText .= "от {$searchData['min_age']} лет";
+                        } else {
+                            $ageText .= "до {$searchData['max_age']} лет";
+                        }
+                        $searchDescription[] = $ageText;
+                    }
+                    
+                    if (!empty($searchData['desired_position'])) {
+                        $searchDescription[] = 'Должность: "' . $searchData['desired_position'] . '"';
+                    }
+                    
+                    if (!empty($searchData['cities'])) {
+                        $citiesCount = count($searchData['cities']);
+                        if ($citiesCount == 1) {
+                            $searchDescription[] = 'Город: ' . $searchData['cities'][0];
+                        } else {
+                            $searchDescription[] = 'Города: ' . implode(', ', $searchData['cities']) . " ({$citiesCount} городов)";
+                        }
+                    }
                     
                     Notification::make()
                         ->title('Поиск выполнен')
-                        ->body("Найдено кандидатов по {$characteristicsCount} характеристикам с минимальным значением {$data['min_value']}%")
+                        ->body(implode('. ', $searchDescription))
                         ->success()
                         ->send();
                         

@@ -30,55 +30,13 @@ class CandidateSearchResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Параметры поиска')
+                Forms\Components\Section::make('Поиск кандидатов')
+                    ->description('Используйте кнопку "Найти кандидатов" для настройки условий поиска')
                     ->schema([
-                        Forms\Components\Select::make('report_type')
-                            ->label('Тип отчета')
-                            ->options([
-                                'DPs' => 'DPs',
-                                'DPT' => 'DPT', 
-                                'FMD' => 'FMD',
-                            ])
-                            ->default('DPs')
-                            ->reactive()
-                            ->afterStateUpdated(fn ($state, callable $set) => $set('characteristics', [])),
-
-                        Forms\Components\CheckboxList::make('characteristics')
-                            ->label('Характеристики для поиска')
-                            ->options(function (callable $get) {
-                                $reportType = $get('report_type') ?? 'DPs';
-                                
-                                // Получаем все доступные характеристики для выбранного типа отчета из индексов
-                                $sheet = GallupReportSheet::where('name_report', $reportType)->first();
-                                if (!$sheet) {
-                                    return [];
-                                }
-                                
-                                $characteristics = GallupReportSheetIndex::where('gallup_report_sheet_id', $sheet->id)
-                                    ->get(['type', 'name'])
-                                    ->groupBy('type');
-                                
-                                $options = [];
-                                foreach ($characteristics as $type => $items) {
-                                    foreach ($items as $item) {
-                                        $key = trim($type) . '|' . $item->name;
-                                        $options[$key] = trim($type) . ': ' . $item->name;
-                                    }
-                                }
-                                
-                                return $options;
-                            })
-                            ->reactive()
-                            ->columns(2),
-
-                        Forms\Components\TextInput::make('min_value')
-                            ->label('Минимальное значение')
-                            ->numeric()
-                            ->default(70)
-                            ->minValue(0)
-                            ->maxValue(100),
+                        Forms\Components\Placeholder::make('search_info')
+                            ->label('')
+                            ->content('Для поиска кандидатов нажмите кнопку "Найти кандидатов" в верхней части страницы. Вы сможете настроить несколько условий поиска с разными операторами (больше, меньше, равно) для любых характеристик из всех типов отчетов.')
                     ])
-                    ->columns(1),
             ]);
     }
 
@@ -98,58 +56,95 @@ class CandidateSearchResource extends Resource
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Телефон'),
 
+                Tables\Columns\TextColumn::make('age')
+                    ->label('Возраст')
+                    ->getStateUsing(function (Candidate $record) {
+                        if (!$record->birth_date) {
+                            return 'Не указан';
+                        }
+                        
+                        $age = $record->birth_date->age;
+                        return $age . ' лет';
+                    })
+                    ->sortable(query: function (Builder $query, string $direction): Builder {
+                        return $query->orderByRaw("TIMESTAMPDIFF(YEAR, birth_date, CURDATE()) {$direction}");
+                    })
+                    ->badge()
+                    ->color('primary'),
+
+                Tables\Columns\TextColumn::make('current_city')
+                    ->label('Город')
+                    ->getStateUsing(function (Candidate $record) {
+                        return $record->current_city ?: 'Не указан';
+                    })
+                    ->sortable()
+                    ->searchable()
+                    ->badge()
+                    ->color('success'),
+
                 Tables\Columns\TextColumn::make('desired_position')
                     ->label('Желаемая позиция')
                     ->limit(30),
 
                 Tables\Columns\TextColumn::make('matching_characteristics')
-                    ->label('Подходящие характеристики')
+                    ->label('Подходящие условия')
                     ->getStateUsing(function (Candidate $record) {
-                        // Получаем параметры поиска из сессии или формы
+                        // Получаем условия поиска из сессии
                         $search = session('candidate_search', []);
-                        if (empty($search['characteristics'])) {
-                            return 'Не указаны параметры поиска';
-                        }
-
-                        $minValue = $search['min_value'] ?? 70;
-                        $reportType = $search['report_type'] ?? 'DPs';
-                        $sheet = GallupReportSheet::where('name_report', $reportType)->first();
-                        
-                        if (!$sheet) {
-                            return 'Отчет не найден';
+                        if (empty($search['conditions'])) {
+                            return 'Не указаны условия поиска';
                         }
 
                         $matches = [];
-                        foreach ($search['characteristics'] as $characteristic) {
-                            $parts = explode('|', $characteristic);
+                        
+                        // Проверяем каждое условие
+                        foreach ($search['conditions'] as $condition) {
+                            if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
+                                continue;
+                            }
+                            
+                            $parts = explode('|', $condition['characteristic']);
                             if (count($parts) < 3) continue;
                             
-                            [$charReportType, $type, $name] = $parts;
+                            [$reportType, $type, $name] = $parts;
                             
-                            $value = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
+                            // Находим соответствующий отчет
+                            $sheet = GallupReportSheet::where('name_report', $reportType)->first();
+                            if (!$sheet) continue;
+                            
+                            // Получаем значение характеристики для кандидата
+                            $valueRecord = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
                                 ->where('candidate_id', $record->id)
                                 ->where('type', trim($type))
                                 ->where('name', trim($name))
-                                ->where('value', '>=', $minValue)
                                 ->first();
                             
-                            if ($value) {
-                                $matches[] = trim($name) . ': ' . $value->value . '%';
+                            if (!$valueRecord) continue;
+                            
+                            $candidateValue = $valueRecord->value;
+                            $conditionValue = $condition['value'];
+                            $operator = $condition['operator'];
+                            
+                            // Проверяем соответствие условию
+                            $conditionMet = false;
+                            switch ($operator) {
+                                case '>=':
+                                    $conditionMet = $candidateValue >= $conditionValue;
+                                    break;
+                                case '<=':
+                                    $conditionMet = $candidateValue <= $conditionValue;
+                                    break;
+                            }
+                            
+                            if ($conditionMet) {
+                                $matches[] = "{$reportType}: {$name} = {$candidateValue}% ({$operator} {$conditionValue}%)";
                             }
                         }
 
-                        return empty($matches) ? 'Нет совпадений' : implode(', ', $matches);
+                        return empty($matches) ? 'Нет соответствий' : implode(', ', $matches);
                     })
                     ->wrap()
-                    ->color(fn (string $state): string => $state === 'Нет совпадений' ? 'danger' : 'success'),
-
-                Tables\Columns\TextColumn::make('report_type')
-                    ->label('Тип отчета')
-                    ->getStateUsing(function () {
-                        return session('candidate_search.report_type', 'DPs');
-                    })
-                    ->badge()
-                    ->color('primary'),
+                    ->color(fn (string $state): string => $state === 'Нет соответствий' ? 'danger' : 'success'),
             ])
             ->filters([
                 //
@@ -166,47 +161,160 @@ class CandidateSearchResource extends Resource
                 ]),
             ])
             ->modifyQueryUsing(function (Builder $query) {
-                // Получаем параметры поиска из сессии
+                // Получаем условия поиска из сессии
                 $search = session('candidate_search', []);
                 
-                if (empty($search['characteristics'])) {
-                    // Если параметры поиска не заданы, показываем пустую таблицу
+                if (empty($search['conditions']) && empty($search['min_age']) && empty($search['max_age']) && empty($search['desired_position']) && empty($search['cities'])) {
+                    // Если условия поиска не заданы, показываем пустую таблицу
                     return $query->whereRaw('1 = 0');
                 }
 
-                $minValue = $search['min_value'] ?? 70;
-                $reportType = $search['report_type'] ?? 'DPs';
-                $sheet = GallupReportSheet::where('name_report', $reportType)->first();
+                $candidateIds = collect();
                 
-                if (!$sheet) {
-                    return $query->whereRaw('1 = 0');
+                // Обрабатываем условия по характеристикам (если есть)
+                if (!empty($search['conditions'])) {
+                    foreach ($search['conditions'] as $condition) {
+                        if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
+                            continue;
+                        }
+                        
+                        $parts = explode('|', $condition['characteristic']);
+                        if (count($parts) < 3) continue;
+                        
+                        [$reportType, $type, $name] = $parts;
+                        
+                        // Находим соответствующий отчет
+                        $sheet = GallupReportSheet::where('name_report', $reportType)->first();
+                        if (!$sheet) continue;
+                        
+                        $conditionValue = $condition['value'];
+                        $operator = $condition['operator'];
+                        
+                        // Формируем запрос в зависимости от оператора
+                        $valueQuery = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
+                            ->where('type', trim($type))
+                            ->where('name', trim($name));
+                        
+                        switch ($operator) {
+                            case '>=':
+                                $valueQuery->where('value', '>=', $conditionValue);
+                                break;
+                            case '<=':
+                                $valueQuery->where('value', '<=', $conditionValue);
+                                break;
+                            default:
+                                continue 2; // Пропускаем неизвестные операторы
+                        }
+                        
+                        $ids = $valueQuery->pluck('candidate_id');
+                        $candidateIds = $candidateIds->merge($ids);
+                    }
                 }
-
-                // Собираем ID кандидатов, которые соответствуют хотя бы одной характеристике
-                $allCandidateIds = collect();
                 
-                foreach ($search['characteristics'] as $characteristic) {
-                    $parts = explode('|', $characteristic);
-                    if (count($parts) < 3) continue;
+                // Применяем возрастные фильтры
+                $ageCandidateIds = collect();
+                if (!empty($search['min_age']) || !empty($search['max_age'])) {
+                    $ageQuery = $query->newQuery();
                     
-                    [$charReportType, $type, $name] = $parts;
+                    if (!empty($search['min_age'])) {
+                        // Кандидаты старше минимального возраста
+                        $maxBirthDate = now()->subYears($search['min_age'])->format('Y-m-d');
+                        $ageQuery->where('birth_date', '<=', $maxBirthDate);
+                    }
                     
-                    $ids = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
-                        ->where('type', trim($type))
-                        ->where('name', trim($name))
-                        ->where('value', '>=', $minValue)
-                        ->pluck('candidate_id');
+                    if (!empty($search['max_age'])) {
+                        // Кандидаты младше максимального возраста
+                        $minBirthDate = now()->subYears($search['max_age'] + 1)->addDay()->format('Y-m-d');
+                        $ageQuery->where('birth_date', '>=', $minBirthDate);
+                    }
                     
-                    $allCandidateIds = $allCandidateIds->merge($ids);
+                    // Добавляем условие что birth_date не null
+                    $ageQuery->whereNotNull('birth_date');
+                    
+                    $ageCandidateIds = $ageQuery->pluck('id');
                 }
-
-                $uniqueCandidateIds = $allCandidateIds->unique();
-
-                if ($uniqueCandidateIds->isEmpty()) {
+                
+                // Применяем фильтр по должности
+                $positionCandidateIds = collect();
+                if (!empty($search['desired_position'])) {
+                    $positionQuery = $query->newQuery();
+                    $positionQuery->where('desired_position', 'LIKE', '%' . $search['desired_position'] . '%')
+                                  ->whereNotNull('desired_position');
+                    
+                    $positionCandidateIds = $positionQuery->pluck('id');
+                }
+                
+                // Применяем фильтр по городам
+                $cityCandidateIds = collect();
+                if (!empty($search['cities']) && is_array($search['cities'])) {
+                    $cityQuery = $query->newQuery();
+                    $cityQuery->whereIn('current_city', $search['cities'])
+                              ->whereNotNull('current_city');
+                    
+                    $cityCandidateIds = $cityQuery->pluck('id');
+                }
+                
+                // Комбинируем результаты
+                $finalCandidateIds = collect();
+                
+                // Список всех типов фильтров
+                $hasCharacteristicFilter = !empty($search['conditions']) && !$candidateIds->isEmpty();
+                $hasAgeFilter = (!empty($search['min_age']) || !empty($search['max_age'])) && !$ageCandidateIds->isEmpty();
+                $hasPositionFilter = !empty($search['desired_position']) && !$positionCandidateIds->isEmpty();
+                $hasCityFilter = !empty($search['cities']) && !$cityCandidateIds->isEmpty();
+                
+                // Считаем количество активных фильтров
+                $activeFiltersCount = ($hasCharacteristicFilter ? 1 : 0) + ($hasAgeFilter ? 1 : 0) + ($hasPositionFilter ? 1 : 0) + ($hasCityFilter ? 1 : 0);
+                
+                // Если есть несколько типов фильтров - берем пересечение
+                if ($activeFiltersCount > 1) {
+                    $finalCandidateIds = collect();
+                    
+                    if ($hasCharacteristicFilter) {
+                        $finalCandidateIds = $candidateIds->unique();
+                    }
+                    
+                    if ($hasAgeFilter) {
+                        if ($finalCandidateIds->isEmpty()) {
+                            $finalCandidateIds = $ageCandidateIds;
+                        } else {
+                            $finalCandidateIds = $finalCandidateIds->intersect($ageCandidateIds);
+                        }
+                    }
+                    
+                    if ($hasPositionFilter) {
+                        if ($finalCandidateIds->isEmpty()) {
+                            $finalCandidateIds = $positionCandidateIds;
+                        } else {
+                            $finalCandidateIds = $finalCandidateIds->intersect($positionCandidateIds);
+                        }
+                    }
+                    
+                    if ($hasCityFilter) {
+                        if ($finalCandidateIds->isEmpty()) {
+                            $finalCandidateIds = $cityCandidateIds;
+                        } else {
+                            $finalCandidateIds = $finalCandidateIds->intersect($cityCandidateIds);
+                        }
+                    }
+                } else {
+                    // Если только один тип фильтра - используем его результаты
+                    if ($hasCharacteristicFilter) {
+                        $finalCandidateIds = $candidateIds->unique();
+                    } elseif ($hasAgeFilter) {
+                        $finalCandidateIds = $ageCandidateIds;
+                    } elseif ($hasPositionFilter) {
+                        $finalCandidateIds = $positionCandidateIds;
+                    } elseif ($hasCityFilter) {
+                        $finalCandidateIds = $cityCandidateIds;
+                    }
+                }
+                
+                if ($finalCandidateIds->isEmpty()) {
                     return $query->whereRaw('1 = 0');
                 }
-
-                return $query->whereIn('id', $uniqueCandidateIds->toArray());
+                
+                return $query->whereIn('id', $finalCandidateIds);
             });
     }
 
