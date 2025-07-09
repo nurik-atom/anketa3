@@ -91,53 +91,51 @@ class CandidateSearchResource extends Resource
                     ->getStateUsing(function (Candidate $record) {
                         // Получаем условия поиска из сессии
                         $search = session('candidate_search', []);
-                        if (empty($search['conditions'])) {
+                        if (empty($search['characteristics'])) {
                             return 'Не указаны условия поиска';
                         }
 
                         $matches = [];
                         
-                        // Проверяем каждое условие
-                        foreach ($search['conditions'] as $condition) {
-                            if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
-                                continue;
-                            }
-                            
-                            $parts = explode('|', $condition['characteristic']);
-                            if (count($parts) < 3) continue;
-                            
-                            [$reportType, $type, $name] = $parts;
-                            
-                            // Находим соответствующий отчет
-                            $sheet = GallupReportSheet::where('name_report', $reportType)->first();
-                            if (!$sheet) continue;
-                            
-                            // Получаем значение характеристики для кандидата
-                            $valueRecord = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
-                                ->where('candidate_id', $record->id)
-                                ->where('type', trim($type))
-                                ->where('name', trim($name))
-                                ->first();
-                            
-                            if (!$valueRecord) continue;
-                            
-                            $candidateValue = $valueRecord->value;
-                            $conditionValue = $condition['value'];
-                            $operator = $condition['operator'];
-                            
-                            // Проверяем соответствие условию
-                            $conditionMet = false;
-                            switch ($operator) {
-                                case '>=':
-                                    $conditionMet = $candidateValue >= $conditionValue;
-                                    break;
-                                case '<=':
-                                    $conditionMet = $candidateValue <= $conditionValue;
-                                    break;
-                            }
-                            
-                            if ($conditionMet) {
-                                $matches[] = "{$reportType}: {$name} = {$candidateValue}% ({$operator} {$conditionValue}%)";
+                        // Проверяем каждую характеристику
+                        if (!empty($search['characteristics']) && !empty($search['operator']) && !empty($search['value'])) {
+                            foreach ($search['characteristics'] as $characteristic) {
+                                $parts = explode('|', $characteristic);
+                                if (count($parts) < 3) continue;
+                                
+                                [$reportType, $type, $name] = $parts;
+                                
+                                // Находим соответствующий отчет
+                                $sheet = GallupReportSheet::where('name_report', $reportType)->first();
+                                if (!$sheet) continue;
+                                
+                                // Получаем значение характеристики для кандидата
+                                $valueRecord = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
+                                    ->where('candidate_id', $record->id)
+                                    ->where('type', trim($type))
+                                    ->where('name', trim($name))
+                                    ->first();
+                                
+                                if (!$valueRecord) continue;
+                                
+                                $candidateValue = $valueRecord->value;
+                                $conditionValue = $search['value'];
+                                $operator = $search['operator'];
+                                
+                                // Проверяем соответствие условию
+                                $conditionMet = false;
+                                switch ($operator) {
+                                    case '>=':
+                                        $conditionMet = $candidateValue >= $conditionValue;
+                                        break;
+                                    case '<=':
+                                        $conditionMet = $candidateValue <= $conditionValue;
+                                        break;
+                                }
+                                
+                                if ($conditionMet) {
+                                    $matches[] = "{$reportType}: {$name} = {$candidateValue}% ({$operator} {$conditionValue}%)";
+                                }
                             }
                         }
 
@@ -164,7 +162,7 @@ class CandidateSearchResource extends Resource
                 // Получаем условия поиска из сессии
                 $search = session('candidate_search', []);
                 
-                if (empty($search['conditions']) && empty($search['min_age']) && empty($search['max_age']) && empty($search['desired_position']) && empty($search['cities'])) {
+                if (empty($search['characteristics']) && empty($search['min_age']) && empty($search['max_age']) && empty($search['desired_position']) && empty($search['cities'])) {
                     // Если условия поиска не заданы, показываем пустую таблицу
                     return $query->whereRaw('1 = 0');
                 }
@@ -172,13 +170,9 @@ class CandidateSearchResource extends Resource
                 $candidateIds = collect();
                 
                 // Обрабатываем условия по характеристикам (если есть)
-                if (!empty($search['conditions'])) {
-                    foreach ($search['conditions'] as $condition) {
-                        if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
-                            continue;
-                        }
-                        
-                        $parts = explode('|', $condition['characteristic']);
+                if (!empty($search['characteristics']) && !empty($search['operator']) && !empty($search['value'])) {
+                    foreach ($search['characteristics'] as $characteristic) {
+                        $parts = explode('|', $characteristic);
                         if (count($parts) < 3) continue;
                         
                         [$reportType, $type, $name] = $parts;
@@ -187,8 +181,8 @@ class CandidateSearchResource extends Resource
                         $sheet = GallupReportSheet::where('name_report', $reportType)->first();
                         if (!$sheet) continue;
                         
-                        $conditionValue = $condition['value'];
-                        $operator = $condition['operator'];
+                        $conditionValue = $search['value'];
+                        $operator = $search['operator'];
                         
                         // Формируем запрос в зависимости от оператора
                         $valueQuery = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
@@ -258,7 +252,7 @@ class CandidateSearchResource extends Resource
                 $finalCandidateIds = collect();
                 
                 // Список всех типов фильтров
-                $hasCharacteristicFilter = !empty($search['conditions']) && !$candidateIds->isEmpty();
+                $hasCharacteristicFilter = !empty($search['characteristics']) && !$candidateIds->isEmpty();
                 $hasAgeFilter = (!empty($search['min_age']) || !empty($search['max_age'])) && !$ageCandidateIds->isEmpty();
                 $hasPositionFilter = !empty($search['desired_position']) && !$positionCandidateIds->isEmpty();
                 $hasCityFilter = !empty($search['cities']) && !$cityCandidateIds->isEmpty();

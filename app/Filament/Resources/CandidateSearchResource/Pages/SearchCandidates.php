@@ -18,139 +18,101 @@ class SearchCandidates extends ListRecords
     protected function getSearchFormSchema(): array
     {
         return [
-            Forms\Components\Section::make('Условия поиска')
-                ->schema([
-                    Forms\Components\Repeater::make('conditions')
-                        ->label('Условия')
-                        ->schema([
-                            Forms\Components\Select::make('characteristic')
-                                ->label('Характеристика')
-                                ->options(function () {
-                                    // Получаем все характеристики из всех типов отчетов
-                                    $allSheets = GallupReportSheet::all();
-                                    $options = [];
-                                    
-                                    foreach ($allSheets as $sheet) {
-                                        $reportType = $sheet->name_report;
-                                        
-                                        $characteristics = GallupReportSheetIndex::where('gallup_report_sheet_id', $sheet->id)
-                                            ->get(['type', 'name'])
-                                            ->groupBy('type');
-                                        
-                                        foreach ($characteristics as $type => $items) {
-                                            $typeName = trim($type);
-                                            
-                                            foreach ($items as $item) {
-                                                $key = $reportType . '|' . trim($type) . '|' . trim($item->name);
-                                                $options[$key] = $reportType . ' - ' . $typeName . ': ' . trim($item->name);
-                                            }
-                                        }
-                                    }
-                                    
-                                    return $options;
-                                })
-                                ->searchable()
-                                ->required()
-                                ->columnSpan(2),
-                                
-                            Forms\Components\Select::make('operator')
-                                ->label('Операция')
-                                ->options([
-                                    '>=' => 'Больше или равно (≥)',
-                                    '<=' => 'Меньше или равно (≤)',
-                                ])
-                                ->required()
-                                ->default('>=')
-                                ->columnSpan(1),
-                                
-                            Forms\Components\TextInput::make('value')
-                                ->label('Значение')
-                                ->numeric()
-                                ->required()
-                                ->minValue(0)
-                                ->maxValue(100)
-                                ->suffix('%')
-                                ->columnSpan(1),
-                        ])
-                        ->columns(4)
-                        ->defaultItems(1)
-                        ->addActionLabel('Добавить условие')
-                        ->reorderable()
-                        ->collapsible()
-                        ->itemLabel(function (array $state): ?string {
-                            if (!isset($state['characteristic'], $state['operator'], $state['value'])) {
-                                return 'Новое условие';
-                            }
+            Forms\Components\Select::make('characteristics')
+                ->label('Характеристики')
+                ->multiple()
+                ->options(function () {
+                    // Получаем все характеристики из всех типов отчетов
+                    $allSheets = GallupReportSheet::all();
+                    $options = [];
+                    
+                    foreach ($allSheets as $sheet) {
+                        $reportType = $sheet->name_report;
+                        
+                        $characteristics = GallupReportSheetIndex::where('gallup_report_sheet_id', $sheet->id)
+                            ->get(['type', 'name'])
+                            ->groupBy('type');
+                        
+                        foreach ($characteristics as $type => $items) {
+                            $typeName = trim($type);
                             
-                            // Парсим название характеристики для краткого отображения
-                            $parts = explode('|', $state['characteristic']);
-                            if (count($parts) >= 3) {
-                                $reportType = $parts[0];
-                                $name = $parts[2];
-                                return "{$reportType}: {$name} {$state['operator']} {$state['value']}%";
+                            foreach ($items as $item) {
+                                $key = $reportType . '|' . trim($type) . '|' . trim($item->name);
+                                $options[$key] = $reportType . ' - ' . $typeName . ': ' . trim($item->name);
                             }
-                            
-                            return "Условие: {$state['operator']} {$state['value']}%";
-                        }),
-                ])
-                ->columns(1),
+                        }
+                    }
+                    
+                    return $options;
+                })
+                ->searchable()
+                ->placeholder('Выберите одну или несколько характеристик')
+                ->helperText('Можно выбрать несколько характеристик. Будут найдены кандидаты, соответствующие всем выбранным условиям.')
+                ->maxItems(20),
                 
-            Forms\Components\Section::make('Фильтр по возрасту')
+            Forms\Components\Grid::make(2)
                 ->schema([
-                    Forms\Components\Grid::make(2)
-                        ->schema([
-                            Forms\Components\TextInput::make('min_age')
-                                ->label('Минимальный возраст')
-                                ->numeric()
-                                ->minValue(16)
-                                ->maxValue(100)
-                                ->suffix('лет')
-                                ->placeholder('Например: 25'),
-                                
-                            Forms\Components\TextInput::make('max_age')
-                                ->label('Максимальный возраст')
-                                ->numeric()
-                                ->minValue(16)
-                                ->maxValue(100)
-                                ->suffix('лет')
-                                ->placeholder('Например: 35'),
+                    Forms\Components\Select::make('operator')
+                        ->label('Операция для всех характеристик')
+                        ->options([
+                            '>=' => 'Больше или равно (≥)',
+                            '<=' => 'Меньше или равно (≤)',
                         ])
+                        ->required()
+                        ->default('>='),
+                        
+                    Forms\Components\TextInput::make('value')
+                        ->label('Значение для всех характеристик')
+                        ->numeric()
+                        ->required()
+                        ->minValue(0)
+                        ->maxValue(100)
+                        ->suffix('%')
+                        ->default(70),
                 ])
-                ->collapsible()
-                ->collapsed(),
+                ->visible(fn (callable $get) => !empty($get('characteristics'))),
                 
-            Forms\Components\Section::make('Поиск по должности')
+            Forms\Components\Grid::make(2)
                 ->schema([
-                    Forms\Components\TextInput::make('desired_position')
-                        ->label('Желаемая должность')
-                        ->placeholder('Введите часть названия должности (например: "менеджер", "разработчик")')
-                        ->helperText('Поиск будет осуществляться по частичному совпадению текста')
-                        ->maxLength(255),
-                ])
-                ->collapsible()
-                ->collapsed(),
+                    Forms\Components\TextInput::make('min_age')
+                        ->label('Минимальный возраст')
+                        ->numeric()
+                        ->minValue(16)
+                        ->maxValue(100)
+                        ->suffix('лет')
+                        ->placeholder('Например: 25'),
+                        
+                    Forms\Components\TextInput::make('max_age')
+                        ->label('Максимальный возраст')
+                        ->numeric()
+                        ->minValue(16)
+                        ->maxValue(100)
+                        ->suffix('лет')
+                        ->placeholder('Например: 35'),
+                ]),
                 
-            Forms\Components\Section::make('Поиск по городу')
-                ->schema([
-                    Forms\Components\Select::make('cities')
-                        ->label('Город проживания')
-                        ->multiple()
-                        ->options(function () {
-                            // Получаем уникальные города из таблицы кандидатов
-                            return \App\Models\Candidate::whereNotNull('current_city')
-                                ->where('current_city', '!=', '')
-                                ->distinct()
-                                ->orderBy('current_city')
-                                ->pluck('current_city', 'current_city')
-                                ->toArray();
-                        })
-                        ->searchable()
-                        ->placeholder('Выберите один или несколько городов')
-                        ->helperText('Можно выбрать несколько городов. Будут найдены кандидаты из любого из выбранных городов.')
-                        ->maxItems(10),
-                ])
-                ->collapsible()
-                ->collapsed(),
+            Forms\Components\TextInput::make('desired_position')
+                ->label('Желаемая должность')
+                ->placeholder('Введите часть названия должности (например: "менеджер", "разработчик")')
+                ->helperText('Поиск будет осуществляться по частичному совпадению текста')
+                ->maxLength(255),
+                
+            Forms\Components\Select::make('cities')
+                ->label('Город проживания')
+                ->multiple()
+                ->options(function () {
+                    // Получаем уникальные города из таблицы кандидатов
+                    return \App\Models\Candidate::whereNotNull('current_city')
+                        ->where('current_city', '!=', '')
+                        ->distinct()
+                        ->orderBy('current_city')
+                        ->pluck('current_city', 'current_city')
+                        ->toArray();
+                })
+                ->searchable()
+                ->placeholder('Выберите один или несколько городов')
+                ->helperText('Можно выбрать несколько городов. Будут найдены кандидаты из любого из выбранных городов.')
+                ->maxItems(10),
         ];
     }
 
@@ -167,10 +129,18 @@ class SearchCandidates extends ListRecords
                     $search = session('candidate_search', []);
                     $formData = [];
                     
-                    if (!empty($search['conditions'])) {
-                        $formData['conditions'] = $search['conditions'];
+                    if (!empty($search['characteristics'])) {
+                        $formData['characteristics'] = $search['characteristics'];
                     } else {
-                        $formData['conditions'] = [];
+                        $formData['characteristics'] = [];
+                    }
+                    
+                    if (isset($search['operator'])) {
+                        $formData['operator'] = $search['operator'];
+                    }
+                    
+                    if (isset($search['value'])) {
+                        $formData['value'] = $search['value'];
                     }
                     
                     if (isset($search['min_age'])) {
@@ -193,7 +163,7 @@ class SearchCandidates extends ListRecords
                 })
                 ->action(function (array $data) {
                     // Проверяем, что есть хотя бы одно условие поиска
-                    $hasConditions = !empty($data['conditions']);
+                    $hasConditions = !empty($data['characteristics']);
                     $hasAgeFilter = !empty($data['min_age']) || !empty($data['max_age']);
                     $hasPositionFilter = !empty($data['desired_position']);
                     $hasCityFilter = !empty($data['cities']);
@@ -207,23 +177,15 @@ class SearchCandidates extends ListRecords
                         return;
                     }
                     
-                    // Валидируем условия (если есть)
-                    $validConditions = [];
-                    if (!empty($data['conditions'])) {
-                        foreach ($data['conditions'] as $condition) {
-                            if (isset($condition['characteristic']) && 
-                                isset($condition['operator']) && 
-                                isset($condition['value']) &&
-                                !empty($condition['characteristic']) &&
-                                !empty($condition['operator']) &&
-                                is_numeric($condition['value'])) {
-                                $validConditions[] = $condition;
-                            }
-                        }
-                    }
-                    
                     // Подготавливаем данные для сохранения
-                    $searchData = ['conditions' => $validConditions];
+                    $searchData = [];
+                    
+                    // Добавляем условия по характеристикам если указаны
+                    if (!empty($data['characteristics']) && !empty($data['operator']) && !empty($data['value'])) {
+                        $searchData['characteristics'] = array_filter($data['characteristics']);
+                        $searchData['operator'] = $data['operator'];
+                        $searchData['value'] = (int)$data['value'];
+                    }
                     
                     // Добавляем возрастные фильтры если указаны
                     if (!empty($data['min_age']) && is_numeric($data['min_age'])) {
@@ -262,18 +224,18 @@ class SearchCandidates extends ListRecords
                     // Формируем описание для уведомления
                     $searchDescription = [];
                     
-                    if (!empty($validConditions)) {
-                        $conditionsText = [];
-                        foreach ($validConditions as $condition) {
-                            $parts = explode('|', $condition['characteristic']);
+                    if (!empty($searchData['characteristics'])) {
+                        $characteristicsText = [];
+                        foreach ($searchData['characteristics'] as $characteristic) {
+                            $parts = explode('|', $characteristic);
                             if (count($parts) >= 3) {
                                 $reportType = $parts[0];
                                 $name = $parts[2];
-                                $conditionsText[] = "{$reportType}: {$name} {$condition['operator']} {$condition['value']}%";
+                                $characteristicsText[] = "{$reportType}: {$name}";
                             }
                         }
-                        if (!empty($conditionsText)) {
-                            $searchDescription[] = 'Условия: ' . implode(', ', $conditionsText);
+                        if (!empty($characteristicsText)) {
+                            $searchDescription[] = 'Характеристики ' . $searchData['operator'] . ' ' . $searchData['value'] . '%: ' . implode(', ', $characteristicsText);
                         }
                     }
                     
