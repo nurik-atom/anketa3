@@ -143,4 +143,346 @@
             </div>
         </form>
     </div>
-</div> 
+</div>
+
+@push('scripts')
+<script>
+// Глобальный обработчик ползунков - версия 2.0
+(function() {
+    'use strict';
+    
+    // Предотвращаем повторную загрузку
+    if (window.SliderManager) return;
+    
+    window.SliderManager = {
+        activeSliders: new Map(),
+        observer: null,
+        
+        init() {
+            console.log('🎚️ SliderManager: Initializing...');
+            this.setupMutationObserver();
+            this.scanAndInitSliders();
+            this.setupLivewireHooks();
+        },
+        
+        setupMutationObserver() {
+            // Отслеживаем изменения в DOM
+            this.observer = new MutationObserver((mutations) => {
+                let needsReinit = false;
+                mutations.forEach((mutation) => {
+                    if (mutation.type === 'childList') {
+                        mutation.addedNodes.forEach((node) => {
+                            if (node.nodeType === 1) { // Element node
+                                if (node.matches('input[type="range"]') || 
+                                    node.querySelector('input[type="range"]')) {
+                                    needsReinit = true;
+                                }
+                            }
+                        });
+                    }
+                });
+                
+                if (needsReinit) {
+                    console.log('🔄 DOM changed, reinitializing sliders...');
+                    setTimeout(() => this.scanAndInitSliders(), 50);
+                }
+            });
+            
+            this.observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        },
+        
+        setupLivewireHooks() {
+            if (typeof Livewire !== 'undefined') {
+                // Хук для обновлений Livewire
+                Livewire.hook('message.processed', () => {
+                    console.log('🔄 Livewire message processed');
+                    setTimeout(() => this.scanAndInitSliders(), 100);
+                });
+                
+                // Хук для навигации
+                document.addEventListener('livewire:navigated', () => {
+                    console.log('🔄 Livewire navigated');
+                    setTimeout(() => this.scanAndInitSliders(), 100);
+                });
+                
+                // Хук для смены шагов
+                document.addEventListener('livewire:step-changed', (event) => {
+                    console.log('🎚️ SliderManager: Step changed to:', event.detail.step);
+                    this.reinitializeSliders('step-changed');
+                });
+                
+                // Хук для переинициализации JS
+                document.addEventListener('livewire:reinitialize-js', (event) => {
+                    console.log('🎚️ SliderManager: Reinitialize JS event received');
+                    this.reinitializeSliders('reinitialize-js');
+                });
+            }
+        },
+        
+        scanAndInitSliders() {
+            console.log('🔍 Scanning for sliders...');
+            
+            // Находим все ползунки на странице
+            const allSliders = document.querySelectorAll('input[type="range"]');
+            console.log(`Found ${allSliders.length} sliders total`);
+            
+            // Очищаем старые обработчики только если есть активные
+            if (this.activeSliders.size > 0) {
+                this.clearAllHandlers();
+            }
+            
+            // Конфигурация всех ползунков
+            const sliderConfigs = [
+                // Step 2
+                { name: 'books_per_year', displaySelector: null },
+                { name: 'entertainment_hours_weekly', displaySelector: null },
+                { name: 'educational_hours_weekly', displaySelector: null },
+                { name: 'social_media_hours_weekly', displaySelector: null },
+                
+                // Step 3
+                { name: 'total_experience_years', displaySelector: '#experience-display', minValue: 0 },
+                { name: 'job_satisfaction', displaySelector: '#satisfaction-display', minValue: 1 }
+            ];
+            
+            // Инициализируем каждый ползунок только если он виден
+            sliderConfigs.forEach(config => {
+                const slider = document.querySelector(`input[name="${config.name}"]`);
+                if (slider && this.isElementVisible(slider)) {
+                    this.initSlider(config);
+                }
+            });
+            
+            // Инициализируем GPA ползунки отдельно (динамические)
+            this.initGpaSliders();
+            
+            console.log(`✅ SliderManager: ${this.activeSliders.size} sliders active`);
+        },
+        
+        isElementVisible(element) {
+            if (!element) return false;
+            return element.offsetParent !== null && 
+                   getComputedStyle(element).display !== 'none' &&
+                   getComputedStyle(element).visibility !== 'hidden';
+        },
+        
+        reinitializeSliders(source = 'manual') {
+            console.log(`🔄 SliderManager: Reinitializing sliders (source: ${source})...`);
+            
+            // Очищаем старые обработчики
+            this.clearAllHandlers();
+            
+            // Переинициализируем с задержкой для надежности
+            setTimeout(() => {
+                console.log('🔍 SliderManager: Scanning for new sliders...');
+                this.scanAndInitSliders();
+                console.log(`✅ SliderManager: Reinitialization complete (source: ${source})`);
+            }, 100);
+        },
+        
+        initSlider(config) {
+            const slider = document.querySelector(`input[name="${config.name}"]`);
+            if (!slider) return;
+            
+            let display;
+            if (config.displaySelector) {
+                display = document.querySelector(config.displaySelector);
+            } else {
+                // Ищем span в родительском элементе (для step2)
+                display = slider.closest('div')?.parentElement?.querySelector('span');
+            }
+            
+            if (!display) {
+                console.warn(`❌ Display not found for ${config.name}`);
+                return;
+            }
+            
+            console.log(`🎚️ Initializing ${config.name}`);
+            
+            const handlers = this.createSliderHandlers(slider, display, config);
+            this.activeSliders.set(config.name, handlers);
+        },
+        
+        initGpaSliders() {
+            const gpaSliders = document.querySelectorAll('input[type="range"][name*="universities"][name*="gpa"]');
+            console.log(`🎓 Found ${gpaSliders.length} GPA sliders`);
+            
+            gpaSliders.forEach((slider, index) => {
+                const display = slider.closest('div')?.parentElement?.querySelector('span');
+                if (display) {
+                    const key = `gpa_${index}`;
+                    console.log(`🎚️ Initializing GPA slider ${index}`);
+                    
+                    const handlers = this.createSliderHandlers(slider, display, {
+                        formatter: (value) => parseFloat(value).toFixed(2),
+                        minValue: 0
+                    });
+                    this.activeSliders.set(key, handlers);
+                }
+            });
+        },
+        
+        createSliderHandlers(slider, display, config = {}) {
+            const updateDisplay = () => {
+                const value = slider.value;
+                const numValue = parseFloat(value);
+                const minVal = config.minValue !== undefined ? config.minValue : parseFloat(slider.min);
+                
+                if (config.minValue !== undefined && numValue <= minVal) {
+                    // Специальная обработка минимальных значений
+                    if (slider.name === 'job_satisfaction') {
+                        display.textContent = '1';
+                    } else {
+                        display.textContent = '0';
+                    }
+                } else {
+                    // Применяем форматирование или выводим как есть
+                    if (config.formatter) {
+                        display.textContent = config.formatter(value);
+                    } else {
+                        display.textContent = value;
+                    }
+                }
+            };
+            
+            // Создаем обработчики событий
+            const inputHandler = (e) => {
+                updateDisplay();
+                // Не мешаем Livewire
+                e.stopPropagation();
+            };
+            
+            const changeHandler = (e) => {
+                updateDisplay();
+                // Позволяем Livewire обработать изменение
+            };
+            
+            // Добавляем обработчики
+            slider.addEventListener('input', inputHandler);
+            slider.addEventListener('change', changeHandler);
+            
+            // Инициализируем отображение
+            updateDisplay();
+            
+            return {
+                slider,
+                display,
+                inputHandler,
+                changeHandler,
+                cleanup: () => {
+                    slider.removeEventListener('input', inputHandler);
+                    slider.removeEventListener('change', changeHandler);
+                }
+            };
+        },
+        
+        clearAllHandlers() {
+            console.log('🧹 Clearing all slider handlers...');
+            this.activeSliders.forEach((handlers, key) => {
+                handlers.cleanup();
+            });
+            this.activeSliders.clear();
+        },
+        
+        destroy() {
+            this.clearAllHandlers();
+            if (this.observer) {
+                this.observer.disconnect();
+            }
+        }
+    };
+    
+    // Автозапуск
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => window.SliderManager.init(), 100);
+        });
+    } else {
+        setTimeout(() => window.SliderManager.init(), 100);
+    }
+    
+    // Очистка при выгрузке страницы
+    window.addEventListener('beforeunload', () => {
+        window.SliderManager.destroy();
+    });
+    
+    // Дебаг функции для тестирования
+    window.debugSliders = function() {
+        console.log('🧪 DEBUG: Slider status');
+        console.log('Active sliders:', window.SliderManager.activeSliders.size);
+        console.log('All range inputs:', document.querySelectorAll('input[type="range"]').length);
+        
+        // Проверяем каждый ползунок
+        document.querySelectorAll('input[type="range"]').forEach((slider, index) => {
+            console.log(`Slider ${index}:`, {
+                name: slider.name,
+                value: slider.value,
+                visible: slider.offsetParent !== null,
+                hasListeners: window.SliderManager.activeSliders.has(slider.name)
+            });
+        });
+    };
+    
+    window.testValidation = function() {
+        console.log('🧪 DEBUG: Testing validation reset');
+        if (typeof Livewire !== 'undefined' && Livewire.find) {
+            const components = Livewire.all();
+            console.log('Livewire components:', components.length);
+            if (components[0]) {
+                console.log('Current step:', components[0].data.currentStep);
+                console.log('Has errors:', Object.keys(components[0].errors || {}).length > 0);
+                console.log('Errors:', components[0].errors);
+            }
+        }
+    };
+    
+    // Глобальная функция для принудительной переинициализации всех JS компонентов
+    window.forceReinitializeJS = function() {
+        console.log('🚀 FORCE: Manual reinitialization of all JS components');
+        
+        // Переинициализируем ползунки
+        if (window.SliderManager) {
+            window.SliderManager.reinitializeSliders('manual-force');
+        }
+        
+        // Переинициализируем основные компоненты
+        if (typeof reinitializeAllComponents === 'function') {
+            reinitializeAllComponents(null, 'manual-force');
+        } else {
+            // Альтернативный способ если функция не доступна
+            document.dispatchEvent(new CustomEvent('livewire:reinitialize-js'));
+        }
+        
+        console.log('✅ FORCE: Manual reinitialization completed');
+    };
+    
+    // Тестовая функция для проверки событий
+    window.testEventChain = function() {
+        console.log('🧪 TEST: Testing event chain...');
+        
+        // Тестируем отправку события step-changed
+        console.log('📤 Dispatching step-changed event');
+        document.dispatchEvent(new CustomEvent('livewire:step-changed', {
+            detail: { step: 99 }
+        }));
+        
+        // Тестируем отправку события reinitialize-js
+        setTimeout(() => {
+            console.log('📤 Dispatching reinitialize-js event');
+            document.dispatchEvent(new CustomEvent('livewire:reinitialize-js'));
+        }, 500);
+        
+        // Проверяем состояние через 2 секунды
+        setTimeout(() => {
+            console.log('🔍 Checking state after events...');
+            window.debugSliders();
+            window.testValidation();
+            console.log('✅ TEST: Event chain test completed');
+        }, 2000);
+    };
+    
+})();
+</script>
+@endpush 

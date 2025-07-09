@@ -7,6 +7,7 @@ use App\Models\CandidateFile;
 use App\Models\CandidateHistory;
 use App\Models\CandidateStatus;
 use App\Jobs\ProcessGallupFile;
+use App\Rules\CyrillicRule;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Storage;
@@ -43,16 +44,12 @@ class CandidateForm extends Component
     public $religion;
     public $is_practicing;
     public $family_members = [];
-    public $familyMemberType = '';
-    public $familyMemberBirthYear;
-    public $familyMemberProfession = '';
     public $hobbies;
     public $interests;
     public $visited_countries = [];
     public $newCountry = '';
     public $books_per_year;
     public $favorite_sports = [];
-    public $newSport = '';
     public $entertainment_hours_weekly;
     public $educational_hours_weekly;
     public $social_media_hours_weekly;
@@ -178,7 +175,7 @@ class CandidateForm extends Component
         $this->universities = [];
         $this->family_members = [];
         $this->visited_countries = [];
-        $this->favorite_sports = [];
+        $this->favorite_sports = '';
         $this->language_skills = [];
         $this->work_experience = [];
         $this->computer_skills = '';
@@ -220,6 +217,9 @@ class CandidateForm extends Component
                 }
             }
         }
+        
+        // Инициализируем валидацию для текущего шага
+        $this->reinitializeValidation();
     }
 
     protected function loadCandidateData()
@@ -290,34 +290,38 @@ class CandidateForm extends Component
     {
         $rules = [
         // Step 1 validation rules
-            'last_name' => 'required|string|max:255',
-            'first_name' => 'required|string|max:255',
-            'middle_name' => 'nullable|string|max:255',
+            'last_name' => ['required', 'string', 'max:255', new CyrillicRule()],
+            'first_name' => ['required', 'string', 'max:255', new CyrillicRule()],
+            'middle_name' => ['nullable', 'string', 'max:255', new CyrillicRule()],
         'email' => 'required|email|max:255',
             'phone' => ['required', 'string', 'regex:/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/'],
             'gender' => 'required|in:Мужской,Женский',
             'marital_status' => 'required|in:Холост/Не замужем,Женат/Замужем,Разведен(а),Вдовец/Вдова',
             'birth_date' => 'required|date|before:today',
-            'birth_place' => 'required|string|max:255',
-        'current_city' => 'required|string|max:255',
+            'birth_place' => ['required', 'string', 'max:255', new CyrillicRule()],
+        'current_city' => ['required', 'string', 'max:255', new CyrillicRule()],
             'photo' => !$this->candidate?->photo ? 'required|image|max:2048' : 'nullable|image|max:2048',
 
             // Step 2 validation rules
             'religion' => 'required|string|in:' . implode(',', array_values(config('lists.religions'))),
             'is_practicing' => 'nullable|boolean',
             'family_members' => 'nullable|array',
+            'family_members.*.type' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
+            'family_members.*.birth_year' => 'required|integer|min:1900|max:' . date('Y'),
+            'family_members.*.profession' => ['required', 'string', 'max:255', new CyrillicRule()],
+            'hobbies' => ['nullable', 'string', 'max:1000', new CyrillicRule()],
+            'interests' => ['nullable', 'string', 'max:1000', new CyrillicRule()],
             'visited_countries' => 'nullable|array',
             'visited_countries.*' => 'string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
             'books_per_year' => 'nullable|integer|min:0',
-            'favorite_sports' => 'nullable|array',
-            'favorite_sports.*' => 'in:' . implode(',', array_values(config('lists.sports'))),
+            'favorite_sports' => ['nullable', 'string', 'max:1000', new CyrillicRule()],
             'entertainment_hours_weekly' => 'nullable|integer|min:0|max:168',
             'educational_hours_weekly' => 'nullable|integer|min:0|max:168',
             'social_media_hours_weekly' => 'nullable|integer|min:0|max:168',
             'has_driving_license' => 'required|boolean',
 
             // Step 3 validation rules
-            'school' => 'required|string|max:255',
+            'school' => ['required', 'string', 'max:255', new CyrillicRule()],
             'universities' => 'nullable|array',
             'universities.*.name' => 'required|string|max:255',
             'universities.*.graduation_year' => 'required|integer|min:1950|max:' . date('Y'),
@@ -334,9 +338,9 @@ class CandidateForm extends Component
             'work_experience.*.position' => 'required_with:work_experience.*|string|max:255',
             'total_experience_years' => 'required|integer|min:0',
             'job_satisfaction' => 'nullable|integer|min:1|max:10',
-            'desired_position' => 'required|string|max:255',
+            'desired_position' => ['required', 'string', 'max:255', new CyrillicRule()],
             'expected_salary' => 'required|numeric|min:0|max:999999999999',
-            'employer_requirements' => 'nullable|string',
+            'employer_requirements' => ['nullable', 'string', 'max:2000', new CyrillicRule()],
 
             // Step 4 validation rules
             'gallup_pdf' => [
@@ -367,6 +371,8 @@ class CandidateForm extends Component
         'first_name.required' => 'Имя обязательно для заполнения',
         'first_name.max' => 'Имя не должно превышать 255 символов',
         'middle_name.max' => 'Отчество не должно превышать 255 символов',
+        'birth_place.required' => 'Место рождения обязательно для заполнения',
+        'current_city.required' => 'Введите текущий город',
         'email.required' => 'Email обязателен для заполнения',
         'email.email' => 'Введите корректный email адрес',
         'phone.required' => 'Телефон обязателен для заполнения',
@@ -375,8 +381,6 @@ class CandidateForm extends Component
         'marital_status.required' => 'Выберите семейное положение',
         'birth_date.required' => 'Дата рождения обязательна для заполнения',
         'birth_date.before' => 'Дата рождения должна быть раньше текущей даты',
-        'birth_place.required' => 'Место рождения обязательно для заполнения',
-        'current_city.required' => 'Введите текущий город',
         'photo.required' => 'Фото обязательно для загрузки',
         'photo.image' => 'Загружаемый файл должен быть изображением (jpg, jpeg, png)',
         'photo.max' => 'Размер изображения не должен превышать 2MB',
@@ -392,12 +396,41 @@ class CandidateForm extends Component
         'expected_salary.max' => 'Ожидаемая зарплата не может превышать 999,999,999,999 тенге',
         'desired_position.required' => 'Желаемая должность обязательна для заполнения',
         'desired_position.max' => 'Желаемая должность не должна превышать 255 символов',
+        
+        // Сообщения для CyrillicRule
+        'hobbies.cyrillic' => 'Поле "Хобби" должно содержать только кириллические символы, цифры и знаки препинания',
+        'interests.cyrillic' => 'Поле "Интересы" должно содержать только кириллические символы, цифры и знаки препинания',
+        'favorite_sports.cyrillic' => 'Поле "Любимые виды спорта" должно содержать только кириллические символы, цифры и знаки препинания',
+        'school.cyrillic' => 'Поле "Школа" должно содержать только кириллические символы, цифры и знаки препинания',
+        'desired_position.cyrillic' => 'Поле "Желаемая должность" должно содержать только кириллические символы, цифры и знаки препинания',
+        'employer_requirements.cyrillic' => 'Поле "Требования к работодателю" должно содержать только кириллические символы, цифры и знаки препинания',
+        'family_members.*.profession.cyrillic' => 'Поле "Профессия" должно содержать только кириллические символы, цифры и знаки препинания',
     ];
 
     public function updated($propertyName)
     {
+        // Проверяем, относится ли поле к текущему шагу
+        if (!$this->isFieldInCurrentStep($propertyName)) {
+            // Если поле не относится к текущему шагу, только очищаем его ошибки
+            // но не прерываем выполнение - может быть это системное поле Livewire
+            if ($this->getErrorBag()->has($propertyName)) {
+                $this->resetErrorBag($propertyName);
+            }
+            
+            // Если это не системное поле Livewire, прерываем выполнение
+            if (!str_starts_with($propertyName, '_') && !in_array($propertyName, ['currentStep', 'totalSteps'])) {
+                return;
+            }
+        }
+
         // Если обновляется поле университета
         if (strpos($propertyName, 'universities.') === 0) {
+            $this->validateOnly($propertyName);
+            return;
+        }
+        
+        // Если обновляется поле члена семьи
+        if (strpos($propertyName, 'family_members.') === 0) {
             $this->validateOnly($propertyName);
             return;
         }
@@ -475,16 +508,19 @@ class CandidateForm extends Component
 
     protected function isFieldInCurrentStep($field)
     {
+        // Извлекаем основное поле из составного имени (например, "universities.0.name" -> "universities")
+        $baseField = explode('.', $field)[0];
+        
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'photo'];
-        $step2Fields = ['religion', 'is_practicing', 'family_members', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license'];
+        $step2Fields = ['religion', 'is_practicing', 'family_members', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
         $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'expected_salary', 'employer_requirements'];
         $step4Fields = ['gallup_pdf', 'mbti_type'];
 
         return match($this->currentStep) {
-            1 => in_array($field, $step1Fields),
-            2 => in_array($field, $step2Fields),
-            3 => in_array($field, $step3Fields),
-            4 => in_array($field, $step4Fields),
+            1 => in_array($baseField, $step1Fields),
+            2 => in_array($baseField, $step2Fields),
+            3 => in_array($baseField, $step3Fields),
+            4 => in_array($baseField, $step4Fields),
             default => false,
         };
     }
@@ -513,6 +549,12 @@ class CandidateForm extends Component
         if ($this->currentStep < $this->totalSteps) {
             $this->currentStep++;
                 logger()->debug('New step: ' . $this->currentStep);
+                
+                // Переинициализируем валидацию для нового шага
+                logger()->debug('About to call reinitializeValidation()');
+                $this->reinitializeValidation();
+                logger()->debug('reinitializeValidation() completed');
+                
                 $this->saveProgress();
                 logger()->debug('Progress saved');
             }
@@ -537,6 +579,12 @@ class CandidateForm extends Component
         if ($this->currentStep > 1) {
             $this->currentStep--;
                 logger()->debug('New step: ' . $this->currentStep);
+                
+                // Переинициализируем валидацию для нового шага
+                logger()->debug('About to call reinitializeValidation()');
+                $this->reinitializeValidation();
+                logger()->debug('reinitializeValidation() completed');
+                
                 $this->saveProgress();
                 logger()->debug('Progress saved');
             }
@@ -551,44 +599,48 @@ class CandidateForm extends Component
 
     protected function getStepRules()
     {
+        $allRules = $this->rules();
+        
         return match($this->currentStep) {
             1 => [
-                'last_name' => 'required|string|max:255',
-                'first_name' => 'required|string|max:255',
-                'middle_name' => 'nullable|string|max:255',
-                'email' => 'required|email|max:255',
-                'phone' => ['required', 'string', 'regex:/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/'],
-                'gender' => 'required|in:Мужской,Женский',
-                'marital_status' => 'required|in:Холост/Не замужем,Женат/Замужем,Разведен(а),Вдовец/Вдова',
-                'birth_date' => 'required|date|before:today',
-                'birth_place' => 'required|string|max:255',
-                'current_city' => 'required|string|max:255',
+                'last_name' => $allRules['last_name'],
+                'first_name' => $allRules['first_name'],
+                'middle_name' => $allRules['middle_name'],
+                'email' => $allRules['email'],
+                'phone' => $allRules['phone'],
+                'gender' => $allRules['gender'],
+                'marital_status' => $allRules['marital_status'],
+                'birth_date' => $allRules['birth_date'],
+                'birth_place' => $allRules['birth_place'],
+                'current_city' => $allRules['current_city'],
                 'photo' => !$this->candidate?->photo ? 'required|image|max:2048' : 'nullable|image|max:2048',
             ],
             2 => [
-                'religion' => $this->rules()['religion'],
-                'is_practicing' => $this->rules()['is_practicing'],
-                'family_members' => $this->rules()['family_members'],
-                'visited_countries' => $this->rules()['visited_countries'],
+                'religion' => $allRules['religion'],
+                'is_practicing' => $allRules['is_practicing'],
+                'family_members' => $allRules['family_members'],
+                'hobbies' => $allRules['hobbies'],
+                'interests' => $allRules['interests'],
+                'visited_countries' => $allRules['visited_countries'],
                 'visited_countries.*' => 'string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
-                'books_per_year' => $this->rules()['books_per_year'],
-                'favorite_sports' => $this->rules()['favorite_sports'],
-                'entertainment_hours_weekly' => $this->rules()['entertainment_hours_weekly'],
-                'educational_hours_weekly' => $this->rules()['educational_hours_weekly'],
-                'social_media_hours_weekly' => $this->rules()['social_media_hours_weekly'],
-                'has_driving_license' => $this->rules()['has_driving_license'],
+                'books_per_year' => $allRules['books_per_year'],
+                'favorite_sports' => $allRules['favorite_sports'],
+                'entertainment_hours_weekly' => $allRules['entertainment_hours_weekly'],
+                'educational_hours_weekly' => $allRules['educational_hours_weekly'],
+                'social_media_hours_weekly' => $allRules['social_media_hours_weekly'],
+                'has_driving_license' => $allRules['has_driving_license'],
             ],
             3 => [
-                'school' => $this->rules()['school'],
-                'universities' => $this->rules()['universities'],
-                'language_skills' => $this->rules()['language_skills'],
-                'computer_skills' => $this->rules()['computer_skills'],
-                'work_experience' => $this->rules()['work_experience'],
-                'total_experience_years' => $this->rules()['total_experience_years'],
-                'job_satisfaction' => $this->rules()['job_satisfaction'],
-                'desired_position' => $this->rules()['desired_position'],
-                'expected_salary' => $this->rules()['expected_salary'],
-                'employer_requirements' => $this->rules()['employer_requirements'],
+                'school' => $allRules['school'],
+                'universities' => $allRules['universities'],
+                'language_skills' => $allRules['language_skills'],
+                'computer_skills' => $allRules['computer_skills'],
+                'work_experience' => $allRules['work_experience'],
+                'total_experience_years' => $allRules['total_experience_years'],
+                'job_satisfaction' => $allRules['job_satisfaction'],
+                'desired_position' => $allRules['desired_position'],
+                'expected_salary' => $allRules['expected_salary'],
+                'employer_requirements' => $allRules['employer_requirements'],
             ],
             4 => [
                 'gallup_pdf' => [
@@ -611,22 +663,11 @@ class CandidateForm extends Component
     // Dynamic field methods
     public function addFamilyMember()
     {
-        $this->validate([
-            'familyMemberType' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
-            'familyMemberBirthYear' => 'required|integer|min:1900|max:' . date('Y'),
-            'familyMemberProfession' => 'required|string|max:255',
-        ]);
-
         $this->family_members[] = [
-            'type' => $this->familyMemberType,
-            'birth_year' => $this->familyMemberBirthYear,
-            'profession' => $this->familyMemberProfession
+            'type' => '',
+            'birth_year' => '',
+            'profession' => ''
         ];
-
-        // Очищаем поля после добавления
-        $this->familyMemberType = '';
-        $this->familyMemberBirthYear = null;
-        $this->familyMemberProfession = '';
     }
 
     public function removeFamilyMember($index)
@@ -675,19 +716,7 @@ class CandidateForm extends Component
         $this->visited_countries = array_values($this->visited_countries);
     }
 
-    public function addSport()
-    {
-        if (!empty($this->newSport) && !in_array($this->newSport, $this->favorite_sports)) {
-            $this->favorite_sports[] = $this->newSport;
-            $this->newSport = '';
-        }
-    }
 
-    public function removeSport($index)
-    {
-        unset($this->favorite_sports[$index]);
-        $this->favorite_sports = array_values($this->favorite_sports);
-    }
 
     public function addUniversity()
     {
@@ -1350,6 +1379,28 @@ class CandidateForm extends Component
         
         logger()->debug('Work experience conversion completed:', ['output' => $converted]);
         return $converted;
+    }
+
+    /**
+     * Переинициализирует валидацию при переходе между шагами
+     */
+    protected function reinitializeValidation()
+    {
+        // Сбрасываем только ошибки валидации, не затрагивая состояние полей
+        $this->resetErrorBag();
+        
+        // Не вызываем resetValidation() чтобы не мешать JavaScript
+        // $this->resetValidation();
+        
+        // Отправляем событие в браузер для переинициализации JavaScript
+        $this->dispatch('step-changed', ['step' => $this->currentStep]);
+        
+        // Дополнительно отправляем событие для переинициализации JavaScript компонентов
+        $this->dispatch('reinitialize-js');
+        
+        // Логируем для отладки
+        logger()->debug('Validation reinitialized for step: ' . $this->currentStep);
+        logger()->debug('Events dispatched: step-changed, reinitialize-js');
     }
 
     public function render()

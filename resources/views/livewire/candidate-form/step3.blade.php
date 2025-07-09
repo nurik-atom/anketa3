@@ -8,7 +8,18 @@
             <label class="block text-sm font-medium text-gray-700">
                 Школа <span class="text-red-500">*</span>
             </label>
-            <input type="text" wire:model="school" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            <p class="text-xs text-gray-500 mt-1 mb-2">
+                <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                    <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                    </svg>
+                    Формат: Название школы / город / год окончания
+                </span>
+            </p>
+            <input type="text" 
+                   wire:model="school" 
+                   placeholder="Например: Школа №25 / Алматы / 2018"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             @error('school') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 
@@ -108,11 +119,11 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">
-                                    Годы <span class="text-red-500">*</span>
+                                    Период <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" 
                                        wire:model="work_experience.{{ $index }}.years" 
-                                       placeholder="например: 2020-2023"
+                                       placeholder="например: январь 2020 - апрель 2021"
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 @error("work_experience.{$index}.years") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
@@ -176,7 +187,7 @@
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     <option value="">Выберите язык</option>
                                     @foreach($languages as $name)
-                                        <option value="{{ $name }}">{{ $name }}</option>
+                                        <option value="{{ mb_convert_case($name, MB_CASE_TITLE, 'UTF-8') }}">{{ mb_convert_case($name, MB_CASE_TITLE, 'UTF-8') }}</option>
                                     @endforeach
                                 </select>
                                 @error("language_skills.{$index}.language") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -220,7 +231,7 @@
                 <input type="text" 
                        wire:model="desired_position" 
                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       placeholder="Введите желаемую должность">
+                       placeholder="Пример: Финансовый аналитик">
                 @error('desired_position') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
 
@@ -243,19 +254,36 @@
             <!-- Компьютерные навыки -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Компьютерные навыки</label>
+                <p class="text-xs text-gray-500 mt-1 mb-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        Пример: Excel, AutoCAD, Python;
+                    </span>
+                </p>
                 <textarea wire:model="computer_skills" 
                           rows="3" 
                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                          placeholder="Опишите ваши навыки работы с компьютером"></textarea>
+                          placeholder="Например: Word, Excel, PowerPoint, Photoshop, 1C"></textarea>
                 @error('computer_skills') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
 
             <!-- Требования к работодателю -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Требования к работодателю</label>
+                <p class="text-xs text-gray-500 mt-1 mb-2">
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                        <svg class="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        Пример: намазхана, возможность ходить на Джума намаз, ходить в платке и т.д.
+                    </span>
+                </p>
                 <textarea wire:model="employer_requirements" 
                           rows="3" 
-                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                          class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                          placeholder="Например: гибкий график, соблюдение религиозных требований, дресс-код"></textarea>
                 @error('employer_requirements') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
         </div>

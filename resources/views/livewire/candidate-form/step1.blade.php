@@ -8,13 +8,13 @@
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Фото <span class="text-red-500">*</span>
             </label>
-            
+
             <!-- Предпросмотр фото -->
             <div id="photo-preview" class="mb-4 {{ $photoPreview ? '' : 'hidden' }}">
                 <div class="relative w-32 h-40 mx-auto">
-                    <img id="preview-image" 
-                         src="{{ $photoPreview }}" 
-                         alt="Фото" 
+                    <img id="preview-image"
+                         src="{{ $photoPreview }}"
+                         alt="Фото"
                          class="w-full h-full object-cover rounded-lg shadow-md">
                     <button type="button"
                             onclick="removePhoto()"
@@ -41,12 +41,12 @@
                             </div>
                         </div>
                         <div class="px-6 py-4 border-t flex justify-end space-x-3">
-                            <button type="button" 
+                            <button type="button"
                                     onclick="cancelCrop()"
                                     class="px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300">
                                 Отмена
                             </button>
-                            <button type="button" 
+                            <button type="button"
                                     onclick="saveCrop()"
                                     class="px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700">
                                 Сохранить
@@ -68,8 +68,8 @@
                         </p>
                         <p class="text-xs text-gray-500 mt-1">PNG, JPG до 2MB (пропорция 3:4)</p>
                     </div>
-                    <input id="photo-input" 
-                           type="file" 
+                    <input id="photo-input"
+                           type="file"
                            accept="image/png,image/jpeg,image/jpg"
                            class="hidden">
                     <!-- Скрытый input для Livewire как fallback -->
@@ -90,13 +90,13 @@
                 </div>
             </div>
 
-            @error('photo') 
+            @error('photo')
                 <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
             @enderror
-            
+
             <!-- Скрытая кнопка для удаления фото (fallback) -->
-            <button id="hidden-remove-photo-btn" 
-                    wire:click="removePhoto" 
+            <button id="hidden-remove-photo-btn"
+                    wire:click="removePhoto"
                     type="button"
                     style="display: none !important;">
             </button>
@@ -108,10 +108,11 @@
                 <!-- Фамилия -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">
-                        Фамилия <span class="text-red-500">*</span>
+                        Фамилия <span class="text-gray-500">(на кириллице)</span><span class="text-red-500">*</span>
                     </label>
-                    <input type="text" 
-                           wire:model="last_name" 
+                    <input type="text"
+                           id="last-name-input"
+                           wire:model="last_name"
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                            placeholder="Иванов">
                     @error('last_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -120,10 +121,11 @@
                 <!-- Имя -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">
-                        Имя <span class="text-red-500">*</span>
+                        Имя <span class="text-gray-500">(на кириллице)</span><span class="text-red-500">*</span>
                     </label>
-                    <input type="text" 
-                           wire:model="first_name" 
+                    <input type="text"
+                           id="first-name-input"
+                           wire:model="first_name"
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                            placeholder="Иван">
                     @error('first_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -132,10 +134,11 @@
                 <!-- Отчество -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">
-                        Отчество
+                        Отчество <span class="text-gray-500">(на кириллице)</span>
                     </label>
-                    <input type="text" 
-                           wire:model="middle_name" 
+                    <input type="text"
+                           id="middle-name-input"
+                           wire:model="middle_name"
                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                            placeholder="Иванович">
                     @error('middle_name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -148,8 +151,8 @@
             <label class="block text-sm font-medium text-gray-700">
                 Email <span class="text-red-500">*</span>
             </label>
-            <input type="email" 
-                   wire:model="email" 
+            <input type="email"
+                   wire:model="email"
                    readonly
                    class="mt-1 block w-full rounded-md border-gray-300 bg-gray-100 shadow-sm focus:border-blue-500 focus:ring-blue-500 cursor-not-allowed">
             @error('email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -160,8 +163,8 @@
             <label class="block text-sm font-medium text-gray-700">
                 Телефон <span class="text-red-500">*</span>
             </label>
-            <input type="text" 
-                   wire:model.lazy="phone" 
+            <input type="text"
+                   wire:model.lazy="phone"
                    id="phone-input"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                    placeholder="+7 (___) ___-__-__">
@@ -201,8 +204,8 @@
             <label class="block text-sm font-medium text-gray-700">
                 Дата рождения <span class="text-red-500">*</span>
             </label>
-            <input type="date" 
-                   wire:model="birth_date" 
+            <input type="date"
+                   wire:model="birth_date"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
             @error('birth_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
@@ -210,10 +213,11 @@
         <!-- Место рождения -->
         <div>
             <label class="block text-sm font-medium text-gray-700">
-                Место рождения <span class="text-red-500">*</span>
+                Место рождения <span class="text-gray-500">(на кириллице)</span><span class="text-red-500">*</span>
             </label>
-            <input type="text" 
-                   wire:model="birth_place" 
+            <input type="text"
+                   id="birth-place-input"
+                   wire:model="birth_place"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                    placeholder="г. Москва">
             @error('birth_place') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -222,10 +226,11 @@
         <!-- Текущий город -->
         <div>
             <label class="block text-sm font-medium text-gray-700">
-                Текущий город <span class="text-red-500">*</span>
+                Текущий город <span class="text-gray-500">(на кириллице)</span><span class="text-red-500">*</span>
             </label>
-            <input type="text" 
-                   wire:model="current_city" 
+            <input type="text"
+                   id="current-city-input"
+                   wire:model="current_city"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                    placeholder="г. Москва">
             @error('current_city') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -236,11 +241,53 @@
 
 @push('styles')
 <!-- CSS уже подключен в layout -->
+<style>
+/* Стили для ошибок кириллицы */
+.cyrillic-error {
+    font-weight: 500;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Стили для полей с ошибкой кириллицы */
+.border-red-500 {
+    border-color: #ef4444 !important;
+}
+
+.focus\:border-red-500:focus {
+    border-color: #ef4444 !important;
+}
+
+.focus\:ring-red-500:focus {
+    --tw-ring-color: #ef4444 !important;
+}
+
+/* Добавляем небольшое расстояние между ошибками */
+.cyrillic-error + .text-red-500 {
+    margin-top: 0.25rem;
+}
+</style>
 @endpush
 
 @push('scripts')
 <script>
-// Вся логика перенесена в resources/js/candidate-form.js
-console.log('Step1 template loaded - logic handled by candidate-form.js');
+// Простая проверка загрузки - fallback код убран так как основной JavaScript работает
+console.log('Step1 template loaded - cyrillic validation handled by candidate-form.js');
+
+// Проверяем доступность функций для отладки
+console.log('JavaScript functions available:', {
+    initCyrillicValidation: typeof window.initCyrillicValidation,
+    isCyrillic: typeof window.isCyrillic
+});
 </script>
-@endpush 
+@endpush

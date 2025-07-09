@@ -97,11 +97,11 @@ class GallupController extends Controller
             $pages = $pdf->getPages();
 
             // Ключевые признаки Gallup-отчета
-            $hasCorrectPageCount = count($pages) === 26;
+//            $hasCorrectPageCount = count($pages) === 26;
             $containsCliftonHeader = str_contains($text, 'Gallup, Inc. All rights reserved.');
             $containsTalentList = preg_match('/1\.\s+[A-Za-z-]+/', $text);
 
-            return $hasCorrectPageCount && $containsCliftonHeader && $containsTalentList;
+            return $containsCliftonHeader && $containsTalentList;
         } catch (\Exception $e) {
             return false;
         }

@@ -45,76 +45,67 @@
         <!-- Семья -->
         <div class="col-span-3">
             <label class="block text-sm font-medium text-gray-700">Члены семьи</label>
-            
-            <!-- Список добавленных членов семьи -->
-            <div class="mt-2 space-y-2">
+            <div class="space-y-4">
                 @foreach($family_members as $index => $member)
-                    <div class="flex items-center space-x-2 p-2 bg-gray-50 rounded">
-                        <div class="flex-1">
-                            <span class="font-medium">
-                                {{ $member['type'] }}
-                            </span>
-                            <span class="mx-2">|</span>
-                            <span>{{ $member['birth_year'] }} г.р.</span>
-                            <span class="mx-2">|</span>
-                            <span>{{ $member['profession'] }}</span>
+                    <div class="p-4 bg-gray-50 rounded-lg">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Тип родства <span class="text-red-500">*</span>
+                                </label>
+                                <select wire:model="family_members.{{ $index }}.type" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Выберите тип родства</option>
+                                    <option value="Отец">Отец</option>
+                                    <option value="Мать">Мать</option>
+                                    <option value="Брат">Брат</option>
+                                    <option value="Сестра">Сестра</option>
+                                    <option value="Жена">Жена</option>
+                                    <option value="Муж">Муж</option>
+                                    <option value="Сын">Сын</option>
+                                    <option value="Дочь">Дочь</option>
+                                </select>
+                                @error("family_members.{$index}.type") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Год рождения <span class="text-red-500">*</span>
+                                </label>
+                                <select wire:model="family_members.{{ $index }}.birth_year" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Год рождения</option>
+                                    @foreach($familyYears as $year)
+                                        <option value="{{ $year }}">{{ $year }}</option>
+                                    @endforeach
+                                </select>
+                                @error("family_members.{$index}.birth_year") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
+
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    Профессия <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" 
+                                       wire:model="family_members.{{ $index }}.profession" 
+                                       placeholder="Профессия"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @error("family_members.{$index}.profession") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                            </div>
                         </div>
-                        <button type="button" wire:click="removeFamilyMember({{ $index }})" class="text-red-500 hover:text-red-700">
-                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
+                        <div class="mt-2">
+                            <button type="button" wire:click="removeFamilyMember({{ $index }})" class="text-red-600 hover:text-red-800">
+                                Удалить
+                            </button>
+                        </div>
                     </div>
                 @endforeach
-            </div>
 
-            <!-- Форма добавления нового члена семьи -->
-            <div class="mt-4 p-4 border rounded-md bg-gray-50">
-                <h4 class="text-sm font-medium text-gray-700 mb-2">Добавить члена семьи</h4>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                        <select wire:model="familyMemberType" 
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Выберите тип родства</option>
-                            <option value="Отец">Отец</option>
-                            <option value="Мать">Мать</option>
-                            <option value="Брат">Брат</option>
-                            <option value="Сестра">Сестра</option>
-                            <option value="Жена">Жена</option>
-                            <option value="Муж">Муж</option>
-                            <option value="Сын">Сын</option>
-                            <option value="Дочь">Дочь</option>
-                        </select>
-                        @error('familyMemberType') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    
-                    <div>
-                        <select wire:model="familyMemberBirthYear" 
-                                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Год рождения</option>
-                            @foreach($familyYears as $year)
-                                <option value="{{ $year }}">{{ $year }}</option>
-                            @endforeach
-                        </select>
-                        @error('familyMemberBirthYear') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                    
-                    <div>
-                        <input type="text" 
-                               wire:model="familyMemberProfession" 
-                               placeholder="Профессия"
-                               class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        @error('familyMemberProfession') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-                
-                <div class="mt-3">
-                    <button type="button" 
-                            wire:click="addFamilyMember" 
-                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                        Добавить
-                    </button>
-                </div>
+                <button type="button" 
+                        wire:click="addFamilyMember" 
+                        class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Добавить члена семьи
+                </button>
             </div>
         </div>
 
@@ -159,19 +150,12 @@
                             </span>
                         @endforeach
                     </div>
-                    <div class="flex gap-2">
-                        <select wire:model="newCountry" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Выберите страну</option>
-                            @foreach($countries as $country)
-                                <option value="{{ $country['name_ru'] }}">{{ $country['name_ru'] }}</option>
-                            @endforeach
-                        </select>
-                        <button type="button" 
-                                wire:click="addCountry" 
-                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Добавить
-                        </button>
-                    </div>
+                    <select wire:model="newCountry" wire:change="addCountry" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Выберите страну</option>
+                        @foreach($countries as $country)
+                            <option value="{{ $country['name_ru'] }}">{{ $country['name_ru'] }}</option>
+                        @endforeach
+                    </select>
                 </div>
                 @error('visited_countries') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
@@ -179,33 +163,7 @@
             <!-- Спорт -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Любимые виды спорта</label>
-                <div class="mt-1">
-                    <div class="flex flex-wrap gap-2 mb-2 min-h-[2.5rem] bg-gray-50 p-2 rounded-md">
-                        @foreach($favorite_sports as $index => $sport)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {{ $sport }}
-                                <button type="button" wire:click="removeSport({{ $index }})" class="ml-1 text-green-400 hover:text-green-600">
-                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </span>
-                        @endforeach
-                    </div>
-                    <div class="flex gap-2">
-                        <select wire:model="newSport" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                            <option value="">Выберите вид спорта</option>
-                            @foreach($sports as $key => $value)
-                                <option value="{{ $value }}">{{ $value }}</option>
-                            @endforeach
-                        </select>
-                        <button type="button" 
-                                wire:click="addSport" 
-                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                            Добавить
-                        </button>
-                    </div>
-                </div>
+                <textarea wire:model="favorite_sports" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
                 @error('favorite_sports') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -350,231 +308,4 @@
 
 <!-- Удаляем дублирующиеся скрипты Tom Select --> 
 
-@push('scripts')
-<script>
-// Глобальный обработчик ползунков - версия 2.0
-(function() {
-    'use strict';
-    
-    // Предотвращаем повторную загрузку
-    if (window.SliderManager) return;
-    
-    window.SliderManager = {
-        activeSliders: new Map(),
-        observer: null,
-        
-        init() {
-            console.log('🎚️ SliderManager: Initializing...');
-            this.setupMutationObserver();
-            this.scanAndInitSliders();
-            this.setupLivewireHooks();
-        },
-        
-        setupMutationObserver() {
-            // Отслеживаем изменения в DOM
-            this.observer = new MutationObserver((mutations) => {
-                let needsReinit = false;
-                mutations.forEach((mutation) => {
-                    if (mutation.type === 'childList') {
-                        mutation.addedNodes.forEach((node) => {
-                            if (node.nodeType === 1) { // Element node
-                                if (node.matches('input[type="range"]') || 
-                                    node.querySelector('input[type="range"]')) {
-                                    needsReinit = true;
-                                }
-                            }
-                        });
-                    }
-                });
-                
-                if (needsReinit) {
-                    console.log('🔄 DOM changed, reinitializing sliders...');
-                    setTimeout(() => this.scanAndInitSliders(), 50);
-                }
-            });
-            
-            this.observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        },
-        
-        setupLivewireHooks() {
-            if (typeof Livewire !== 'undefined') {
-                // Хук для обновлений Livewire
-                Livewire.hook('message.processed', () => {
-                    console.log('🔄 Livewire message processed');
-                    setTimeout(() => this.scanAndInitSliders(), 100);
-                });
-                
-                // Хук для навигации
-                document.addEventListener('livewire:navigated', () => {
-                    console.log('🔄 Livewire navigated');
-                    setTimeout(() => this.scanAndInitSliders(), 100);
-                });
-            }
-        },
-        
-        scanAndInitSliders() {
-            console.log('🔍 Scanning for sliders...');
-            
-            // Находим все ползунки на странице
-            const allSliders = document.querySelectorAll('input[type="range"]');
-            console.log(`Found ${allSliders.length} sliders total`);
-            
-            // Очищаем старые обработчики
-            this.clearAllHandlers();
-            
-            // Конфигурация всех ползунков
-            const sliderConfigs = [
-                // Step 2
-                { name: 'books_per_year', displaySelector: null },
-                { name: 'entertainment_hours_weekly', displaySelector: null },
-                { name: 'educational_hours_weekly', displaySelector: null },
-                { name: 'social_media_hours_weekly', displaySelector: null },
-                
-                // Step 3
-                { name: 'total_experience_years', displaySelector: '#experience-display', minValue: 0 },
-                { name: 'job_satisfaction', displaySelector: '#satisfaction-display', minValue: 1 }
-            ];
-            
-            // Инициализируем каждый ползунок
-            sliderConfigs.forEach(config => {
-                this.initSlider(config);
-            });
-            
-            // Инициализируем GPA ползунки отдельно (динамические)
-            this.initGpaSliders();
-            
-            console.log(`✅ SliderManager: ${this.activeSliders.size} sliders active`);
-        },
-        
-        initSlider(config) {
-            const slider = document.querySelector(`input[name="${config.name}"]`);
-            if (!slider) return;
-            
-            let display;
-            if (config.displaySelector) {
-                display = document.querySelector(config.displaySelector);
-            } else {
-                // Ищем span в родительском элементе (для step2)
-                display = slider.closest('div')?.parentElement?.querySelector('span');
-            }
-            
-            if (!display) {
-                console.warn(`❌ Display not found for ${config.name}`);
-                return;
-            }
-            
-            console.log(`🎚️ Initializing ${config.name}`);
-            
-            const handlers = this.createSliderHandlers(slider, display, config);
-            this.activeSliders.set(config.name, handlers);
-        },
-        
-        initGpaSliders() {
-            const gpaSliders = document.querySelectorAll('input[type="range"][name*="universities"][name*="gpa"]');
-            console.log(`🎓 Found ${gpaSliders.length} GPA sliders`);
-            
-            gpaSliders.forEach((slider, index) => {
-                const display = slider.closest('div')?.parentElement?.querySelector('span');
-                if (display) {
-                    const key = `gpa_${index}`;
-                    console.log(`🎚️ Initializing GPA slider ${index}`);
-                    
-                    const handlers = this.createSliderHandlers(slider, display, {
-                        formatter: (value) => parseFloat(value).toFixed(2),
-                        minValue: 0
-                    });
-                    this.activeSliders.set(key, handlers);
-                }
-            });
-        },
-        
-        createSliderHandlers(slider, display, config = {}) {
-            const updateDisplay = () => {
-                const value = slider.value;
-                const numValue = parseFloat(value);
-                const minVal = config.minValue !== undefined ? config.minValue : parseFloat(slider.min);
-                
-                if (config.minValue !== undefined && numValue <= minVal) {
-                    // Специальная обработка минимальных значений
-                    if (slider.name === 'job_satisfaction') {
-                        display.textContent = '1';
-                    } else {
-                        display.textContent = '0';
-                    }
-                } else {
-                    // Применяем форматирование или выводим как есть
-                    if (config.formatter) {
-                        display.textContent = config.formatter(value);
-                    } else {
-                        display.textContent = value;
-                    }
-                }
-            };
-            
-            // Создаем обработчики событий
-            const inputHandler = (e) => {
-                updateDisplay();
-                // Не мешаем Livewire
-                e.stopPropagation();
-            };
-            
-            const changeHandler = (e) => {
-                updateDisplay();
-                // Позволяем Livewire обработать изменение
-            };
-            
-            // Добавляем обработчики
-            slider.addEventListener('input', inputHandler);
-            slider.addEventListener('change', changeHandler);
-            
-            // Инициализируем отображение
-            updateDisplay();
-            
-            return {
-                slider,
-                display,
-                inputHandler,
-                changeHandler,
-                cleanup: () => {
-                    slider.removeEventListener('input', inputHandler);
-                    slider.removeEventListener('change', changeHandler);
-                }
-            };
-        },
-        
-        clearAllHandlers() {
-            console.log('🧹 Clearing all slider handlers...');
-            this.activeSliders.forEach((handlers, key) => {
-                handlers.cleanup();
-            });
-            this.activeSliders.clear();
-        },
-        
-        destroy() {
-            this.clearAllHandlers();
-            if (this.observer) {
-                this.observer.disconnect();
-            }
-        }
-    };
-    
-    // Автозапуск
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => window.SliderManager.init(), 100);
-        });
-    } else {
-        setTimeout(() => window.SliderManager.init(), 100);
-    }
-    
-    // Очистка при выгрузке страницы
-    window.addEventListener('beforeunload', () => {
-        window.SliderManager.destroy();
-    });
-    
-})();
-</script>
-@endpush 
+ 
