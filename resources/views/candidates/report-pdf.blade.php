@@ -235,8 +235,12 @@
                         <div>
                             <span class="block text-xs font-medium text-gray-600 mb-1">Любимые виды спорта:</span>
                             <span class="text-xs text-gray-800">
-                                @if($candidate->favorite_sports && count($candidate->favorite_sports) > 0)
-                                    {{ implode(', ', $candidate->favorite_sports) }}
+                                @if($candidate->favorite_sports)
+                                    @if(is_array($candidate->favorite_sports))
+                                        {{ implode(', ', $candidate->favorite_sports) }}
+                                    @else
+                                        {{ $candidate->favorite_sports }}
+                                    @endif
                                 @else
                                     Не указано
                                 @endif
@@ -267,8 +271,12 @@
                         <div>
                             <span class="block text-xs font-medium text-gray-600 mb-1">Посещенные страны:</span>
                             <span class="text-xs text-gray-800">
-                                @if($candidate->visited_countries && count($candidate->visited_countries) > 0)
-                                    {{ implode(', ', $candidate->visited_countries) }}
+                                @if($candidate->visited_countries)
+                                    @if(is_array($candidate->visited_countries))
+                                        {{ implode(', ', $candidate->visited_countries) }}
+                                    @else
+                                        {{ $candidate->visited_countries }}
+                                    @endif
                                 @else
                                     Не указано
                                 @endif
