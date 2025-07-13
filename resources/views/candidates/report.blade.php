@@ -120,9 +120,9 @@
                 <!-- Candidate Header -->
         <div class="p-6 border-b border-gray-200">
             <div class="flex items-start gap-8">
-                <div class="w-150">
+                <div class="flex-1">
                     <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ $candidate->full_name }}</h1>
-                     <div class="text-sm mb-6">
+                     <div class="text-base mb-6">
                          <div class="mb-4">
                              <span class="font-medium text-gray-800">{{ $candidate->current_city }}</span>
                              <span class="font-medium text-gray-800 ml-8">{{ $candidate->phone }}</span>
@@ -136,51 +136,49 @@
                      
                      <!-- Основная информация -->
                      <div>
-                         <!--h2 class="section-header text-lg font-bold p-3 mb-4">Основная информация</h2-->
                          <div class="space-y-3">
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Желаемая должность:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->desired_position ?: 'Не указано' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Желаемая должность:</span>
+                                 <span class="text-base font-medium">{{ $candidate->desired_position ?: 'Не указано' }}</span>
                              </div>
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Ожидаемая заработная плата:</span>
-                                 <span class="text-sm font-medium">{{ number_format($candidate->expected_salary) }} тг.</span>
+                                 <span class="w-60 text-base text-gray-600">Ожидаемая заработная плата:</span>
+                                 <span class="text-base font-medium">{{ number_format($candidate->expected_salary) }} тг.</span>
                              </div>
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Дата рождения:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->birth_date?->format('d.m.Y') ?: 'Не указано' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Дата рождения:</span>
+                                 <span class="text-base font-medium">{{ $candidate->birth_date?->format('d.m.Y') ?: 'Не указано' }}</span>
                              </div>
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Место рождения:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->birth_place ?: 'Не указано' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Место рождения:</span>
+                                 <span class="text-base font-medium">{{ $candidate->birth_place ?: 'Не указано' }}</span>
                              </div>
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Семейное положение:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->marital_status ?: 'Не указано' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Семейное положение:</span>
+                                 <span class="text-base font-medium">{{ $candidate->marital_status ?: 'Не указано' }}</span>
                              </div>
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Пол:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->gender ?: 'Не указано' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Пол:</span>
+                                 <span class="text-base font-medium">{{ $candidate->gender ?: 'Не указано' }}</span>
                              </div>
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Религия:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->religion ?: 'Не указано' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Религия:</span>
+                                 <span class="text-base font-medium">{{ $candidate->religion ?: 'Не указано' }}</span>
                              </div>
                              <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Практикующий:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->is_practicing ? 'Да' : 'Нет' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Практикующий:</span>
+                                 <span class="text-base font-medium">{{ $candidate->is_practicing ? 'Да' : 'Нет' }}</span>
                              </div>
                             <div class="flex">
-                                 <span class="w-40 text-sm text-gray-600">Водительские права:</span>
-                                 <span class="text-sm font-medium">{{ $candidate->has_driving_license ? 'Есть' : 'Нет' }}</span>
+                                 <span class="w-60 text-base text-gray-600">Водительские права:</span>
+                                 <span class="text-base font-medium">{{ $candidate->has_driving_license ? 'Есть' : 'Нет' }}</span>
                              </div>                             
-
                          </div>
                      </div>
                 </div>
-                <div class="flex-1 flex justify-center">
+                <div class="flex-shrink-0">
                     @if($photoUrl)
-                        <img src="{{ $photoUrl }}" alt="Фото кандидата" class="w-72 h-90 object-cover rounded border-2 border-gray-300">
+                        <img src="{{ $photoUrl }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">
                     @else
                         <div class="w-48 h-60 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
                             <span class="text-gray-500 text-sm">Фото</span>
@@ -196,11 +194,11 @@
 
             <!-- Родственники -->
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Родственники</h2>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Родственники</h2>
                 @if($candidate->family_members && count($candidate->family_members) > 0)
                     <div class="space-y-2">
                         @foreach($candidate->family_members as $index => $member)
-                            <div class="flex text-sm">
+                            <div class="flex text-base">
                                 <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
                                 <span class="flex-1">
                                     <span class="font-medium">{{ $member['type'] ?? 'Не указано' }}</span> - 
@@ -211,22 +209,22 @@
                         @endforeach
                     </div>
                 @else
-                    <p class="text-sm text-gray-500">Информация о родственниках не указана</p>
+                    <p class="text-base text-gray-500">Информация о родственниках не указана</p>
                 @endif
             </div>
 
             <!-- Образование -->
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Образование</h2>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Образование</h2>
                 
                 @if($candidate->universities && count($candidate->universities) > 0)
                     <div class="space-y-2">
-                    <div class="flex text-sm">
-                                 <span class="w-20 text-sm text-gray-600">Школа:</span>
+                    <div class="flex text-base">
+                                 <span class="w-20 text-base text-gray-600">Школа:</span>
                                  <span class="font-medium">{{ $candidate->school ?: 'Не указано' }}</span>
                              </div>
                         @foreach($candidate->universities as $index => $university)
-                            <div class="flex text-sm">
+                            <div class="flex text-base">
                                 <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
                                 <span class="flex-1">
                                     <span class="font-medium">{{ $university['graduation_year'] ?? 'Не указано' }}</span> - 
@@ -241,17 +239,17 @@
                     </div>
                     
                 @else
-                    <p class="text-sm text-gray-500">Информация об образовании не указана</p>
+                    <p class="text-base text-gray-500">Информация об образовании не указана</p>
                 @endif
             </div>
 
             <!-- Опыт работы -->
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Опыт работы</h2>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Опыт работы</h2>
                 @if($candidate->work_experience && count($candidate->work_experience) > 0)
                     <div class="space-y-2">
                         @foreach($candidate->work_experience as $index => $experience)
-                            <div class="flex text-sm">
+                            <div class="flex text-base">
                                 <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
                                 <span class="flex-1">
                                     <span class="font-medium">{{ $experience['years'] ?? 'Не указано' }}</span> - 
@@ -266,40 +264,40 @@
                     </div>
                     <div class="mt-4 flex gap-6">
                         <div class="flex">
-                            <span class="text-sm text-gray-600 w-40">Общий стаж работы (лет):</span>
-                            <span class="text-sm font-medium">{{ $candidate->total_experience_years ?? 0 }}</span>
+                            <span class="text-base text-gray-600 w-40">Общий стаж работы (лет):</span>
+                            <span class="text-base font-medium">{{ $candidate->total_experience_years ?? 0 }}</span>
                         </div>
                         <div class="flex">
-                            <span class="text-sm text-gray-600 w-40">Любит свою работу (из 10):</span>
-                            <span class="text-sm font-medium">{{ $candidate->job_satisfaction ?? 'Не указано' }}</span>
+                            <span class="text-base text-gray-600 w-40">Любит свою работу (из 10):</span>
+                            <span class="text-base font-medium">{{ $candidate->job_satisfaction ?? 'Не указано' }}</span>
                         </div>
                     </div>
                 @else
-                    <p class="text-sm text-gray-500">Опыт работы не указан</p>
+                    <p class="text-base text-gray-500">Опыт работы не указан</p>
                 @endif
             </div>
 
             <!-- Личная информация -->
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Личная информация</h2>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Личная информация</h2>
                 <div class="grid grid-cols-2 gap-6">
                     <div class="space-y-3">
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Кол-во книг в год:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->books_per_year ?? 'Не указано' }}</span>
+                            <span class="block text-base font-medium text-gray-600 mb-1">Кол-во книг в год:</span>
+                            <span class="text-base text-gray-800">{{ $candidate->books_per_year ?? 'Не указано' }}</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Хобби:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->hobbies ?: 'Не указано' }}</span>
+                            <span class="block text-base font-medium text-gray-600 mb-1">Хобби:</span>
+                            <span class="text-base text-gray-800">{{ $candidate->hobbies ?: 'Не указано' }}</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Интересы:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->interests ?: 'Не указано' }}</span>
+                            <span class="block text-base font-medium text-gray-600 mb-1">Интересы:</span>
+                            <span class="text-base text-gray-800">{{ $candidate->interests ?: 'Не указано' }}</span>
                         </div>
                         
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Любимые виды спорта:</span>
-                            <span class="text-sm text-gray-800">
+                            <span class="block text-base font-medium text-gray-600 mb-1">Любимые виды спорта:</span>
+                            <span class="text-base text-gray-800">
                                 @if($candidate->favorite_sports)
                                     @if(is_array($candidate->favorite_sports))
                                         {{ implode(', ', $candidate->favorite_sports) }}
@@ -314,8 +312,8 @@
                     </div>
                     <div class="space-y-3">
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Развлекательные видео:</span>
-                            <span class="text-sm text-gray-800">
+                            <span class="block text-base font-medium text-gray-600 mb-1">Развлекательные видео:</span>
+                            <span class="text-base text-gray-800">
                                 @if($candidate->entertainment_hours_weekly)
                                     {{ $candidate->entertainment_hours_weekly }} часов в неделю
                                 @else
@@ -325,16 +323,16 @@
                         </div>
                     
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Образовательные видео:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->educational_hours_weekly ?? 'Не указано' }} часов в неделю</span>
+                            <span class="block text-base font-medium text-gray-600 mb-1">Образовательные видео:</span>
+                            <span class="text-base text-gray-800">{{ $candidate->educational_hours_weekly ?? 'Не указано' }} часов в неделю</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Социальные сети:</span>
-                            <span class="text-sm text-gray-800">{{ $candidate->social_media_hours_weekly ?? 'Не указано' }} часов в неделю</span>
+                            <span class="block text-base font-medium text-gray-600 mb-1">Социальные сети:</span>
+                            <span class="text-base text-gray-800">{{ $candidate->social_media_hours_weekly ?? 'Не указано' }} часов в неделю</span>
                         </div>
                         <div>
-                            <span class="block text-sm font-medium text-gray-600 mb-1">Посетившие места:</span>
-                            <span class="text-sm text-gray-800">
+                            <span class="block text-base font-medium text-gray-600 mb-1">Посетившие места:</span>
+                            <span class="text-base text-gray-800">
                                 @if($candidate->visited_countries)
                                     @if(is_array($candidate->visited_countries))
                                         {{ implode(', ', $candidate->visited_countries) }}
@@ -352,33 +350,33 @@
 
             <!-- Языковые навыки -->
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Языковые навыки</h2>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Языковые навыки</h2>
                 @if($candidate->language_skills && count($candidate->language_skills) > 0)
                     <div class="space-y-2">
                         @foreach($candidate->language_skills as $skill)
-                            <div class="flex text-sm">
+                            <div class="flex text-base">
                                 <span class="w-20 font-medium">{{ $skill['language'] ?? 'Не указано' }}</span>
                                 <span class="w-32">{{ $skill['level'] ?? 'Не указано' }}</span>
                             </div>
                         @endforeach
                     </div>
                 @else
-                    <p class="text-sm text-gray-500">Языковые навыки не указаны</p>
+                    <p class="text-base text-gray-500">Языковые навыки не указаны</p>
                 @endif
             </div>
 
             <!-- Компьютерные навыки -->
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Компьютерные навыки</h2>
-                <p class="text-sm text-gray-800">{{ $candidate->computer_skills ?: 'Не указано' }}</p>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Компьютерные навыки</h2>
+                <p class="text-base text-gray-800">{{ $candidate->computer_skills ?: 'Не указано' }}</p>
             </div>
 
             <!-- Психометрические данные -->
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Психометрические данные</h2>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Психометрические данные</h2>
                 <div class="flex">
-                    <span class="text-sm text-gray-600 w-40">Тип личности по MBTI:</span>
-                    <span class="text-sm font-medium text-blue-600">{{ $candidate->mbti_type ?: 'Не указано' }}</span>
+                    <span class="text-base text-gray-600 w-40">Тип личности по MBTI:</span>
+                    <span class="text-base font-medium text-blue-600">{{ $candidate->mbti_type ?: 'Не указано' }}</span>
                 </div>
             </div>
 
@@ -399,7 +397,7 @@
                 }
             @endphp
             <div class="mb-8">
-                <h2 class="section-header text-lg font-bold p-3 mb-4">Тест типов интеллекта (Гарднер)</h2>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Тест типов интеллекта (Гарднер)</h2>
                 <div class="grid grid-cols-2 gap-6">
                     @foreach($candidate->user->gardnerTestResult->results as $intelligenceType => $percentage)
                     @php
@@ -411,13 +409,13 @@
                     @endphp
                     <div class="flex items-center justify-between p-3 {{ $bgClass }} rounded border-2 {{ $isDominant ? 'shadow-md' : '' }}">
                         <div class="flex flex-col">
-                            <span class="text-sm font-medium {{ $textClass }}">{{ $intelligenceType }}</span>
+                            <span class="text-base font-medium {{ $textClass }}">{{ $intelligenceType }}</span>
                         </div>
                         <div class="flex items-center">
                             <div class="w-24 h-2 bg-gray-200 rounded-full mr-3">
                                 <div class="h-2 {{ $barClass }} rounded-full" style="width: {{ $percentage }}"></div>
                             </div>
-                            <span class="text-sm {{ $percentageClass }}">{{ $percentage }}</span>
+                            <span class="text-base {{ $percentageClass }}">{{ $percentage }}</span>
                         </div>
                     </div>
                     @endforeach

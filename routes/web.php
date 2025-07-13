@@ -23,7 +23,8 @@ Route::middleware([
     Route::get('/candidate/test', [CandidateController::class, 'test'])->name('candidate.test');
 
     // Отчеты кандидатов
-    Route::get('/candidate/{candidate}/report', [CandidateReportController::class, 'show'])->name('candidate.report');
+    Route::get('/candidate/{candidate}/report', [CandidateReportController::class, 'showV2'])->name('candidate.report');
+//    Route::get('/candidate/{candidate}/report/v2', [CandidateReportController::class, 'showV2'])->name('candidate.report.v2');
     Route::get('/candidate/{candidate}/report/pdf', [CandidateReportController::class, 'pdf'])->name('candidate.report.pdf');
     Route::get('/candidate/{candidate}/gallup/download', [CandidateReportController::class, 'downloadGallup'])->name('candidate.gallup.download');
     Route::get('/candidate/{candidate}/gallup-report/{type}/download', [CandidateReportController::class, 'downloadGallupReport'])->name('candidate.gallup-report.download');
@@ -37,6 +38,10 @@ Route::middleware([
     // Route::get('/gardner-test-all', function () {
     //     return view('candidate.gardner-test-all');
     // })->name('gardner-test-all');
+    
+    // Создание Google Docs из нескольких Google Sheets
+    Route::post('/candidate/{candidate}/create-google-docs', [GallupController::class, 'createGoogleDocsFromSheets'])->name('candidate.create-google-docs');
+    Route::post('/candidate/{candidate}/create-google-docs-advanced', [GallupController::class, 'createGoogleDocsFromSheetsAdvanced'])->name('candidate.create-google-docs-advanced');
 });
 
 Route::post('/gallup/process', [GallupController::class, 'process']);

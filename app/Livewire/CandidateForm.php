@@ -328,14 +328,16 @@ class CandidateForm extends Component
             'universities.*.speciality' => 'required|string|max:255',
             'universities.*.gpa' => 'required|numeric|min:0|max:4',
             'language_skills' => 'nullable|array',
-            'language_skills.*.language' => 'required|string' . (!empty($this->languages) ? '|in:' . implode(',', $this->languages) : ''),
-            'language_skills.*.level' => 'required|in:Начальный,Средний,Продвинутый,Родной',
+            'language_skills.*.language' => 'required|string' . (!empty($this->languages) ? '|in:' . implode(',', array_map(function($lang) {
+                return mb_convert_case($lang, MB_CASE_TITLE, 'UTF-8');
+            }, $this->languages)) : ''),
+            'language_skills.*.level' => 'required|in:Начальный,Средний,Выше среднего,Продвинутый,В совершенстве',
             'computer_skills' => 'nullable|string',
             'work_experience' => 'nullable|array',
-            'work_experience.*.years' => 'required_with:work_experience.*|string|max:255',
-            'work_experience.*.company' => 'required_with:work_experience.*|string|max:255',
-            'work_experience.*.city' => 'required_with:work_experience.*|string|max:255',
-            'work_experience.*.position' => 'required_with:work_experience.*|string|max:255',
+            'work_experience.*.years' => 'nullable|string|max:255',
+            'work_experience.*.company' => 'nullable|string|max:255',
+            'work_experience.*.city' => 'nullable|string|max:255',
+            'work_experience.*.position' => 'nullable|string|max:255',
             'total_experience_years' => 'required|integer|min:0',
             'job_satisfaction' => 'nullable|integer|min:1|max:10',
             'desired_position' => ['required', 'string', 'max:255', new CyrillicRule()],
@@ -1035,9 +1037,18 @@ class CandidateForm extends Component
             // Education and Work
             $this->candidate->school = $this->school;
             $this->candidate->universities = $this->universities;
-            $this->candidate->language_skills = $this->language_skills;
+            
+            // Фильтруем пустые языковые навыки
+            $this->candidate->language_skills = array_filter($this->language_skills, function($skill) {
+                return !empty($skill['language']) && !empty($skill['level']);
+            });
+            
             $this->candidate->computer_skills = $this->computer_skills;
-            $this->candidate->work_experience = $this->work_experience;
+            
+            // Фильтруем пустые записи опыта работы
+            $this->candidate->work_experience = array_filter($this->work_experience, function($experience) {
+                return !empty($experience['years']) || !empty($experience['company']) || !empty($experience['city']) || !empty($experience['position']);
+            });
             $this->candidate->total_experience_years = $this->total_experience_years;
             $this->candidate->job_satisfaction = $this->job_satisfaction;
             $this->candidate->desired_position = $this->desired_position;
@@ -1153,9 +1164,24 @@ class CandidateForm extends Component
         // Образование и работа
         if ($this->school) $this->candidate->school = $this->school;
         if (!empty($this->universities)) $this->candidate->universities = $this->universities;
-        if (!empty($this->language_skills)) $this->candidate->language_skills = $this->language_skills;
+        
+        // Фильтруем пустые языковые навыки
+        if (!empty($this->language_skills)) {
+            $filteredLanguageSkills = array_filter($this->language_skills, function($skill) {
+                return !empty($skill['language']) && !empty($skill['level']);
+            });
+            $this->candidate->language_skills = array_values($filteredLanguageSkills);
+        }
+        
         if ($this->computer_skills !== null) $this->candidate->computer_skills = $this->computer_skills;
-        if (!empty($this->work_experience)) $this->candidate->work_experience = $this->work_experience;
+        
+        // Фильтруем пустые записи опыта работы
+        if (!empty($this->work_experience)) {
+            $filteredWorkExperience = array_filter($this->work_experience, function($experience) {
+                return !empty($experience['years']) || !empty($experience['company']) || !empty($experience['city']) || !empty($experience['position']);
+            });
+            $this->candidate->work_experience = array_values($filteredWorkExperience);
+        }
         if ($this->total_experience_years !== null) $this->candidate->total_experience_years = $this->total_experience_years;
         if ($this->job_satisfaction !== null) $this->candidate->job_satisfaction = $this->job_satisfaction;
         if ($this->desired_position) $this->candidate->desired_position = $this->desired_position;

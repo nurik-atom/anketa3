@@ -200,8 +200,9 @@
                                     <option value="">Выберите уровень</option>
                                     <option value="Начальный">Начальный</option>
                                     <option value="Средний">Средний</option>
+                                    <option value="Выше среднего">Выше среднего</option>
                                     <option value="Продвинутый">Продвинутый</option>
-                                    <option value="Родной">Родной</option>
+                                    <option value="В совершенстве">В совершенстве</option>
                                 </select>
                                 @error("language_skills.{$index}.level") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>

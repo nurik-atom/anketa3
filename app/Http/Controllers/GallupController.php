@@ -14,6 +14,7 @@ use Smalot\PdfParser\Parser;
 use Illuminate\Support\Facades\Storage;
 use Google\Client;
 use Google\Service\Sheets;
+use Google\Service\Docs;
 
 class GallupController extends Controller
 {
@@ -100,8 +101,9 @@ class GallupController extends Controller
 //            $hasCorrectPageCount = count($pages) === 26;
             $containsCliftonHeader = str_contains($text, 'Gallup, Inc. All rights reserved.');
             $containsTalentList = preg_match('/1\.\s+[A-Za-z-]+/', $text);
+            $containsTalentList34 = preg_match('/34\.\s+[A-Za-z-]+/', $text);
 
-            return $containsCliftonHeader && $containsTalentList;
+            return $containsCliftonHeader && $containsTalentList && $containsTalentList34;
         } catch (\Exception $e) {
             return false;
         }
@@ -432,5 +434,433 @@ class GallupController extends Controller
         }
 
         return $letters . $row;
+    }
+
+    /**
+     * Создаёт Google Docs с данными из нескольких Google Sheets
+     */
+    public function createGoogleDocsFromSheets(Candidate $candidate)
+    {
+        // Получаем все активные листы отчетов
+        $reportSheets = GallupReportSheet::with('indices')->get();
+        
+        if ($reportSheets->isEmpty()) {
+            return response()->json(['error' => 'Нет активных отчетов для обработки'], 422);
+        }
+
+        // Создаём новый Google Docs
+        $documentId = $this->createGoogleDoc($candidate);
+        
+        // Собираем данные из всех Google Sheets
+        $allData = [];
+        foreach ($reportSheets as $reportSheet) {
+            $sheetData = $this->getSheetData($reportSheet, $candidate);
+            $allData[$reportSheet->name_report] = $sheetData;
+        }
+        
+        // Заполняем Google Docs данными
+        $this->populateGoogleDoc($documentId, $candidate, $allData);
+        
+        // Сохраняем ссылку на документ
+        $this->saveDocumentLink($candidate, $documentId);
+        
+        return response()->json([
+            'message' => 'Google Docs создан и заполнен данными',
+            'document_id' => $documentId,
+            'document_url' => "https://docs.google.com/document/d/{$documentId}"
+        ]);
+    }
+
+    /**
+     * Создаёт новый Google Docs документ
+     */
+    protected function createGoogleDoc(Candidate $candidate)
+    {
+        $client = new Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope([
+            \Google\Service\Docs::DOCUMENTS,
+            \Google\Service\Drive::DRIVE_FILE
+        ]);
+        $client->useApplicationDefaultCredentials();
+
+        $docsService = new \Google\Service\Docs($client);
+        
+        // Создаём новый документ
+        $document = new \Google\Service\Docs\Document([
+            'title' => "Отчет по кандидату: {$candidate->full_name}"
+        ]);
+        
+        $response = $docsService->documents->create($document);
+        
+        return $response->getDocumentId();
+    }
+
+    /**
+     * Получает данные из Google Sheets
+     */
+    protected function getSheetData(GallupReportSheet $reportSheet, Candidate $candidate)
+    {
+        $client = new Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope(\Google\Service\Sheets::SPREADSHEETS_READONLY);
+        $client->useApplicationDefaultCredentials();
+
+        $sheetsService = new Sheets($client);
+        
+        // Получаем данные из листа Formula
+        $range = 'Formula!A1:Z100'; // Adjust range as needed
+        $response = $sheetsService->spreadsheets_values->get(
+            $reportSheet->spreadsheet_id, 
+            $range
+        );
+        
+        return $response->getValues() ?? [];
+    }
+
+    /**
+     * Заполняет Google Docs данными из нескольких листов
+     */
+    protected function populateGoogleDoc($documentId, Candidate $candidate, array $allData)
+    {
+        $client = new Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope(\Google\Service\Docs::DOCUMENTS);
+        $client->useApplicationDefaultCredentials();
+
+        $docsService = new \Google\Service\Docs($client);
+        
+        // Формируем контент для документа
+        $requests = [];
+        
+        // Заголовок документа
+        $requests[] = new \Google\Service\Docs\Request([
+            'insertText' => [
+                'location' => ['index' => 1],
+                'text' => "ОТЧЕТ ПО КАНДИДАТУ\n\n"
+            ]
+        ]);
+        
+        // Информация о кандидате
+        $candidateInfo = "Имя: {$candidate->full_name}\n";
+        $candidateInfo .= "Дата создания отчета: " . now()->format('d.m.Y H:i') . "\n\n";
+        
+        $requests[] = new \Google\Service\Docs\Request([
+            'insertText' => [
+                'location' => ['index' => 1],
+                'text' => $candidateInfo
+            ]
+        ]);
+        
+        // Добавляем данные из каждого листа
+        foreach ($allData as $sheetName => $sheetData) {
+            $requests[] = new \Google\Service\Docs\Request([
+                'insertText' => [
+                    'location' => ['index' => 1],
+                    'text' => "\n=== {$sheetName} ===\n\n"
+                ]
+            ]);
+            
+            // Конвертируем данные листа в текст
+            $tableText = $this->convertSheetDataToText($sheetData);
+            
+            $requests[] = new \Google\Service\Docs\Request([
+                'insertText' => [
+                    'location' => ['index' => 1],
+                    'text' => $tableText . "\n\n"
+                ]
+            ]);
+        }
+        
+        // Выполняем все запросы
+        $batchUpdateRequest = new \Google\Service\Docs\BatchUpdateDocumentRequest([
+            'requests' => array_reverse($requests) // Reverse to maintain order
+        ]);
+        
+        $docsService->documents->batchUpdate($documentId, $batchUpdateRequest);
+    }
+
+    /**
+     * Конвертирует данные листа в текстовый формат
+     */
+    protected function convertSheetDataToText(array $sheetData)
+    {
+        $text = '';
+        
+        foreach ($sheetData as $row) {
+            if (empty($row)) continue;
+            
+            $text .= implode(' | ', $row) . "\n";
+        }
+        
+        return $text;
+    }
+
+    /**
+     * Сохраняет ссылку на созданный документ
+     */
+    protected function saveDocumentLink(Candidate $candidate, $documentId)
+    {
+        // Можно сохранить в отдельную таблицу или в существующую
+        GallupReport::create([
+            'candidate_id' => $candidate->id,
+            'type' => 'Google_Docs_Combined',
+            'pdf_file' => null, // Или можно экспортировать в PDF
+            'document_id' => $documentId,
+            'document_url' => "https://docs.google.com/document/d/{$documentId}"
+        ]);
+    }
+
+    /**
+     * Экспортирует Google Docs в PDF
+     */
+    public function exportGoogleDocsToPdf(Candidate $candidate, $documentId)
+    {
+        $client = new Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope(\Google\Service\Drive::DRIVE_READONLY);
+        $client->useApplicationDefaultCredentials();
+
+        $accessToken = $client->fetchAccessTokenWithAssertion()['access_token'];
+        
+        // URL для экспорта Google Docs в PDF
+        $url = "https://docs.google.com/document/d/{$documentId}/export?format=pdf";
+        
+        $response = \Illuminate\Support\Facades\Http::withHeaders([
+            'Authorization' => "Bearer $accessToken"
+        ])->get($url);
+        
+        if (!$response->successful()) {
+            throw new \Exception("Ошибка при экспорте Google Docs в PDF: " . $response->status());
+        }
+        
+        // Сохраняем PDF
+        $folder = 'reports/' . str_replace(' ', '_', $candidate->full_name) . '_' . $candidate->id;
+        $fileName = str_replace(' ', '_', $candidate->full_name) . "_Combined_Report.pdf";
+        $fullPath = "{$folder}/{$fileName}";
+        
+        Storage::disk('public')->put($fullPath, $response->body());
+        
+        // Обновляем запись в базе данных
+        GallupReport::where('candidate_id', $candidate->id)
+            ->where('type', 'Google_Docs_Combined')
+            ->update(['pdf_file' => $fullPath]);
+        
+        return $fullPath;
+    }
+
+    /**
+     * Создаёт таблицу для данных листа
+     */
+    protected function createTableForSheetData(array $sheetData)
+    {
+        $rows = count($sheetData);
+        $cols = 0;
+        
+        // Определяем максимальное количество колонок
+        foreach ($sheetData as $row) {
+            $cols = max($cols, count($row));
+        }
+        
+        // Создаём таблицу
+        $tableRequest = new \Google\Service\Docs\Request([
+            'insertTable' => [
+                'location' => ['index' => 1],
+                'rows' => $rows,
+                'columns' => $cols
+            ]
+        ]);
+        
+        return $tableRequest;
+    }
+
+    /**
+     * Улучшенная версия создания Google Docs с таблицами
+     */
+    public function createGoogleDocsFromSheetsAdvanced(Candidate $candidate)
+    {
+        // Получаем все активные листы отчетов
+        $reportSheets = GallupReportSheet::with('indices')->get();
+        
+        if ($reportSheets->isEmpty()) {
+            return response()->json(['error' => 'Нет активных отчетов для обработки'], 422);
+        }
+
+        // Создаём новый Google Docs
+        $documentId = $this->createGoogleDoc($candidate);
+        
+        // Собираем данные из всех Google Sheets
+        $allData = [];
+        foreach ($reportSheets as $reportSheet) {
+            // Получаем специфичные данные для каждого листа
+            $sheetData = $this->getSpecificSheetData($reportSheet, $candidate);
+            $allData[$reportSheet->name_report] = $sheetData;
+        }
+        
+        // Заполняем Google Docs данными с таблицами
+        $this->populateGoogleDocAdvanced($documentId, $candidate, $allData);
+        
+        // Сохраняем ссылку на документ
+        $this->saveDocumentLink($candidate, $documentId);
+        
+        return response()->json([
+            'message' => 'Google Docs создан с таблицами и форматированием',
+            'document_id' => $documentId,
+            'document_url' => "https://docs.google.com/document/d/{$documentId}"
+        ]);
+    }
+
+    /**
+     * Получает специфичные данные для отчета из Google Sheets
+     */
+    protected function getSpecificSheetData(GallupReportSheet $reportSheet, Candidate $candidate)
+    {
+        $client = new Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope(\Google\Service\Sheets::SPREADSHEETS_READONLY);
+        $client->useApplicationDefaultCredentials();
+
+        $sheetsService = new Sheets($client);
+        
+        // Получаем данные из листа Formula с конкретными значениями
+        $values = GallupReportSheetValue::where('gallup_report_sheet_id', $reportSheet->id)
+            ->where('candidate_id', $candidate->id)
+            ->get();
+        
+        $sheetData = [];
+        
+        // Заголовок
+        $sheetData[] = ['Показатель', 'Значение'];
+        
+        // Данные
+        foreach ($values as $value) {
+            $sheetData[] = [$value->name, $value->value . '%'];
+        }
+        
+        return $sheetData;
+    }
+
+    /**
+     * Заполняет Google Docs с расширенным форматированием
+     */
+    protected function populateGoogleDocAdvanced($documentId, Candidate $candidate, array $allData)
+    {
+        $client = new Client();
+        $client->setAuthConfig(storage_path('app/google/credentials.json'));
+        $client->addScope(\Google\Service\Docs::DOCUMENTS);
+        $client->useApplicationDefaultCredentials();
+
+        $docsService = new \Google\Service\Docs($client);
+        
+        // Заголовок документа
+        $requests = [];
+        
+        $requests[] = new \Google\Service\Docs\Request([
+            'insertText' => [
+                'location' => ['index' => 1],
+                'text' => "ОТЧЕТ ПО КАНДИДАТУ\n\n"
+            ]
+        ]);
+        
+        // Информация о кандидате
+        $candidateInfo = "ФИО: {$candidate->full_name}\n";
+        $candidateInfo .= "Дата создания отчета: " . now()->format('d.m.Y H:i') . "\n\n";
+        
+        $requests[] = new \Google\Service\Docs\Request([
+            'insertText' => [
+                'location' => ['index' => 1],
+                'text' => $candidateInfo
+            ]
+        ]);
+        
+        // Добавляем данные из каждого листа
+        foreach ($allData as $sheetName => $sheetData) {
+            $requests[] = new \Google\Service\Docs\Request([
+                'insertText' => [
+                    'location' => ['index' => 1],
+                    'text' => "\n" . strtoupper($sheetName) . "\n"
+                ]
+            ]);
+            
+            $requests[] = new \Google\Service\Docs\Request([
+                'insertText' => [
+                    'location' => ['index' => 1],
+                    'text' => str_repeat('-', 50) . "\n\n"
+                ]
+            ]);
+            
+            // Добавляем таблицу с данными
+            if (!empty($sheetData)) {
+                $requests[] = new \Google\Service\Docs\Request([
+                    'insertTable' => [
+                        'location' => ['index' => 1],
+                        'rows' => count($sheetData),
+                        'columns' => count($sheetData[0])
+                    ]
+                ]);
+            }
+        }
+        
+        // Выполняем все запросы
+        $batchUpdateRequest = new \Google\Service\Docs\BatchUpdateDocumentRequest([
+            'requests' => array_reverse($requests)
+        ]);
+        
+        $docsService->documents->batchUpdate($documentId, $batchUpdateRequest);
+        
+        // Заполняем таблицы данными
+        $this->fillTablesWithData($docsService, $documentId, $allData);
+    }
+
+    /**
+     * Заполняет таблицы данными после их создания
+     */
+    protected function fillTablesWithData($docsService, $documentId, array $allData)
+    {
+        // Получаем обновленный документ
+        $document = $docsService->documents->get($documentId);
+        
+        $requests = [];
+        $tableIndex = 0;
+        
+        foreach ($allData as $sheetName => $sheetData) {
+            if (empty($sheetData)) continue;
+            
+            // Находим таблицу по индексу
+            $tables = [];
+            foreach ($document->getBody()->getContent() as $element) {
+                if ($element->getTable()) {
+                    $tables[] = $element->getTable();
+                }
+            }
+            
+            if (isset($tables[$tableIndex])) {
+                $table = $tables[$tableIndex];
+                
+                // Заполняем ячейки таблицы
+                foreach ($sheetData as $rowIndex => $rowData) {
+                    foreach ($rowData as $colIndex => $cellData) {
+                        $requests[] = new \Google\Service\Docs\Request([
+                            'insertText' => [
+                                'location' => [
+                                    'index' => $table->getTableRows()[$rowIndex]->getTableCells()[$colIndex]->getContent()[0]->getStartIndex() + 1
+                                ],
+                                'text' => (string)$cellData
+                            ]
+                        ]);
+                    }
+                }
+                
+                $tableIndex++;
+            }
+        }
+        
+        if (!empty($requests)) {
+            $batchUpdateRequest = new \Google\Service\Docs\BatchUpdateDocumentRequest([
+                'requests' => $requests
+            ]);
+            
+            $docsService->documents->batchUpdate($documentId, $batchUpdateRequest);
+        }
     }
 }
