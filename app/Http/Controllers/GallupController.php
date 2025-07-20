@@ -206,8 +206,14 @@ class GallupController extends Controller
             ->first();
 
         if ($existing) {
-            Storage::disk('public')->delete($existing->pdf_file);
-            Storage::disk('public')->delete($existing->short_area_pdf_file);
+            if ($existing->pdf_file && Storage::disk('public')->exists($existing->pdf_file)) {
+                Storage::disk('public')->delete($existing->pdf_file);
+            }
+
+            if ($existing->short_area_pdf_file && Storage::disk('public')->exists($existing->short_area_pdf_file)) {
+                Storage::disk('public')->delete($existing->short_area_pdf_file);
+            }
+
             $existing->delete();
         }
 
