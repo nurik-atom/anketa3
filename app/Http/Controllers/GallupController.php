@@ -16,6 +16,7 @@ use setasign\Fpdi\Fpdi;
 use Smalot\PdfParser\Parser;
 use Illuminate\Support\Facades\Storage;
 use Google\Service\Sheets;
+use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 class GallupController extends Controller
@@ -249,7 +250,11 @@ class GallupController extends Controller
             ->showV2($candidate)
             ->render();
 
-        Pdf::html($html)->noSandbox()->save($tempHtmlPdf);
+        Browsershot::html($html)
+            ->noSandbox()
+            ->save($tempHtmlPdf);
+
+//        Pdf::html($html)->withBrowsershotOption('args', ['--no-sandbox'])->save($tempHtmlPdf);
 
         // 2️⃣ Получаем все файлы для объединения
         $pdfPaths = [$tempHtmlPdf];
