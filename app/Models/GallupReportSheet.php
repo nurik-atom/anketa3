@@ -11,6 +11,7 @@ class GallupReportSheet extends Model
         'name_report',
         'spreadsheet_id',
         'gid',
+        'short_gid',
     ];
 
     public function indices(): HasMany

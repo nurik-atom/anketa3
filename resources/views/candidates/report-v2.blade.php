@@ -1,6 +1,3 @@
-@php
-use Illuminate\Support\Facades\Storage;
-@endphp
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -11,7 +8,6 @@ use Illuminate\Support\Facades\Storage;
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         @media print {
             body { font-size: 12px; }
@@ -110,7 +106,7 @@ use Illuminate\Support\Facades\Storage;
         .flex-col { flex-direction: column; }
         .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
         .font-extrabold { font-weight: 800; }
-        
+
         /* Стили для PDF содержимого */
         .pdf-content {
             line-height: 1.6;
@@ -125,12 +121,12 @@ use Illuminate\Support\Facades\Storage;
         .text-red-600 { color: #dc2626; }
         .leading-relaxed { line-height: 1.625; }
         .hover\:text-blue-800:hover { color: #1e40af; }
-        
+
         /* Стили для PDF изображений */
         .pdf-images-container {
             margin-top: 1rem;
         }
-        
+
         .pdf-page-container {
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
@@ -138,7 +134,7 @@ use Illuminate\Support\Facades\Storage;
             background-color: #ffffff;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
-        
+
         .pdf-page-header {
             background-color: #f8fafc;
             border-bottom: 1px solid #e5e7eb;
@@ -146,12 +142,12 @@ use Illuminate\Support\Facades\Storage;
             font-weight: 500;
             color: #374151;
         }
-        
+
         .pdf-image-wrapper {
             padding: 1rem;
             text-align: center;
         }
-        
+
         .pdf-page-image {
             max-width: 100%;
             height: auto;
@@ -159,34 +155,34 @@ use Illuminate\Support\Facades\Storage;
             box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease-in-out;
         }
-        
+
         .pdf-page-image:hover {
             transform: scale(1.02);
             cursor: pointer;
         }
-        
+
         /* Стили для переключения видимости */
         .pdf-images-container {
             transition: opacity 0.3s ease-in-out, max-height 0.3s ease-in-out;
         }
-        
+
         .pdf-images-container.hidden {
             opacity: 0;
             max-height: 0;
             overflow: hidden;
         }
-        
+
         /* Адаптивные стили для изображений */
         @media (max-width: 768px) {
             .pdf-image-wrapper {
                 padding: 0.5rem;
             }
-            
+
             .pdf-page-image {
                 max-width: 100%;
             }
         }
-        
+
         /* Стили для полноэкранного просмотра */
         .pdf-fullscreen-overlay {
             position: fixed;
@@ -200,13 +196,13 @@ use Illuminate\Support\Facades\Storage;
             align-items: center;
             z-index: 1000;
         }
-        
+
         .pdf-fullscreen-image {
             max-width: 90%;
             max-height: 90%;
             border-radius: 0.5rem;
         }
-        
+
         .pdf-fullscreen-close {
             position: absolute;
             top: 20px;
@@ -216,22 +212,22 @@ use Illuminate\Support\Facades\Storage;
             cursor: pointer;
             z-index: 1001;
         }
-        
+
         /* Стили для переключателя PDF */
         .space-x-2 > * + * {
             margin-left: 0.5rem;
         }
-        
+
         .pdf-viewer {
             border: 1px solid #e5e7eb;
             border-radius: 0.5rem;
             overflow: hidden;
             box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
         }
-        
+
         .text-purple-600 { color: #9333ea; }
         .hover\:text-purple-800:hover { color: #6b21a8; }
-        
+
         /* Анимация для переключения */
         .pdf-content, .pdf-viewer {
             transition: opacity 0.3s ease-in-out;
@@ -244,10 +240,10 @@ use Illuminate\Support\Facades\Storage;
         <div class="logo-header p-6">
             <div class="flex justify-between items-center">
                 <div>
-                    <img src="{{ asset('logos/divergents_logo.png') }}" alt="DIVERGENTS talent laboratory" class="h-14 w-auto">
+               <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logos/divergents_logo.png'))) }}" alt="DIVERGENTS talent laboratory" class="h-14 w-auto">
                 </div>
                 <div class="text-right">
-                    <img src="{{ asset('logos/talents_lab_logo.png') }}" alt="talents lab" class="h-12 w-auto">
+                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logos/talents_lab_logo.png'))) }}" alt="talents lab" class="h-12 w-auto">
                 </div>
             </div>
         </div>
@@ -326,7 +322,7 @@ use Illuminate\Support\Facades\Storage;
                 </div>
                 <div class="flex-shrink-0">
                     @if($photoUrl)
-                        <img src="{{ $photoUrl }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">
+{{--                        <img src="{{ $photoUrl }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
                     @else
                         <div class="w-48 h-60 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
                             <span class="text-gray-500 text-sm">Фото</span>
@@ -617,82 +613,6 @@ use Illuminate\Support\Facades\Storage;
                 </div>
             </div>
             @endif
-
-                        <!-- Отчеты Gallup (PDF как изображения) -->
-            @if(isset($gallupPdfContents) && count($gallupPdfContents) > 0)
-            <div class="mb-8">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-gray-800">Gallup отчеты</h2>
-                    <button onclick="createGoogleDocs({{ $candidate->id }})" 
-                            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm font-medium">
-                        Создать Google Docs
-                    </button>
-                </div>
-                @foreach($gallupPdfContents as $pdfContent)
-                <div class="mb-8 border border-gray-200 rounded p-4 {{ isset($pdfContent['error']) && $pdfContent['error'] ? 'bg-red-50 border-red-200' : 'bg-white' }}">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h3 class="text-lg font-medium text-gray-800">{{ $pdfContent['type'] }}</h3>
-                            <p class="text-sm text-gray-500">
-                                Создан: {{ $pdfContent['created_at']->format('d.m.Y в H:i') }}
-                            </p>
-                        </div>
-                        @if(!isset($pdfContent['error']))
-                        <div class="text-right space-x-2">
-                            <button onclick="toggleImageView('{{ $pdfContent['type'] }}')" 
-                                    class="text-purple-600 hover:text-purple-800 text-sm font-medium">
-                                <span id="toggle-text-{{ $pdfContent['type'] }}">Скрыть страницы</span>
-                            </button>
-                            <a href="{{ route('candidate.gallup-report.download', [$candidate->id, $pdfContent['type']]) }}" 
-                               class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                Скачать PDF
-                            </a>
-                        </div>
-                        @endif
-                    </div>
-                    
-                    @if(isset($pdfContent['error']) && $pdfContent['error'])
-                        <div class="text-red-600 font-medium text-center py-8">
-                            <p class="mb-2">Ошибка при конвертации PDF в изображения:</p>
-                            <p class="text-sm">{{ $pdfContent['error_message'] }}</p>
-                            <p class="text-sm mt-2">Попробуйте скачать оригинальный PDF файл.</p>
-                        </div>
-                    @else
-                        <!-- Изображения PDF страниц -->
-                        <div id="images-container-{{ $pdfContent['type'] }}" class="pdf-images-container">
-                            @if(count($pdfContent['images']) > 0)
-                                <div class="text-sm text-gray-600 mb-3">
-                                    Страниц: {{ count($pdfContent['images']) }}
-                                </div>
-                                <div class="space-y-4">
-                                    @foreach($pdfContent['images'] as $image)
-                                    <div class="pdf-page-container">
-                                        <div class="pdf-page-header">
-                                            <span class="text-sm font-medium text-gray-700">
-                                                Страница {{ $image['page'] }}
-                                            </span>
-                                        </div>
-                                        <div class="pdf-image-wrapper">
-                                            <img src="{{ $image['url'] }}" 
-                                                 alt="PDF страница {{ $image['page'] }}" 
-                                                 class="pdf-page-image"
-                                                 loading="lazy">
-                                        </div>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <div class="text-center py-8 text-gray-500">
-                                    <p>Не удалось конвертировать PDF в изображения.</p>
-                                    <p class="text-sm mt-2">Используйте ссылку для скачивания оригинального PDF.</p>
-                                </div>
-                            @endif
-                        </div>
-                    @endif
-                </div>
-                @endforeach
-            </div>
-            @endif
         </div>
 
         <!-- Footer -->
@@ -700,132 +620,5 @@ use Illuminate\Support\Facades\Storage;
             <p>Отчет сгенерирован {{ now()->format('d.m.Y в H:i') }}</p>
         </div>
     </div>
-
-    <script>
-        function toggleImageView(type) {
-            const imagesContainer = document.getElementById('images-container-' + type);
-            const toggleText = document.getElementById('toggle-text-' + type);
-            
-            if (imagesContainer.classList.contains('hidden')) {
-                // Показать изображения
-                imagesContainer.classList.remove('hidden');
-                toggleText.textContent = 'Скрыть страницы';
-            } else {
-                // Скрыть изображения
-                imagesContainer.classList.add('hidden');
-                toggleText.textContent = 'Показать страницы';
-            }
-        }
-        
-        function openFullscreen(imageSrc, pageNumber) {
-            const overlay = document.createElement('div');
-            overlay.className = 'pdf-fullscreen-overlay';
-            overlay.onclick = function() {
-                closeFullscreen(overlay);
-            };
-            
-            const image = document.createElement('img');
-            image.src = imageSrc;
-            image.className = 'pdf-fullscreen-image';
-            image.alt = 'Страница ' + pageNumber;
-            
-            const closeButton = document.createElement('div');
-            closeButton.className = 'pdf-fullscreen-close';
-            closeButton.innerHTML = '×';
-            closeButton.onclick = function() {
-                closeFullscreen(overlay);
-            };
-            
-            overlay.appendChild(image);
-            overlay.appendChild(closeButton);
-            document.body.appendChild(overlay);
-            
-            // Добавляем обработчик для клавиши ESC
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeFullscreen(overlay);
-                }
-            });
-        }
-        
-        function closeFullscreen(overlay) {
-            document.body.removeChild(overlay);
-        }
-        
-        // Добавляем обработчики кликов для изображений
-        document.addEventListener('DOMContentLoaded', function() {
-            const images = document.querySelectorAll('.pdf-page-image');
-            images.forEach(function(image) {
-                image.addEventListener('click', function() {
-                    const pageNumber = this.alt.replace('PDF страница ', '');
-                    openFullscreen(this.src, pageNumber);
-                });
-            });
-        });
-
-        // Функция для создания Google Docs
-        function createGoogleDocs(candidateId) {
-            const button = event.target;
-            const originalText = button.textContent;
-            
-            // Отключаем кнопку и показываем загрузку
-            button.disabled = true;
-            button.textContent = 'Создается...';
-            button.classList.add('opacity-50');
-            
-            // Отправляем запрос на создание Google Docs
-            fetch(`/candidate/${candidateId}/create-google-docs-advanced`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.document_url) {
-                    // Показываем успешное сообщение
-                    button.textContent = 'Открыть Google Docs';
-                    button.classList.remove('text-green-600', 'hover:text-green-800');
-                    button.classList.add('text-blue-600', 'hover:text-blue-800');
-                    button.onclick = function() {
-                        window.open(data.document_url, '_blank');
-                    };
-                    
-                    // Показываем уведомление
-                    showNotification('Google Docs создан успешно!', 'success');
-                } else {
-                    throw new Error(data.error || 'Произошла ошибка при создании документа');
-                }
-            })
-            .catch(error => {
-                console.error('Ошибка:', error);
-                button.textContent = originalText;
-                showNotification('Ошибка при создании Google Docs: ' + error.message, 'error');
-            })
-            .finally(() => {
-                button.disabled = false;
-                button.classList.remove('opacity-50');
-            });
-        }
-
-        // Функция для показа уведомлений
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-50 px-4 py-2 rounded shadow-lg ${
-                type === 'success' ? 'bg-green-500 text-white' : 
-                type === 'error' ? 'bg-red-500 text-white' : 
-                'bg-blue-500 text-white'
-            }`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
-            
-            setTimeout(() => {
-                notification.remove();
-            }, 5000);
-        }
-    </script>
-
 </body>
 </html>

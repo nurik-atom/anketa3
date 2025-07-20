@@ -14,3 +14,4 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/gallup/process', [GallupController::class, 'process']);
 
 Route::post('/candidates/parse-gallup/{candidate}', [GallupController::class, 'parseGallupFromCandidateFile']);
+Route::post('/candidates/merge-gallup/{candidate}', [GallupController::class, 'mergeCandidateReportPdfs']);

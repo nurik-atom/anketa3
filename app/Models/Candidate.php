@@ -55,11 +55,8 @@ class Candidate extends Model
 
         // Assessments
         'gallup_pdf',
+        'anketa_pdf',
         'mbti_type',
-
-        // New fields
-        'education',
-        'experience',
     ];
 
     protected $casts = [

@@ -44,6 +44,12 @@ class GallupReportSheetResource extends Resource
                     ->required()
                     ->maxLength(255)
                     ->placeholder('Google Sheets GID'),
+                Forms\Components\TextInput::make('short_gid')
+                    ->label('Sheet Short GID')
+                    ->required()
+                    ->maxLength(255)
+                    ->placeholder('Google Sheets Short GID'),
+
             ]);
     }
 

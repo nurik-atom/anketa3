@@ -12,6 +12,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Storage;
 
 class CandidateResource extends Resource
 {
@@ -216,7 +217,7 @@ class CandidateResource extends Resource
                     ->getStateUsing(function (Candidate $record): string {
                         $hasOriginal = !empty($record->gallup_pdf);
                         $reportsCount = $record->gallupReports()->count();
-                        
+
                         if ($hasOriginal && $reportsCount > 0) {
                             return "PDF + {$reportsCount} отчета";
                         } elseif ($hasOriginal) {
@@ -224,7 +225,7 @@ class CandidateResource extends Resource
                         } elseif ($reportsCount > 0) {
                             return "{$reportsCount} отчета";
                         }
-                        
+
                         return 'Нет';
                     })
                     ->badge()
@@ -239,16 +240,16 @@ class CandidateResource extends Resource
                     ->label('Тест Гарднера')
                     ->getStateUsing(function (Candidate $record): string {
                         $testResult = $record->user?->gardnerTestResult;
-                        
+
                         if (!$testResult) {
                             return 'Не пройден';
                         }
-                        
+
                         $answers = is_string($testResult->answers) ? json_decode($testResult->answers, true) : $testResult->answers;
                         $totalQuestions = 56; // 7 вопросов × 8 типов
                         $answeredQuestions = $answers ? count($answers) : 0;
                         $percentage = round(($answeredQuestions / $totalQuestions) * 100);
-                        
+
                         if ($percentage == 100) {
                             return 'Завершен';
                         } else {
@@ -296,12 +297,12 @@ class CandidateResource extends Resource
                     ->query(fn (Builder $query): Builder => $query->whereMonth('created_at', now()->month)),
                 Tables\Filters\Filter::make('has_gardner_test')
                     ->label('Прошли тест Гарднера')
-                    ->query(fn (Builder $query): Builder => 
+                    ->query(fn (Builder $query): Builder =>
                         $query->whereHas('user.gardnerTestResult')
                     ),
                 Tables\Filters\Filter::make('gardner_test_completed')
                     ->label('Завершили тест Гарднера')
-                    ->query(fn (Builder $query): Builder => 
+                    ->query(fn (Builder $query): Builder =>
                         $query->whereHas('user.gardnerTestResult', function ($q) {
                             $q->whereRaw('JSON_LENGTH(answers) >= 56');
                         })
@@ -312,11 +313,11 @@ class CandidateResource extends Resource
                 // ->label('Гарднер')
                 // ->icon('heroicon-o-chart-bar')
                 // ->color('info')
-                // ->url(fn (Candidate $record): string => 
+                // ->url(fn (Candidate $record): string =>
                 //     route('candidate.test') . '?user=' . $record->user_id
                 // )
                 // ->openUrlInNewTab()
-                // ->visible(fn (Candidate $record): bool => 
+                // ->visible(fn (Candidate $record): bool =>
                 //     $record->user_id !== null && $record->user?->gardnerTestResult !== null
                 // ),
                 Tables\Actions\ActionGroup::make([
@@ -327,6 +328,13 @@ class CandidateResource extends Resource
                         ->url(fn (Candidate $record): string => route('candidate.gallup.download', $record))
                         ->openUrlInNewTab()
                         ->visible(fn (Candidate $record): bool => !empty($record->gallup_pdf)),
+                    Tables\Actions\Action::make('downloadAnketa')
+                        ->label('Анкета PDF')
+                        ->icon('heroicon-o-document-text')
+                        ->color('primary')
+                        ->url(fn (Candidate $record): string => route('candidate.anketa.download', $record))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->anketa_pdf && Storage::disk('public')->exists($record->anketa_pdf)),
                     Tables\Actions\Action::make('downloadDPs')
                         ->label('DPs отчет')
                         ->icon('heroicon-o-document-text')
@@ -353,7 +361,7 @@ class CandidateResource extends Resource
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
                     ->button()
-                    ->visible(fn (Candidate $record): bool => 
+                    ->visible(fn (Candidate $record): bool =>
                         !empty($record->gallup_pdf) || $record->gallupReports()->exists()
                     ),
                 Tables\Actions\DeleteAction::make()

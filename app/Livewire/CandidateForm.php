@@ -906,28 +906,48 @@ class CandidateForm extends Component
 
     public function updatedGallupPdf()
     {
+        logger()->info('Gallup PDF upload started', [
+            'file_present' => $this->gallup_pdf ? 'yes' : 'no',
+            'file_type' => $this->gallup_pdf ? get_class($this->gallup_pdf) : 'null'
+        ]);
+        
         if ($this->gallup_pdf) {
             try {
+                // Логируем информацию о файле
+                logger()->info('Gallup PDF file info', [
+                    'original_name' => $this->gallup_pdf->getClientOriginalName(),
+                    'size' => $this->gallup_pdf->getSize(),
+                    'mime_type' => $this->gallup_pdf->getMimeType(),
+                ]);
+                
                 // Базовая валидация файла
                 $this->validate([
                     'gallup_pdf' => 'file|mimes:pdf|max:10240'
                 ]);
                 
+                logger()->info('Gallup PDF passed basic validation');
+                
                 // Проверяем, что это корректный Gallup PDF
                 if (!$this->isGallupPdf($this->gallup_pdf)) {
+                    logger()->warning('Gallup PDF failed content validation');
                     $this->addError('gallup_pdf', 'Загруженный файл не является корректным отчетом Gallup. Убедитесь, что это официальный PDF с результатами теста Gallup.');
                     $this->resetGallupFile();
                     return;
                 }
+                
+                logger()->info('Gallup PDF validation successful');
                 
                 // Отправляем событие в JavaScript
                 $this->dispatch('gallup-file-uploaded');
                 
                 session()->flash('message', 'PDF файл загружен и проверен');
             } catch (\Exception $e) {
+                logger()->error('Error processing Gallup PDF', [
+                    'message' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
                 $this->addError('gallup_pdf', 'Ошибка при обработке файла: ' . $e->getMessage());
                 $this->resetGallupFile();
-                logger()->error('Error processing Gallup PDF: ' . $e->getMessage());
             }
         }
     }
@@ -1328,16 +1348,34 @@ class CandidateForm extends Component
             $text = $pdf->getText();
             $pages = $pdf->getPages();
 
-            // Ключевые признаки Gallup-отчета
-            $hasCorrectPageCount = count($pages) === 26;
-            $containsCliftonHeader = str_contains($text, 'Gallup, Inc. All rights reserved.');
-            $containsGallupCopyright = str_contains($text, 'Gallup, Inc.');
-            $containsTalentList = preg_match('/1\.\s+[A-Za-z-]+/', $text);
+            logger()->info('Gallup PDF validation', [
+                'page_count' => count($pages),
+                'has_gallup_inc' => str_contains($text, 'Gallup, Inc.'),
+                'has_clifton' => str_contains($text, 'CliftonStrengths') || str_contains($text, 'Clifton'),
+                'text_sample' => substr($text, 0, 500)
+            ]);
 
-            return $hasCorrectPageCount && $containsCliftonHeader && $containsGallupCopyright && $containsTalentList;
+            // Смягченные условия проверки Gallup-отчета
+            $hasMinimumPages = count($pages) >= 10; // Минимум 10 страниц
+            $containsGallupKeywords = str_contains($text, 'Gallup') || 
+                                    str_contains($text, 'CliftonStrengths') || 
+                                    str_contains($text, 'StrengthsFinder') ||
+                                    str_contains($text, 'Clifton');
+            
+            // Если это PDF и содержит ключевые слова Gallup - считаем валидным
+            $isValid = $hasMinimumPages && $containsGallupKeywords;
+            
+            logger()->info('Gallup PDF validation result', [
+                'is_valid' => $isValid,
+                'minimum_pages' => $hasMinimumPages,
+                'has_keywords' => $containsGallupKeywords
+            ]);
+
+            return $isValid;
         } catch (\Exception $e) {
             logger()->error('Error checking Gallup PDF: ' . $e->getMessage());
-            return false;
+            // В случае ошибки парсинга, разрешаем загрузку (возможно это корректный PDF)
+            return true;
         }
     }
 

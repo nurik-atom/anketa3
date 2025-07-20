@@ -25,3 +25,6 @@ npm-debug.log
 Thumbs.db
 yarn-error.log
 /vendor.zip
+/storage/app/google/credentials.json
+/storage/app/google/oauth_credentials.json
+/storage/app/google/token.json

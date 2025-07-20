@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class GallupReport extends Model
 {
-    protected $fillable = ['candidate_id', 'type', 'pdf_file', 'document_id', 'document_url'];
+    protected $fillable = ['candidate_id', 'type', 'pdf_file', 'short_area_pdf_file'];
 
     public function candidate()
     {
