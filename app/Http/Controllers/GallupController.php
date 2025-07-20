@@ -249,7 +249,7 @@ class GallupController extends Controller
             ->showV2($candidate)
             ->render();
 
-        Pdf::html($html)->save($tempHtmlPdf);
+        Pdf::html($html)->noSandbox()->save($tempHtmlPdf);
 
         // 2️⃣ Получаем все файлы для объединения
         $pdfPaths = [$tempHtmlPdf];
