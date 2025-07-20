@@ -250,8 +250,8 @@ class GallupController extends Controller
             ->showV2($candidate)
             ->render();
 
-        Browsershot::html($html)
-            ->noSandbox()
+        Pdf::html($html)
+            ->withBrowsershotOption('args', ['--no-sandbox'])
             ->save($tempHtmlPdf);
 
 //        Pdf::html($html)->withBrowsershotOption('args', ['--no-sandbox'])->save($tempHtmlPdf);
