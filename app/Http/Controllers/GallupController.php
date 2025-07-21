@@ -180,10 +180,10 @@ class GallupController extends Controller
             'gridlines' => 'false',
             'fzr' => 'false',
             'horizontal_alignment' => 'CENTER',
-            'top_margin' => '0.00',
-            'bottom_margin' => '0.00',
-            'left_margin' => '0.00',
-            'right_margin' => '0.00',];
+            'top_margin' => '0.50',
+            'bottom_margin' => '0.50',
+            'left_margin' => '0.50',
+            'right_margin' => '0.50',];
 
         // 2. PDF URL из Google Sheets
         $url = "https://docs.google.com/spreadsheets/d/{$reportSheet->spreadsheet_id}/export?" . http_build_query($http_build_query) . "&gid={$reportSheet->gid}";
@@ -250,10 +250,10 @@ class GallupController extends Controller
             ->showV2($candidate)
             ->render();
 
-        // Используем Browsershot напрямую с флагом --no-sandbox
-        Browsershot::html($html)
-            ->noSandbox() // Отключаем sandbox для Chromium
+        Pdf::html($html)
+//            ->withBrowsershotOption('args', ['--no-sandbox'])
             ->save($tempHtmlPdf);
+
 //        Pdf::html($html)->withBrowsershotOption('args', ['--no-sandbox'])->save($tempHtmlPdf);
 
         // 2️⃣ Получаем все файлы для объединения
