@@ -306,23 +306,59 @@
                                  </span>
                              </div>
                          @endif
-                         <div class="flex">
-                             <span class="w-60 text-base text-gray-600">Религия:</span>
-                             <span class="text-base font-medium">{{ $candidate->religion ?: 'Не указано' }}</span>
-                         </div>
-                         <div class="flex">
-                             <span class="w-60 text-base text-gray-600">Рел. практика:</span>
-                             <span class="text-base font-medium">{{ $candidate->is_practicing ? 'Да' : 'Нет' }}</span>
-                         </div>
-                         <div class="flex">
-                             <span class="w-60 text-base text-gray-600">Водительские права:</span>
-                             <span class="text-base font-medium">{{ $candidate->has_driving_license ? 'Есть' : 'Нет' }}</span>
-                         </div>
+
+                         @if($candidate->family_members && count($candidate->family_members) > 0)
+                             <div class="flex">
+                                 <span class="w-60 text-base text-gray-600">Родители:</span>
+                                 <span class="text-base font-medium">
+                                 @php
+                                     $parents = collect($candidate->family_members)->whereIn('type', ['Отец', 'Мать']);
+                                 @endphp
+                                 @if($parents->count() > 0)
+                                     @foreach($parents as $parent)
+                                         <div class="text-base font-medium">
+                                             {{ $parent['type'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
+                                             @if(!empty($parent['profession']))
+                                                 - {{ $parent['profession'] }}
+                                             @endif
+                                         </div>
+                                     @endforeach
+                                 @else
+                                     <span class="text-base font-medium">Информация не указана</span>
+                                 @endif
+                                 </span>
+                             </div>
+                         @endif
+
+                         @if($candidate->family_members && count($candidate->family_members) > 0)
+                             <div class="flex">
+                                 <span class="w-60 text-base text-gray-600">Кол-во братьев-сестер:</span>
+                                 <span class="text-base font-medium">
+                                 @php
+                                     $parents = collect($candidate->family_members)->whereIn('type', ['Брат', 'Сестра']);
+                                 @endphp
+                                     @if($parents->count() > 0)
+                                         @foreach($parents as $parent)
+                                             <div class="text-base font-medium">
+                                             {{ $parent['type'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
+                                                 @if(!empty($parent['profession']))
+                                                     - {{ $parent['profession'] }}
+                                                 @endif
+                                         </div>
+                                         @endforeach
+                                     @else
+                                         <span class="text-base font-medium">Информация не указана</span>
+                                     @endif
+                                 </span>
+                             </div>
+                         @endif
+
                      </div>
                 </div>
                 <div class="flex-shrink-0">
                     @if($photoUrl)
-{{--                        <img src="{{ $photoUrl }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
+{{--                        <img src="{{$photoUrl}}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
+                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($photoUrl)) }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">
                     @else
                         <div class="w-48 h-60 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
                             <span class="text-gray-500 text-sm">Фото</span>
@@ -334,32 +370,30 @@
 
         <!-- Main Content -->
         <div class="p-6">
+{{--            @if($candidate->family_members && count($candidate->family_members) > 0)--}}
+{{--            <!-- Родители/Братья-сестры -->--}}
+{{--            <div class="mb-8">--}}
 
-
-            @if($candidate->family_members && count($candidate->family_members) > 0)
-            <!-- Родители/Братья-сестры -->
-            <div class="mb-8">
-
-                    <span class="text-base text-gray-600">Родители:</span>
-                    <div class="mt-2 space-y-1">
-                        @php
-                            $parents = collect($candidate->family_members)->whereIn('type', ['Отец', 'Мать']);
-                        @endphp
-                        @if($parents->count() > 0)
-                            @foreach($parents as $parent)
-                                <div class="text-base font-medium">
-                                    {{ $parent['type'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
-                                    @if(!empty($parent['profession']))
-                                        - {{ $parent['profession'] }}
-                                    @endif
-                                </div>
-                            @endforeach
-                        @else
-                            <span class="text-base font-medium">Информация не указана</span>
-                        @endif
-                    </div>
-            </div>
-            @endif
+{{--                    <span class="text-base text-gray-600">Родители:</span>--}}
+{{--                    <div class="mt-2 space-y-1">--}}
+{{--                        @php--}}
+{{--                            $parents = collect($candidate->family_members)->whereIn('type', ['Отец', 'Мать']);--}}
+{{--                        @endphp--}}
+{{--                        @if($parents->count() > 0)--}}
+{{--                            @foreach($parents as $parent)--}}
+{{--                                <div class="text-base font-medium">--}}
+{{--                                    {{ $parent['type'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}--}}
+{{--                                    @if(!empty($parent['profession']))--}}
+{{--                                        - {{ $parent['profession'] }}--}}
+{{--                                    @endif--}}
+{{--                                </div>--}}
+{{--                            @endforeach--}}
+{{--                        @else--}}
+{{--                            <span class="text-base font-medium">Информация не указана</span>--}}
+{{--                        @endif--}}
+{{--                    </div>--}}
+{{--            </div>--}}
+{{--            @endif--}}
 
             <!-- Образование -->
             <div class="mb-8">
@@ -429,6 +463,18 @@
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Прочая информация</h2>
                 <div class="space-y-2">
+                    <div class="flex">
+                        <span class="w-60 text-base text-gray-600">Религия:</span>
+                        <span class="text-base font-medium">{{ $candidate->religion ?: 'Не указано' }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="w-60 text-base text-gray-600">Рел. практика:</span>
+                        <span class="text-base font-medium">{{ $candidate->is_practicing ? 'Да' : 'Нет' }}</span>
+                    </div>
+                    <div class="flex">
+                        <span class="w-60 text-base text-gray-600">Водительские права:</span>
+                        <span class="text-base font-medium">{{ $candidate->has_driving_license ? 'Есть' : 'Нет' }}</span>
+                    </div>
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Хобби:</span>
                         <span class="text-base">{{ $candidate->hobbies ?: 'Не указано' }}</span>
