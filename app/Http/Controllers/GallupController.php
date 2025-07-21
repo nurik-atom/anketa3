@@ -16,7 +16,6 @@ use setasign\Fpdi\Fpdi;
 use Smalot\PdfParser\Parser;
 use Illuminate\Support\Facades\Storage;
 use Google\Service\Sheets;
-use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 class GallupController extends Controller
@@ -251,7 +250,6 @@ class GallupController extends Controller
             ->render();
 
         Pdf::html($html)
-//            ->withBrowsershotOption('args', ['--no-sandbox'])
             ->save($tempHtmlPdf);
 
 //        Pdf::html($html)->withBrowsershotOption('args', ['--no-sandbox'])->save($tempHtmlPdf);
