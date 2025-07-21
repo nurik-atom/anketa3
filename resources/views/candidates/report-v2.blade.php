@@ -234,8 +234,8 @@
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <div class="max-w-4xl mx-auto bg-white shadow-lg">
+<body class="">
+    <div class="max-w-4xl mx-auto bg-white ">
         <!-- Header -->
         <div class="logo-header p-6">
             <div class="flex justify-between items-center">
