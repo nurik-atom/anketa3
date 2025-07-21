@@ -250,8 +250,10 @@ class GallupController extends Controller
             ->render();
 
         Pdf::html($html)
+            ->configureBrowsershotUsing(function (\Spatie\Browsershot\Browsershot $browsershot) {
+                $browsershot->noSandbox();  // Отключаем sandbox для Chromium
+            })
             ->save($tempHtmlPdf);
-
 //        Pdf::html($html)->withBrowsershotOption('args', ['--no-sandbox'])->save($tempHtmlPdf);
 
         // 2️⃣ Получаем все файлы для объединения
