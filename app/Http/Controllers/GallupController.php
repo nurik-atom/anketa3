@@ -16,6 +16,7 @@ use setasign\Fpdi\Fpdi;
 use Smalot\PdfParser\Parser;
 use Illuminate\Support\Facades\Storage;
 use Google\Service\Sheets;
+use Spatie\Browsershot\Browsershot;
 use Spatie\LaravelPdf\Facades\Pdf;
 
 class GallupController extends Controller
@@ -249,10 +250,9 @@ class GallupController extends Controller
             ->showV2($candidate)
             ->render();
 
-        Pdf::html($html)
-            ->configureBrowsershotUsing(function (\Spatie\Browsershot\Browsershot $browsershot) {
-                $browsershot->noSandbox();  // Отключаем sandbox для Chromium
-            })
+        // Используем Browsershot напрямую с флагом --no-sandbox
+        Browsershot::html($html)
+            ->noSandbox() // Отключаем sandbox для Chromium
             ->save($tempHtmlPdf);
 //        Pdf::html($html)->withBrowsershotOption('args', ['--no-sandbox'])->save($tempHtmlPdf);
 
