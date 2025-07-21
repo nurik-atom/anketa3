@@ -251,8 +251,9 @@ class GallupController extends Controller
             ->render();
 
 
+        $url = route('candidate.report', ['candidate' => $candidate->id]);
 
-        Browsershot::html($html)
+        Browsershot::url($url)
             ->setOption('args', ['--no-sandbox'])
             ->setOption('executablePath', '/usr/bin/chromium-browser')
             ->save($tempHtmlPdf);
