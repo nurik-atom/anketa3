@@ -252,24 +252,26 @@ class GallupController extends Controller
 
 
 //        $url = route('candidate.report', ['candidate' => $candidate->id]);
-
-        Browsershot::html($html)
-            ->setNodeModulePath('/usr/lib/node_modules')
-            ->setChromePath('/usr/bin/chromium-browser')
-            ->setOption('args', [
-                '--no-sandbox',
-                '--headless',
-                '--disable-gpu',
-                '--disable-dev-shm-usage',
-                '--disable-setuid-sandbox',
-                '--no-first-run',
-                '--no-zygote',
-                '--single-process',
-                '--disable-background-timer-throttling',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding'
-            ])
+        \Spatie\LaravelPdf\Facades\Pdf::html($html)
             ->save($tempHtmlPdf);
+
+//        Browsershot::html($html)
+//            ->setNodeModulePath('/usr/lib/node_modules')
+//            ->setChromePath('/usr/bin/chromium-browser')
+//            ->setOption('args', [
+//                '--no-sandbox',
+//                '--headless',
+//                '--disable-gpu',
+//                '--disable-dev-shm-usage',
+//                '--disable-setuid-sandbox',
+//                '--no-first-run',
+//                '--no-zygote',
+//                '--single-process',
+//                '--disable-background-timer-throttling',
+//                '--disable-backgrounding-occluded-windows',
+//                '--disable-renderer-backgrounding'
+//            ])
+//            ->save($tempHtmlPdf);
 
 //        Pdf::html($html)
 //            ->save($tempHtmlPdf);
