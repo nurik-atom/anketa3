@@ -256,7 +256,19 @@ class GallupController extends Controller
         Browsershot::html($html)
             ->setNodeModulePath('/usr/lib/node_modules')
             ->setChromePath('/usr/bin/chromium-browser')
-            ->setOption('args', ['--no-sandbox', '--headless'])
+            ->setOption('args', [
+                '--no-sandbox',
+                '--headless',
+                '--disable-gpu',
+                '--disable-dev-shm-usage',
+                '--disable-setuid-sandbox',
+                '--no-first-run',
+                '--no-zygote',
+                '--single-process',
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding'
+            ])
             ->save($tempHtmlPdf);
 
 //        Pdf::html($html)
