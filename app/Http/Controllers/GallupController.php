@@ -11,13 +11,13 @@ use Google\Client;
 use Google\Service\Drive;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Knp\Snappy\Pdf;
 use PhpOffice\PhpSpreadsheet\Writer\Pdf\Mpdf;
 use setasign\Fpdi\Fpdi;
 use Smalot\PdfParser\Parser;
 use Illuminate\Support\Facades\Storage;
 use Google\Service\Sheets;
 use Spatie\Browsershot\Browsershot;
-use Spatie\LaravelPdf\Facades\Pdf;
 
 class GallupController extends Controller
 {
@@ -240,6 +240,52 @@ class GallupController extends Controller
 
 
     }
+    protected function cleanHtmlForPdf($html)
+    {
+        // 1. Принудительно конвертируем в UTF-8
+        $html = mb_convert_encoding($html, 'UTF-8', 'UTF-8');
+
+        // 2. Удаляем проблемные управляющие символы
+        $html = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $html);
+
+        // 3. Заменяем проблемные символы
+        $html = str_replace([
+            '\u00a0', // неразрывный пробел
+            '&nbsp;'
+        ], ' ', $html);
+
+        // 4. Удаляем неправильные последовательности UTF-8
+        $html = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\x9F]/u', '', $html);
+
+        // 5. Проверяем и добавляем мета-тег для кодировки
+        if (!preg_match('/<meta[^>]*charset/i', $html)) {
+            if (preg_match('/<head[^>]*>/i', $html)) {
+                $html = preg_replace('/(<head[^>]*>)/i', '$1<meta charset="UTF-8">', $html);
+            } else {
+                $html = '<meta charset="UTF-8">' . $html;
+            }
+        }
+
+        // 6. Добавляем DOCTYPE если его нет
+        if (!str_starts_with(trim($html), '<!DOCTYPE')) {
+            $html = '<!DOCTYPE html>' . $html;
+        }
+
+        return $html;
+    }
+    protected function sanitizeUtf8($text)
+    {
+        // Удаляем невалидные UTF-8 последовательности
+        $text = filter_var($text, FILTER_UNSAFE_RAW, FILTER_FLAG_STRIP_LOW | FILTER_FLAG_STRIP_HIGH);
+
+        // Принудительно валидируем UTF-8
+        if (!mb_check_encoding($text, 'UTF-8')) {
+            // Заменяем невалидные символы на знак вопроса
+            $text = mb_convert_encoding($text, 'UTF-8', 'UTF-8');
+        }
+
+        return $text;
+    }
 
     public function mergeCandidateReportPdfs(Candidate $candidate)
     {
@@ -249,11 +295,54 @@ class GallupController extends Controller
         $html = app(\App\Http\Controllers\CandidateReportController::class)
             ->showV2($candidate)
             ->render();
+        $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
+        if (!mb_check_encoding($html, 'UTF-8')) {
+            dd("HTML is not valid UTF-8");
+        }
+        $html = $this->cleanHtmlForPdf($html);
+        // Дополнительная проверка и исправление кодировки
+        if (!mb_check_encoding($html, 'UTF-8')) {
+            // Попытка определить и конвертировать кодировку
+            $encoding = mb_detect_encoding($html, ['UTF-8', 'Windows-1251', 'ISO-8859-1'], true);
+            if ($encoding && $encoding !== 'UTF-8') {
+                $html = mb_convert_encoding($html, 'UTF-8', $encoding);
+            } else {
+                // Принудительная очистка от некорректных символов
+                $html = mb_convert_encoding($html, 'UTF-8', 'UTF-8');
+            }
+        }
 
+        // Финальная очистка
+        $html = $this->sanitizeUtf8($html);
+
+        $snappy = new Pdf('/usr/local/bin/wkhtmltopdf');
+
+
+        $snappy->setOptions([
+            'encoding' => 'utf-8',
+            'page-size' => 'A4',
+            'margin-top' => '10mm',
+            'margin-bottom' => '10mm',
+            'margin-left' => '10mm',
+            'margin-right' => '10mm',
+            'disable-smart-shrinking' => true,
+            'print-media-type' => true,
+            // Добавляем опции для лучшей работы с UTF-8
+            'load-error-handling' => 'ignore',
+            'load-media-error-handling' => 'ignore',
+        ]);
+
+        try {
+            $snappy->generateFromHtml($html, $tempHtmlPdf);
+        } catch (\Exception $e) {
+            dd([
+                'message' => $e->getMessage(),
+                'snippet' => mb_substr($html, 0, 1000),
+            ]);
+        }
 
 //        $url = route('candidate.report', ['candidate' => $candidate->id]);
-        \Spatie\LaravelPdf\Facades\Pdf::html($html)
-            ->save($tempHtmlPdf);
+
 
 //        Browsershot::html($html)
 //            ->setNodeModulePath('/usr/lib/node_modules')
@@ -275,8 +364,6 @@ class GallupController extends Controller
 
 //        Pdf::html($html)
 //            ->save($tempHtmlPdf);
-
-//        Pdf::html($html)->withBrowsershotOption('args', ['--no-sandbox'])->save($tempHtmlPdf);
 
         // 2️⃣ Получаем все файлы для объединения
         $pdfPaths = [$tempHtmlPdf];
