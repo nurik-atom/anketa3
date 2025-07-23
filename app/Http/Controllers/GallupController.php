@@ -315,7 +315,7 @@ class GallupController extends Controller
         // Финальная очистка
         $html = $this->sanitizeUtf8($html);
 
-        $snappy = new Pdf('/usr/local/bin/wkhtmltopdf');
+        $snappy = new Pdf('/usr/bin/wkhtmltopdf');
 
 
         $snappy->setOptions([
