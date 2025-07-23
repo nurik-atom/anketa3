@@ -254,6 +254,7 @@ class GallupController extends Controller
 //        $url = route('candidate.report', ['candidate' => $candidate->id]);
 
         Browsershot::html($html)
+            ->setNodeModulePath('/usr/lib/node_modules')
             ->setChromePath('/usr/bin/chromium-browser')
             ->save($tempHtmlPdf);
 
