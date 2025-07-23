@@ -321,6 +321,7 @@ class GallupController extends Controller
         $snappy->setOptions([
             'encoding' => 'utf-8',
             'page-size' => 'A4',
+            'no-outline' => true,
             'margin-top' => '10mm',
             'margin-bottom' => '10mm',
             'margin-left' => '10mm',
