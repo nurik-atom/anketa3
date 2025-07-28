@@ -16,7 +16,7 @@
             margin-right: 7mm; /* Задаём отступы для всех страниц */
         }
         @media print {
-            body { font-size: 12px; }
+            body { font-size: 15px; }
             .no-print { display: none; }
         }
 
