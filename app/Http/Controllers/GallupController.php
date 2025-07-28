@@ -290,7 +290,10 @@ class GallupController extends Controller
     public function mergeCandidateReportPdfs(Candidate $candidate)
     {
         $tempHtmlPdf = storage_path("app/temp_candidate_{$candidate->id}.pdf");
-
+        // ✅ Удаляем временный PDF, если он уже существует
+        if (file_exists($tempHtmlPdf)) {
+            unlink($tempHtmlPdf);
+        }
         // 1️⃣ Сгенерировать PDF анкеты
         $html = app(\App\Http\Controllers\CandidateReportController::class)
             ->showV2($candidate)
