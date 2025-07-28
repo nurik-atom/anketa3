@@ -74,7 +74,7 @@
         .w-8 { width: 2rem; }
         .w-72 { width: 18rem; }
         .w-48 { width: 12rem; }
-        .w-60 { width: 15rem; }
+        .w-60 { width: 17rem; }
         .w-auto { width: auto; }
         .h-14 { height: 3.5rem; }
         .h-12 { height: 3rem; }
@@ -364,7 +364,7 @@
                 <div class="flex-shrink-0">
                     @if($photoUrl)
 {{--                        <img src="{{$photoUrl}}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
-{{--                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($photoUrl)) }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
+                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($photoUrl)) }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">
                     @else
                         <div class="w-48 h-60 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
                             <span class="text-gray-500 text-sm">Фото</span>
