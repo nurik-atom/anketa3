@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CandidateController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\CandidateReportController;
+use Illuminate\Support\Facades\Storage;
 
 Route::get('/', function () {
     return view('welcome');
@@ -55,6 +56,8 @@ Route::middleware([
 
     // Тестовый роут для создания Word документа
     Route::get('/candidate/{candidate}/test-word-document', [GallupController::class, 'testWordDocument'])->name('candidate.test-word-document');
+
+
 });
 
 Route::post('/gallup/process', [GallupController::class, 'process']);

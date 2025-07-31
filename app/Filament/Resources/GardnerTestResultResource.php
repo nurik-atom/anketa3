@@ -15,12 +15,17 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class GardnerTestResultResource extends Resource
 {
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     protected static ?string $model = GardnerTestResult::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
     protected static ?string $modelLabel = 'Результат теста Гарднера';
-    
+
     protected static ?string $pluralModelLabel = 'Результаты тестов Гарднера';
 
     protected static ?string $navigationLabel = 'Тесты Гарднера';
@@ -53,7 +58,7 @@ class GardnerTestResultResource extends Resource
                             ->columnSpanFull()
                             ->formatStateUsing(function ($state) {
                                 if (!is_array($state)) return $state;
-                                
+
                                 $formatted = [];
                                 foreach ($state as $key => $value) {
                                     $labels = [
@@ -66,7 +71,7 @@ class GardnerTestResultResource extends Resource
                                         'intrapersonal' => 'Внутриличностный',
                                         'naturalistic' => 'Натуралистический',
                                     ];
-                                    
+
                                     $label = $labels[$key] ?? $key;
                                     $formatted[$label] = $value . ' из 7';
                                 }
@@ -91,13 +96,13 @@ class GardnerTestResultResource extends Resource
                     ->label('Доминирующий интеллект')
                     ->formatStateUsing(function ($state, $record) {
                         if (!$record->results) return 'Не определен';
-                        
+
                         $results = is_string($record->results) ? json_decode($record->results, true) : $record->results;
                         if (!is_array($results)) return 'Ошибка данных';
-                        
+
                         $maxScore = max($results);
                         $dominantType = array_search($maxScore, $results);
-                        
+
                         $labels = [
                             'linguistic' => 'Лингвистический',
                             'logical_mathematical' => 'Логико-математический',
@@ -108,7 +113,7 @@ class GardnerTestResultResource extends Resource
                             'intrapersonal' => 'Внутриличностный',
                             'naturalistic' => 'Натуралистический',
                         ];
-                        
+
                         return ($labels[$dominantType] ?? $dominantType) . " ({$maxScore}/7)";
                     })
                     ->badge()
@@ -126,7 +131,7 @@ class GardnerTestResultResource extends Resource
                         $totalQuestions = 56;
                         $answeredQuestions = $record->answers ? count(json_decode($record->answers, true)) : 0;
                         $percentage = ($answeredQuestions / $totalQuestions) * 100;
-                        
+
                         if ($percentage == 100) return 'success';
                         if ($percentage >= 75) return 'warning';
                         if ($percentage >= 50) return 'info';
@@ -136,10 +141,10 @@ class GardnerTestResultResource extends Resource
                     ->label('Средний балл')
                     ->formatStateUsing(function ($state, $record) {
                         if (!$record->results) return 'Н/Д';
-                        
+
                         $results = is_string($record->results) ? json_decode($record->results, true) : $record->results;
                         if (!is_array($results)) return 'Ошибка';
-                        
+
                         $average = round(array_sum($results) / count($results), 1);
                         return $average . '/7';
                     })

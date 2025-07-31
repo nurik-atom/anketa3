@@ -30,12 +30,17 @@
                                 <a href="{{ route('candidate.form', ['id' => $candidate->id]) }}" class="inline-flex items-center px-4 py-2 bg-blue-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-600 active:bg-blue-700 focus:outline-none focus:border-blue-700 focus:ring focus:ring-blue-200 disabled:opacity-25 transition">
                                     Изменить анкету
                                 </a>
-                                @if($candidate->step >= 5)
+                                @if($candidate->step >= 5 && $gardnerTest)
                                     <a href="{{ route('candidate.report', $candidate) }}" class="inline-flex items-center px-4 py-2 bg-green-500 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-600 active:bg-green-700 focus:outline-none focus:border-green-700 focus:ring focus:ring-green-200 disabled:opacity-25 transition">
                                         Посмотреть отчет
                                     </a>
                                 @endif
                             </div>
+                            @if($candidate->step >= 5 && !$gardnerTest)
+                                <p class="text-sm text-amber-600 bg-amber-50 p-3 rounded border border-amber-200">
+                                    ⚠️ Чтобы посмотреть отчет анкеты, необходимо пройти тест Гарднера.
+                                </p>
+                           @endif
                             @if($lastUpdate)
                                 <p class="mt-2 text-sm text-gray-500">обновлено в {{ $lastUpdate }}</p>
                             @endif

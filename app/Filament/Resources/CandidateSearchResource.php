@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Pages\ViewCandidatePdf;
 use App\Models\Candidate;
 use App\Models\GallupReportSheet;
 use App\Models\GallupReportSheetValue;
@@ -14,6 +15,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\CandidateSearchResource\Pages;
+use Illuminate\Support\Facades\Storage;
 
 class CandidateSearchResource extends Resource
 {
@@ -46,20 +48,20 @@ class CandidateSearchResource extends Resource
             ->description(function () {
                 // Получаем условия поиска из сессии
                 $search = session('candidate_search', []);
-                
+
                 if (empty($search['conditions']) && empty($search['min_age']) && empty($search['max_age']) && empty($search['desired_position']) && empty($search['cities'])) {
                     return 'Условия поиска не заданы. Используйте кнопку "Найти кандидатов" для настройки поиска.';
                 }
-                
+
                 $searchBadges = [];
-                
+
                 // Добавляем условия по характеристикам
                 if (!empty($search['conditions'])) {
                     foreach ($search['conditions'] as $condition) {
                         if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
                             continue;
                         }
-                        
+
                         $parts = explode('|', $condition['characteristic']);
                         if (count($parts) >= 3) {
                             $reportType = $parts[0];
@@ -70,7 +72,7 @@ class CandidateSearchResource extends Resource
                         }
                     }
                 }
-                
+
                 // Добавляем возрастные фильтры
                 if (!empty($search['min_age']) || !empty($search['max_age'])) {
                     $ageText = '';
@@ -83,12 +85,12 @@ class CandidateSearchResource extends Resource
                     }
                     $searchBadges[] = '<span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">👤 ' . $ageText . '</span>';
                 }
-                
+
                 // Добавляем фильтр по должности
                 if (!empty($search['desired_position'])) {
                     $searchBadges[] = '<span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">💼 "' . $search['desired_position'] . '"</span>';
                 }
-                
+
                 // Добавляем фильтр по городам
                 if (!empty($search['cities'])) {
                     $citiesCount = count($search['cities']);
@@ -99,10 +101,10 @@ class CandidateSearchResource extends Resource
                     }
                     $searchBadges[] = '<span class="inline-flex items-center gap-x-1.5 rounded-md bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-800 ring-1 ring-inset ring-yellow-600/20">🏙️ ' . $cityText . '</span>';
                 }
-                
+
                 return new \Illuminate\Support\HtmlString(
-                    '<div class="flex flex-wrap gap-2"><span class="text-sm font-medium text-gray-700">Активные условия поиска:</span> ' . 
-                    implode(' ', $searchBadges) . 
+                    '<div class="flex flex-wrap gap-2"><span class="text-sm font-medium text-gray-700">Активные условия поиска:</span> ' .
+                    implode(' ', $searchBadges) .
                     '</div>'
                 );
             })
@@ -118,7 +120,8 @@ class CandidateSearchResource extends Resource
                     ->searchable(),
 
                 Tables\Columns\TextColumn::make('phone')
-                    ->label('Телефон'),
+                    ->label('Телефон')
+                    ->visible(false),
 
                 Tables\Columns\TextColumn::make('age')
                     ->label('Возраст')
@@ -126,7 +129,7 @@ class CandidateSearchResource extends Resource
                         if (!$record->birth_date) {
                             return 'Не указан';
                         }
-                        
+
                         $age = $record->birth_date->age;
                         return $age . ' лет';
                     })
@@ -160,35 +163,35 @@ class CandidateSearchResource extends Resource
                         }
 
                         $matches = [];
-                        
+
                         // Проверяем каждое условие
                         foreach ($search['conditions'] as $condition) {
                             if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
                                 continue;
                             }
-                            
+
                             $parts = explode('|', $condition['characteristic']);
                             if (count($parts) < 3) continue;
-                            
+
                             [$reportType, $type, $name] = $parts;
-                            
+
                             // Находим соответствующий отчет
                             $sheet = GallupReportSheet::where('name_report', $reportType)->first();
                             if (!$sheet) continue;
-                            
+
                             // Получаем значение характеристики для кандидата
                             $valueRecord = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
                                 ->where('candidate_id', $record->id)
                                 ->where('type', trim($type))
                                 ->where('name', trim($name))
                                 ->first();
-                            
+
                             if (!$valueRecord) continue;
-                            
+
                             $candidateValue = $valueRecord->value;
                             $conditionValue = $condition['value'];
                             $operator = $condition['operator'];
-                            
+
                             // Проверяем соответствие условию
                             $conditionMet = false;
                             switch ($operator) {
@@ -199,9 +202,11 @@ class CandidateSearchResource extends Resource
                                     $conditionMet = $candidateValue <= $conditionValue;
                                     break;
                             }
-                            
+
                             if ($conditionMet) {
-                                $matches[] = "{$reportType}: {$name} = {$candidateValue}% ({$operator} {$conditionValue}%)";
+                                $matches[] = "{$reportType}: {$name} = {$candidateValue}%";
+//                                ({$operator} {$conditionValue}%)
+
                             }
                         }
 
@@ -214,10 +219,57 @@ class CandidateSearchResource extends Resource
                 //
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->label('Просмотр')
-                    ->url(fn (Candidate $record): string => 
-                        route('candidate.report', $record)),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\Action::make('downloadGallup')
+                        ->label('Исходный Gallup')
+                        ->icon('heroicon-o-document-arrow-up')
+                        ->color('success')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup.download', $record))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => !empty($record->gallup_pdf)),
+
+                    Tables\Actions\Action::make('Анкета PDF View')
+                        ->label('Анкета PDF View')
+                        ->icon('heroicon-o-document-text')
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id]))
+                        ->modal(),
+
+                    Tables\Actions\Action::make('downloadAnketa')
+                        ->label('Анкета PDF')
+                        ->icon('heroicon-o-document-text')
+                        ->color('primary')
+                        ->url(fn (Candidate $record): string => route('candidate.anketa.download', $record))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->anketa_pdf && Storage::disk('public')->exists($record->anketa_pdf)),
+                    Tables\Actions\Action::make('downloadDPs')
+                        ->label('DPs отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('info')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'DPs']))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPs')->exists()),
+                    Tables\Actions\Action::make('downloadDPT')
+                        ->label('DPT отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('warning')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'DPT']))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPT')->exists()),
+                    Tables\Actions\Action::make('downloadFMD')
+                        ->label('FMD отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('danger')
+                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'FMD']))
+                        ->openUrlInNewTab()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'FMD')->exists()),
+                ])
+                    ->label('Gallup')
+                    ->icon('heroicon-o-document-arrow-down')
+                    ->color('success')
+                    ->button()
+                    ->visible(fn (Candidate $record): bool =>
+                        !empty($record->gallup_pdf) || $record->gallupReports()->exists()
+                    ),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -227,38 +279,38 @@ class CandidateSearchResource extends Resource
             ->modifyQueryUsing(function (Builder $query) {
                 // Получаем условия поиска из сессии
                 $search = session('candidate_search', []);
-                
+
                 if (empty($search['conditions']) && empty($search['min_age']) && empty($search['max_age']) && empty($search['desired_position']) && empty($search['cities'])) {
                     // Если условия поиска не заданы, показываем пустую таблицу
                     return $query->whereRaw('1 = 0');
                 }
 
                 $candidateIds = collect();
-                
+
                 // Обрабатываем условия по характеристикам (если есть)
                 if (!empty($search['conditions'])) {
                     foreach ($search['conditions'] as $condition) {
                         if (!isset($condition['characteristic'], $condition['operator'], $condition['value'])) {
                             continue;
                         }
-                        
+
                         $parts = explode('|', $condition['characteristic']);
                         if (count($parts) < 3) continue;
-                        
+
                         [$reportType, $type, $name] = $parts;
-                        
+
                         // Находим соответствующий отчет
                         $sheet = GallupReportSheet::where('name_report', $reportType)->first();
                         if (!$sheet) continue;
-                        
+
                         $conditionValue = $condition['value'];
                         $operator = $condition['operator'];
-                        
+
                         // Формируем запрос в зависимости от оператора
                         $valueQuery = GallupReportSheetValue::where('gallup_report_sheet_id', $sheet->id)
                             ->where('type', trim($type))
                             ->where('name', trim($name));
-                        
+
                         switch ($operator) {
                             case '>=':
                                 $valueQuery->where('value', '>=', $conditionValue);
@@ -269,75 +321,75 @@ class CandidateSearchResource extends Resource
                             default:
                                 continue 2; // Пропускаем неизвестные операторы
                         }
-                        
+
                         $ids = $valueQuery->pluck('candidate_id');
                         $candidateIds = $candidateIds->merge($ids);
                     }
                 }
-                
+
                 // Применяем возрастные фильтры
                 $ageCandidateIds = collect();
                 if (!empty($search['min_age']) || !empty($search['max_age'])) {
                     $ageQuery = $query->newQuery();
-                    
+
                     if (!empty($search['min_age'])) {
                         // Кандидаты старше минимального возраста
                         $maxBirthDate = now()->subYears($search['min_age'])->format('Y-m-d');
                         $ageQuery->where('birth_date', '<=', $maxBirthDate);
                     }
-                    
+
                     if (!empty($search['max_age'])) {
                         // Кандидаты младше максимального возраста
                         $minBirthDate = now()->subYears($search['max_age'] + 1)->addDay()->format('Y-m-d');
                         $ageQuery->where('birth_date', '>=', $minBirthDate);
                     }
-                    
+
                     // Добавляем условие что birth_date не null
                     $ageQuery->whereNotNull('birth_date');
-                    
+
                     $ageCandidateIds = $ageQuery->pluck('id');
                 }
-                
+
                 // Применяем фильтр по должности
                 $positionCandidateIds = collect();
                 if (!empty($search['desired_position'])) {
                     $positionQuery = $query->newQuery();
                     $positionQuery->where('desired_position', 'LIKE', '%' . $search['desired_position'] . '%')
                                   ->whereNotNull('desired_position');
-                    
+
                     $positionCandidateIds = $positionQuery->pluck('id');
                 }
-                
+
                 // Применяем фильтр по городам
                 $cityCandidateIds = collect();
                 if (!empty($search['cities']) && is_array($search['cities'])) {
                     $cityQuery = $query->newQuery();
                     $cityQuery->whereIn('current_city', $search['cities'])
                               ->whereNotNull('current_city');
-                    
+
                     $cityCandidateIds = $cityQuery->pluck('id');
                 }
-                
+
                 // Комбинируем результаты
                 $finalCandidateIds = collect();
-                
+
                 // Список всех типов фильтров
                 $hasCharacteristicFilter = !empty($search['conditions']) && !$candidateIds->isEmpty();
                 $hasAgeFilter = (!empty($search['min_age']) || !empty($search['max_age'])) && !$ageCandidateIds->isEmpty();
                 $hasPositionFilter = !empty($search['desired_position']) && !$positionCandidateIds->isEmpty();
                 $hasCityFilter = !empty($search['cities']) && !$cityCandidateIds->isEmpty();
-                
+
                 // Считаем количество активных фильтров
                 $activeFiltersCount = ($hasCharacteristicFilter ? 1 : 0) + ($hasAgeFilter ? 1 : 0) + ($hasPositionFilter ? 1 : 0) + ($hasCityFilter ? 1 : 0);
-                
+
                 // Если есть несколько типов фильтров - берем пересечение
                 if ($activeFiltersCount > 1) {
                     $finalCandidateIds = collect();
-                    
+
                     if ($hasCharacteristicFilter) {
                         $finalCandidateIds = $candidateIds->unique();
                     }
-                    
+
                     if ($hasAgeFilter) {
                         if ($finalCandidateIds->isEmpty()) {
                             $finalCandidateIds = $ageCandidateIds;
@@ -345,7 +397,7 @@ class CandidateSearchResource extends Resource
                             $finalCandidateIds = $finalCandidateIds->intersect($ageCandidateIds);
                         }
                     }
-                    
+
                     if ($hasPositionFilter) {
                         if ($finalCandidateIds->isEmpty()) {
                             $finalCandidateIds = $positionCandidateIds;
@@ -353,7 +405,7 @@ class CandidateSearchResource extends Resource
                             $finalCandidateIds = $finalCandidateIds->intersect($positionCandidateIds);
                         }
                     }
-                    
+
                     if ($hasCityFilter) {
                         if ($finalCandidateIds->isEmpty()) {
                             $finalCandidateIds = $cityCandidateIds;
@@ -373,11 +425,11 @@ class CandidateSearchResource extends Resource
                         $finalCandidateIds = $cityCandidateIds;
                     }
                 }
-                
+
                 if ($finalCandidateIds->isEmpty()) {
                     return $query->whereRaw('1 = 0');
                 }
-                
+
                 return $query->whereIn('id', $finalCandidateIds);
             });
     }
@@ -395,4 +447,4 @@ class CandidateSearchResource extends Resource
             'index' => Pages\SearchCandidates::route('/'),
         ];
     }
-} 
+}
