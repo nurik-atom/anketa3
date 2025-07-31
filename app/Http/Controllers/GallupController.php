@@ -79,33 +79,45 @@ class GallupController extends Controller
             ], 422);
         }
 
-        $candidate->gallupTalents()->delete();
+        // Получаем текущие таланты из базы
+        $existingTalents = $candidate->gallupTalents()
+            ->orderBy('position')
+            ->pluck('name')
+            ->toArray();
 
-        foreach ($talents as $index => $name) {
-            $candidate->gallupTalents()->create([
-                'name' => trim($name),
-                'position' => $index + 1,
-            ]);
-        }
+        // Проверка на изменения
+        $hasChanged = $existingTalents !== $talents;
 
-        // Получаем все активные листы отчетов из базы данных
-        $reportSheets = GallupReportSheet::with('indices')->get();
+        //! Если изменения есть, то обновляем таланты
+        if ($hasChanged) {
+            $candidate->gallupTalents()->delete();
 
-        foreach ($reportSheets as $reportSheet) {
-            // Обновление Google Sheets
-            $this->updateGoogleSheetByCellMap($candidate, $talents, $reportSheet);
+            foreach ($talents as $index => $name) {
+                $candidate->gallupTalents()->create([
+                    'name' => trim($name),
+                    'position' => $index + 1,
+                ]);
+            }
 
-            Log::info('Перед вызовом importFormulaValues', [
-                'reportSheet_id' => $reportSheet->id,
-                'candidate_id' => $candidate->id,
-            ]);
+            // Получаем все активные листы отчетов из базы данных
+            $reportSheets = GallupReportSheet::with('indices')->get();
 
-            $this->importFormulaValues($reportSheet, $candidate);
-            // Скачивание PDF листа
-            $this->downloadSheetPdf(
-                $candidate,
-                $reportSheet
-            );
+            foreach ($reportSheets as $reportSheet) {
+                // Обновление Google Sheets
+                $this->updateGoogleSheetByCellMap($candidate, $talents, $reportSheet);
+
+                Log::info('Перед вызовом importFormulaValues', [
+                    'reportSheet_id' => $reportSheet->id,
+                    'candidate_id' => $candidate->id,
+                ]);
+
+                $this->importFormulaValues($reportSheet, $candidate);
+                // Скачивание PDF листа
+                $this->downloadSheetPdf(
+                    $candidate,
+                    $reportSheet
+                );
+            }
         }
 
         // 👇 Объединение всех PDF после скачивания
