@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Pages\ViewCandidatePdf;
 use App\Filament\Resources\CandidateResource\Pages;
 use App\Filament\Resources\CandidateResource\RelationManagers;
 use App\Models\Candidate;
@@ -321,40 +322,33 @@ class CandidateResource extends Resource
                 //     $record->user_id !== null && $record->user?->gardnerTestResult !== null
                 // ),
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\Action::make('downloadGallup')
-                        ->label('Исходный Gallup')
-                        ->icon('heroicon-o-document-arrow-up')
-                        ->color('success')
-                        ->url(fn (Candidate $record): string => route('candidate.gallup.download', $record))
-                        ->openUrlInNewTab()
-                        ->visible(fn (Candidate $record): bool => !empty($record->gallup_pdf)),
-                    Tables\Actions\Action::make('downloadAnketa')
+                    Tables\Actions\Action::make('Анкета PDF')
                         ->label('Анкета PDF')
                         ->icon('heroicon-o-document-text')
-                        ->color('primary')
-                        ->url(fn (Candidate $record): string => route('candidate.anketa.download', $record))
-                        ->openUrlInNewTab()
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'anketa']))
+                        ->modal()
                         ->visible(fn (Candidate $record): bool => $record->anketa_pdf && Storage::disk('public')->exists($record->anketa_pdf)),
+
                     Tables\Actions\Action::make('downloadDPs')
                         ->label('DPs отчет')
                         ->icon('heroicon-o-document-text')
                         ->color('info')
-                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'DPs']))
-                        ->openUrlInNewTab()
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'DPs']))
+                        ->modal()
                         ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPs')->exists()),
                     Tables\Actions\Action::make('downloadDPT')
                         ->label('DPT отчет')
                         ->icon('heroicon-o-document-text')
                         ->color('warning')
-                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'DPT']))
-                        ->openUrlInNewTab()
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'DPT']))
+                        ->modal()
                         ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPT')->exists()),
                     Tables\Actions\Action::make('downloadFMD')
                         ->label('FMD отчет')
                         ->icon('heroicon-o-document-text')
                         ->color('danger')
-                        ->url(fn (Candidate $record): string => route('candidate.gallup-report.download', [$record, 'FMD']))
-                        ->openUrlInNewTab()
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'FMD']))
+                        ->modal()
                         ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'FMD')->exists()),
                 ])
                     ->label('Gallup')

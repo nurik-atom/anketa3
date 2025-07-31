@@ -138,6 +138,11 @@ class Candidate extends Model
         return $this->hasMany(GallupReport::class);
     }
 
+    public function gallupReportByType(string $type): ?GallupReport
+    {
+        return $this->gallupReports()->where('type', $type)->latest()->first();
+    }
+
     public function gardnerTestResult()
     {
         return $this->hasOneThrough(GardnerTestResult::class, User::class);

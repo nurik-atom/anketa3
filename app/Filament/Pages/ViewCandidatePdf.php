@@ -13,10 +13,26 @@ class ViewCandidatePdf extends Page
     public ?Candidate $candidate = null;
     public string $url;
 
-    public function mount(Candidate $candidate)
+    public function mount(Candidate $candidate, string $type)
     {
         $this->candidate = $candidate;
-        $this->url = Storage::url($candidate->anketa_pdf);
+        $this->type = strtoupper($type); // для отображения в заголовке
+        if ($type === 'anketa'){
+            $this->url = Storage::disk('public')->url($candidate->anketa_pdf);
+        }else{
+            $report = $candidate->gallupReportByType($type);
+
+//            dd($report->pdf_file);
+
+            abort_if(!$report || !Storage::disk('public')->exists($report->pdf_file), 404);
+            $this->url = Storage::url($report->pdf_file);
+        }
+
+    }
+
+    public function getTitle(): string
+    {
+        return "{$this->candidate->full_name} — {$this->type} отчет";
     }
 
     public static function shouldRegisterNavigation(): bool
@@ -31,6 +47,6 @@ class ViewCandidatePdf extends Page
 
     public static function getSlug(): string
     {
-        return 'view-candidate-pdf/{candidate}';
+        return 'view-candidate-pdf/{candidate}/{type}';
     }
 }
