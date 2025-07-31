@@ -19,6 +19,7 @@ class ViewCandidatePdf extends Page
         $this->type = strtoupper($type); // для отображения в заголовке
         if ($type == 'anketa'){
             $this->url = Storage::disk('public')->url($candidate->anketa_pdf);
+            dd($this->url);
         }else{
             $report = $candidate->gallupReportByType($type);
 
