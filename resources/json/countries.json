@@ -1004,7 +1004,7 @@
     "iso_code3" : "SDN"
 }, {
     "flag_url" : "//upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Flag_of_the_Soviet_Union.svg/22px-Flag_of_the_Soviet_Union.svg.png",
-    "name_ru" : "СССРсентября1992 года",
+    "name_ru" : "СССР",
     "iso_code2" : "SU",
     "iso_code3" : "SUN"
 }, {
@@ -1238,6 +1238,11 @@
     "iso_code2" : "GS",
     "iso_code3" : "SGS"
 }, {
+    "flag_url" : "//upload.wikimedia.org/wikipedia/commons/thumb/0/09/Flag_of_South_Korea.svg/22px-Flag_of_South_Korea.svg.png",
+    "name_ru" : "Южная Корея",
+    "iso_code2" : "KR",
+    "iso_code3" : "KOR"
+},{
     "flag_url" : "//upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Flag_of_South_Sudan.svg/22px-Flag_of_South_Sudan.svg.png",
     "name_ru" : "Южный Судан",
     "iso_code2" : "SS",

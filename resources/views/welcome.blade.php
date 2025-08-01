@@ -363,28 +363,97 @@
             }
 
             @media (max-width: 768px) {
+                body {
+                    height: auto;
+                    min-height: 100vh;
+                    overflow: auto;
+                }
+
+                .container {
+                    height: auto;
+                    min-height: 100vh;
+                    padding: 20px 10px;
+                }
+
                 .main-card {
                     grid-template-columns: 1fr;
                     max-width: 420px;
                     min-height: auto;
                     margin: 10px;
+                    box-shadow: 0 20px 40px rgba(35, 64, 136, 0.3);
                 }
 
                 .right-panel {
-                    order: -1;
-                    padding: 50px 40px;
+                    order: 1;
+                    padding: 30px 25px;
+                    min-height: auto;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    margin-top: 20px;
                 }
 
                 .left-panel {
-                    padding: 50px 40px;
+                    order: 0;
+                    padding: 30px 25px;
+                    min-height: auto;
                 }
 
                 .login-section h1 {
-                    font-size: 2rem;
+                    font-size: 1.8rem;
+                    margin-bottom: 10px;
+                }
+
+                .login-section p {
+                    font-size: 1rem;
+                    margin-bottom: 30px;
                 }
 
                 .brand-logo {
-                    width: 160px;
+                    width: 120px;
+                    margin-bottom: 20px;
+                }
+
+                .brand-description {
+                    font-size: 0.9rem;
+                    margin-bottom: 25px;
+                    line-height: 1.4;
+                }
+
+                .features-list {
+                    max-width: 280px;
+                }
+
+                .feature-item {
+                    font-size: 0.85rem;
+                    margin-bottom: 12px;
+                }
+
+                .feature-icon {
+                    width: 20px;
+                    height: 20px;
+                    font-size: 10px;
+                    margin-right: 12px;
+                }
+
+                .form-input {
+                    padding: 18px 20px;
+                    font-size: 1rem;
+                    border-radius: 14px;
+                }
+
+                .btn-login {
+                    padding: 18px 20px;
+                    font-size: 1rem;
+                    border-radius: 14px;
+                    margin-bottom: 20px;
+                }
+
+                .form-group {
+                    margin-bottom: 20px;
+                }
+
+                .login-footer {
+                    margin-top: 20px;
+                    font-size: 0.9rem;
                 }
             }
         </style>

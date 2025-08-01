@@ -2,53 +2,55 @@
 <div class="step">
     <h2 class="text-2xl font-bold mb-6">Дополнительная информация</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="space-y-6">
         
-        <!-- Водительские права -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700">
-                Водительские права <span class="text-red-500">*</span>
-            </label>
-            <select wire:model="has_driving_license" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <option value="">Выберите ответ</option>
-                <option value="1">Да</option>
-                <option value="0">Нет</option>
-            </select>
-            @error('has_driving_license') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-        </div>
-        
-        <!-- Религия -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700">
-                Религия <span class="text-red-500">*</span>
-            </label>
-            <select wire:model="religion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <option value="">Выберите религию</option>
-                @foreach($religions as $key => $value)
-                    <option value="{{ $value }}">{{ $value }}</option>
-                @endforeach
-            </select>
-            @error('religion') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-        </div>
+        <!-- Первые три поля в одной строке -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <!-- Водительские права -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Водительские права <span class="text-red-500">*</span>
+                </label>
+                <select wire:model="has_driving_license" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Выберите ответ</option>
+                    <option value="1">Да</option>
+                    <option value="0">Нет</option>
+                </select>
+                @error('has_driving_license') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+            
+            <!-- Религия -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Религия <span class="text-red-500">*</span>
+                </label>
+                <select wire:model="religion" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Выберите религию</option>
+                    @foreach($religions as $key => $value)
+                        <option value="{{ $value }}">{{ $value }}</option>
+                    @endforeach
+                </select>
+                @error('religion') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
 
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Практикующий</label>
-            <select wire:model="is_practicing" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                <option value="">Выберите ответ</option>
-                <option value="1">Да</option>
-                <option value="0">Нет</option>
-            </select>
-            @error('is_practicing') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Практикующий</label>
+                <select wire:model="is_practicing" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Выберите ответ</option>
+                    <option value="1">Да</option>
+                    <option value="0">Нет</option>
+                </select>
+                @error('is_practicing') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
         </div>
-
 
         <!-- Семья -->
-        <div class="col-span-3">
+        <div>
             <label class="block text-sm font-medium text-gray-700">Члены семьи</label>
             <div class="space-y-4">
                 @foreach($family_members as $index => $member)
                     <div class="p-4 bg-gray-50 rounded-lg">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">
                                     Тип родства <span class="text-red-500">*</span>
@@ -110,7 +112,7 @@
         </div>
 
         <!-- Хобби и интересы -->
-        <div class="col-span-3 grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
                 <label class="block text-sm font-medium text-gray-700">Хобби</label>
                 <textarea wire:model="hobbies" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
@@ -125,7 +127,7 @@
         </div>
 
         <!-- Посещенные страны и Любимые виды спорта в одном ряду -->
-        <div class="col-span-3 grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Посещенные страны -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Посещенные страны</label>
@@ -169,7 +171,7 @@
         </div>
 
         <!-- Время и чтение в одном ряду -->
-        <div class="col-span-3 grid grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Количество книг читаемых в год -->
             <div>
                 <div class="space-y-2">

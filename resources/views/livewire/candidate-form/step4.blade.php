@@ -3,27 +3,42 @@
     <h2 class="text-2xl font-bold mb-6">Тесты и подтверждение</h2>
 
     <!-- Контейнер для PDF и MBTI в одну строку -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8 mb-8">
         <!-- Gallup тест - левая половина -->
         <div>
             <h3 class="text-xl font-semibold mb-4">Gallup PDF</h3>
             <div class="w-full" x-data="fileUpload()">
                 <!-- Область загрузки файла -->
                 <div x-show="!fileUploaded">
-                    <label class="flex justify-center w-full h-32 px-4 transition bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer hover:border-gray-400 focus:outline-none">
-                        <span class="flex items-center space-x-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <label class="group flex justify-center w-full h-32 px-4 py-6 transition-all duration-300 ease-in-out bg-white border-2 border-gray-300 border-dashed rounded-md appearance-none cursor-pointer focus:outline-none transform hover:scale-[1.02] hover:shadow-lg hover:border-blue-400 hover:bg-blue-50/50"
+                           @dragover.prevent="isDragOver = true"
+                           @dragleave.prevent="isDragOver = false"
+                           @drop.prevent="handleDrop($event)"
+                           :class="isDragOver ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-blue-100 shadow-2xl scale-[1.02] animate-pulse ring-2 ring-blue-400 ring-opacity-50' : 'border-gray-300'">
+                        <span class="flex flex-col items-center space-y-2 transition-all duration-300">
+                            <svg xmlns="http://www.w3.org/2000/svg" 
+                                 class="w-8 h-8 text-gray-600 transition-all duration-300 group-hover:text-blue-600 group-hover:scale-110 group-hover:rotate-6" 
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+                                 :class="isDragOver ? 'text-blue-600 scale-110 rotate-12 animate-bounce' : 'text-gray-600'">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                             </svg>
-                            <span class="font-medium text-gray-600">
-                                Перетащите файлы или <span class="text-blue-600 underline">выберите</span>
+                            <span class="font-medium text-gray-600 transition-all duration-300 group-hover:text-blue-700 text-center"
+                                  :class="isDragOver ? 'text-blue-700' : 'text-gray-600'">
+                                <span x-show="!isDragOver" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" class="block">
+                                    <span class="block text-sm">Перетащите файлы или</span>
+                                    <span class="text-blue-600 underline hover:text-blue-800 text-sm">выберите</span>
+                                </span>
+                                <span x-show="isDragOver" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform scale-95" x-transition:enter-end="opacity-100 transform scale-100" class="text-blue-700 font-semibold">
+                                    📎 Отпустите для загрузки PDF файла
+                                </span>
                             </span>
                         </span>
                         <input type="file" 
                                wire:model="gallup_pdf" 
                                class="hidden" 
                                accept=".pdf"
-                               @change="handleFileChange($event)">
+                               @change="handleFileChange($event)"
+                               x-ref="fileInput">
                     </label>
                 </div>
                 @error('gallup_pdf') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -187,6 +202,7 @@ function fileUpload() {
         fileSize: '',
         isExistingFile: false,
         downloadUrl: '',
+        isDragOver: false,
         
         init() {
             console.log('Step 4 file upload component initialized');
@@ -273,6 +289,7 @@ function fileUpload() {
                     this.fileName = '';
                     this.fileSize = '';
                     this.downloadUrl = '';
+                    this.isDragOver = false;
                     
                     // Очищаем input
                     const fileInput = this.$el.querySelector('input[type="file"]');
@@ -294,6 +311,40 @@ function fileUpload() {
             const cleanName = fileName.replace(/^\d+_/, '');
             
             return cleanName || 'Gallup результаты.pdf';
+        },
+
+        handleDrop(event) {
+            this.isDragOver = false;
+            
+            const files = event.dataTransfer.files;
+            if (!files.length) return;
+            
+            const file = files[0];
+            
+            if (file.type !== 'application/pdf') {
+                alert('Пожалуйста, выберите PDF файл');
+                return;
+            }
+            
+            // Устанавливаем файл в input для Livewire
+            const fileInput = this.$refs.fileInput;
+            if (fileInput) {
+                // Создаем новый FileList для input
+                const dataTransfer = new DataTransfer();
+                dataTransfer.items.add(file);
+                fileInput.files = dataTransfer.files;
+                
+                // Триггерим событие change для Livewire
+                fileInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
+            // Показываем информацию о файле
+            this.fileUploaded = true;
+            this.isExistingFile = false;
+            this.fileName = file.name;
+            this.fileSize = this.formatFileSize(file.size);
+            
+            console.log('File dropped:', file.name, this.formatFileSize(file.size));
         },
 
         handleFileChange(event) {
@@ -344,6 +395,7 @@ function fileUpload() {
             this.fileName = '';
             this.fileSize = '';
             this.downloadUrl = '';
+            this.isDragOver = false;
             
             console.log('File state reset');
         },

@@ -223,7 +223,7 @@
             </div>
         </div>
 <!-- Желаемая должность и Ожидаемая зарплата в одном ряду -->
-<div class="grid grid-cols-2 gap-4">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- Желаемая должность -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">
@@ -251,7 +251,7 @@
             </div>
         </div>
         <!-- Компьютерные навыки и Требования к работодателю в одном ряду -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- Компьютерные навыки -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">Компьютерные навыки</label>
@@ -292,7 +292,7 @@
         
 
         <!-- Опыт работы, удовлетворенность и зарплата в одном ряду -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <!-- Общий стаж работы -->
             <div>
                 <div class="flex items-center justify-between">

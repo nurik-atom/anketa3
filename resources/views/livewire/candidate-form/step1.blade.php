@@ -2,9 +2,9 @@
 <div class="step">
     <h2 class="text-2xl font-bold mb-6">Основная информация</h2>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Фото -->
-        <div class="col-span-2">
+        <div class="col-span-1 lg:col-span-2">
             <label class="block text-sm font-medium text-gray-700 mb-2">
                 Фото <span class="text-red-500">*</span>
             </label>
@@ -103,8 +103,8 @@
         </div>
 
         <!-- ФИО -->
-        <div class="col-span-2">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="col-span-1 lg:col-span-2">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- Фамилия -->
                 <div>
                     <label class="block text-sm font-medium text-gray-700">

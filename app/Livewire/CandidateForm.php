@@ -24,7 +24,7 @@ class CandidateForm extends Component
     public $currentStep = 1;
     public $totalSteps = 4;
     public $candidate = null;
-    
+
     // Step 1: Basic Information
     public $full_name;
     public $last_name;
@@ -84,41 +84,41 @@ class CandidateForm extends Component
         try {
             // Устанавливаем значение по умолчанию для books_per_year
             $this->books_per_year = 0;
-            
+
             // Устанавливаем начальные значения для часов в неделю
             $this->entertainment_hours_weekly = 0;
             $this->educational_hours_weekly = 0;
             $this->social_media_hours_weekly = 0;
-            
+
             // Загружаем списки из JSON файлов
             $jsonPath = base_path('resources/json/countries.json');
             logger()->debug('JSON path:', ['path' => $jsonPath, 'exists' => file_exists($jsonPath)]);
-            
+
             if (!file_exists($jsonPath)) {
                 throw new \Exception("JSON file not found at: " . $jsonPath);
             }
-            
+
             $jsonContent = file_get_contents($jsonPath);
             logger()->debug('JSON content:', ['content' => substr($jsonContent, 0, 100)]);
-            
+
             $countriesData = json_decode($jsonContent, true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception("JSON decode error: " . json_last_error_msg());
             }
-            
+
             logger()->debug('Decoded countries:', [
                 'count' => count($countriesData),
                 'first_country' => $countriesData[0] ?? null
             ]);
-            
+
             $this->countries = collect($countriesData)->map(function($country) {
                 $data = [];
-                
+
                 // Проверяем наличие каждого ключа перед добавлением
                 if (isset($country['name_ru'])) {
                     $data['name_ru'] = $country['name_ru'];
                 }
-                
+
                 if (isset($country['flag_url'])) {
                     // Убедимся, что URL флага начинается с http:// или https://
                     $flagUrl = $country['flag_url'];
@@ -127,15 +127,15 @@ class CandidateForm extends Component
                     }
                     $data['flag_url'] = $flagUrl;
                 }
-                
+
                 if (isset($country['iso_code2'])) {
                     $data['iso_code2'] = $country['iso_code2'];
                 }
-                
+
                 if (isset($country['iso_code3'])) {
                     $data['iso_code3'] = $country['iso_code3'];
                 }
-                
+
                 return $data;
             })
             ->filter(function($country) {
@@ -144,7 +144,7 @@ class CandidateForm extends Component
             })
             ->values()
             ->all();
-            
+
             logger()->debug('Final countries array:', [
                 'count' => count($this->countries),
                 'first_country' => $this->countries[0] ?? null,
@@ -158,7 +158,7 @@ class CandidateForm extends Component
             ]);
             $this->countries = [];
         }
-        
+
         // Загружаем языки с обработкой ошибок
         try {
             $this->loadLanguages();
@@ -167,7 +167,7 @@ class CandidateForm extends Component
             // Fallback к базовым языкам
             $this->languages = ['Русский', 'Английский', 'Испанский', 'Французский', 'Немецкий', 'Китайский', 'Японский'];
         }
-        
+
         $this->religions = config('lists.religions');
         $this->sports = config('lists.sports');
 
@@ -179,7 +179,7 @@ class CandidateForm extends Component
         $this->language_skills = [];
         $this->work_experience = [];
         $this->computer_skills = '';
-        
+
         logger()->debug('Mount: work_experience initialized as empty array');
 
         // Инициализируем значения для step3 ползунков
@@ -204,7 +204,7 @@ class CandidateForm extends Component
                 $this->candidate = Candidate::where('user_id', $userId)
                     ->latest()
                     ->first();
-                
+
                 if ($this->candidate) {
                     $this->loadCandidateData();
                     // Если анкета завершена (step >= 5), показываем первый шаг для редактирования
@@ -217,7 +217,7 @@ class CandidateForm extends Component
                 }
             }
         }
-        
+
         // Инициализируем валидацию для текущего шага
         $this->reinitializeValidation();
     }
@@ -226,7 +226,7 @@ class CandidateForm extends Component
     {
         // Basic Information
         $this->full_name = $this->candidate->full_name;
-        
+
         // Разделяем ФИО на части
         if ($this->full_name) {
             $nameParts = explode(' ', $this->full_name);
@@ -234,7 +234,7 @@ class CandidateForm extends Component
             $this->first_name = $nameParts[1] ?? '';
             $this->middle_name = $nameParts[2] ?? '';
         }
-        
+
         $this->email = $this->candidate->email;
         $this->phone = $this->candidate->phone;
         $this->gender = $this->candidate->gender;
@@ -242,16 +242,16 @@ class CandidateForm extends Component
         $this->birth_date = $this->candidate->birth_date?->format('Y-m-d');
         $this->birth_place = $this->candidate->birth_place;
         $this->current_city = $this->candidate->current_city;
-        
+
         // Загружаем фото и создаем предпросмотр
         if ($this->candidate->photo) {
             $this->photo = $this->candidate->photo;
-            $this->photoPreview = Storage::disk('public')->exists($this->photo) 
+            $this->photoPreview = Storage::disk('public')->exists($this->photo)
                 ? Storage::disk('public')->url($this->photo)
                 : null;
         }
 
-        // Additional Information  
+        // Additional Information
         $this->religion = $this->convertReligionToRussian($this->candidate->religion);
         logger()->debug('Loading candidate religion:', ['original' => $this->candidate->religion, 'converted' => $this->religion]);
         $this->is_practicing = $this->candidate->is_practicing;
@@ -308,9 +308,9 @@ class CandidateForm extends Component
             'family_members' => 'nullable|array',
             'family_members.*.type' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
             'family_members.*.birth_year' => 'required|integer|min:1900|max:' . date('Y'),
-            'family_members.*.profession' => ['required', 'string', 'max:255', new CyrillicRule()],
-            'hobbies' => ['nullable', 'string', 'max:1000', new CyrillicRule()],
-            'interests' => ['nullable', 'string', 'max:1000', new CyrillicRule()],
+            'family_members.*.profession' => ['required', 'string', 'max:255'],
+            'hobbies' => ['nullable', 'string', 'max:1000'],
+            'interests' => ['nullable', 'string', 'max:1000'],
             'visited_countries' => 'nullable|array',
             'visited_countries.*' => 'string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
             'books_per_year' => 'nullable|integer|min:0',
@@ -321,7 +321,7 @@ class CandidateForm extends Component
             'has_driving_license' => 'required|boolean',
 
             // Step 3 validation rules
-            'school' => ['required', 'string', 'max:255', new CyrillicRule()],
+            'school' => ['required', 'string', 'max:255'],
             'universities' => 'nullable|array',
             'universities.*.name' => 'required|string|max:255',
             'universities.*.graduation_year' => 'required|integer|min:1950|max:' . date('Y'),
@@ -340,7 +340,7 @@ class CandidateForm extends Component
             'work_experience.*.position' => 'nullable|string|max:255',
             'total_experience_years' => 'required|integer|min:0',
             'job_satisfaction' => 'nullable|integer|min:1|max:10',
-            'desired_position' => ['required', 'string', 'max:255', new CyrillicRule()],
+            'desired_position' => ['required', 'string', 'max:255'],
             'expected_salary' => 'required|numeric|min:0|max:999999999999',
             'employer_requirements' => ['nullable', 'string', 'max:2000', new CyrillicRule()],
 
@@ -398,7 +398,7 @@ class CandidateForm extends Component
         'expected_salary.max' => 'Ожидаемая зарплата не может превышать 999,999,999,999 тенге',
         'desired_position.required' => 'Желаемая должность обязательна для заполнения',
         'desired_position.max' => 'Желаемая должность не должна превышать 255 символов',
-        
+
         // Сообщения для CyrillicRule
         'hobbies.cyrillic' => 'Поле "Хобби" должно содержать только кириллические символы, цифры и знаки препинания',
         'interests.cyrillic' => 'Поле "Интересы" должно содержать только кириллические символы, цифры и знаки препинания',
@@ -418,7 +418,7 @@ class CandidateForm extends Component
             if ($this->getErrorBag()->has($propertyName)) {
                 $this->resetErrorBag($propertyName);
             }
-            
+
             // Если это не системное поле Livewire, прерываем выполнение
             if (!str_starts_with($propertyName, '_') && !in_array($propertyName, ['currentStep', 'totalSteps'])) {
                 return;
@@ -430,13 +430,13 @@ class CandidateForm extends Component
             $this->validateOnly($propertyName);
             return;
         }
-        
+
         // Если обновляется поле члена семьи
         if (strpos($propertyName, 'family_members.') === 0) {
             $this->validateOnly($propertyName);
             return;
         }
-        
+
         // Если обновляется поле опыта работы
         if (strpos($propertyName, 'work_experience.') === 0) {
             // Извлекаем индекс из имени свойства
@@ -453,7 +453,7 @@ class CandidateForm extends Component
                 }
                 // Валидируем только если все обязательные поля заполнены
                 $experience = $this->work_experience[$index];
-                if (!empty($experience['years']) && !empty($experience['company']) && 
+                if (!empty($experience['years']) && !empty($experience['company']) &&
                     !empty($experience['city']) && !empty($experience['position'])) {
                     $this->validateOnly($propertyName);
                 }
@@ -512,7 +512,7 @@ class CandidateForm extends Component
     {
         // Извлекаем основное поле из составного имени (например, "universities.0.name" -> "universities")
         $baseField = explode('.', $field)[0];
-        
+
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'photo'];
         $step2Fields = ['religion', 'is_practicing', 'family_members', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
         $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'expected_salary', 'employer_requirements'];
@@ -532,9 +532,9 @@ class CandidateForm extends Component
         try {
             logger()->debug('Starting nextStep method');
             logger()->debug('Current step: ' . $this->currentStep);
-            
+
             $rules = $this->getStepRules();
-            
+
             // Специальная обработка для фото на первом шаге
             if ($this->currentStep === 1) {
                 // Если фото уже загружено в базу или есть предпросмотр, не требуем его
@@ -542,21 +542,21 @@ class CandidateForm extends Component
                     unset($rules['photo']);
                 }
             }
-            
+
             logger()->debug('Validation rules:', $rules);
-            
+
             $this->validate($rules);
             logger()->debug('Validation passed');
-            
+
         if ($this->currentStep < $this->totalSteps) {
             $this->currentStep++;
                 logger()->debug('New step: ' . $this->currentStep);
-                
+
                 // Переинициализируем валидацию для нового шага
                 logger()->debug('About to call reinitializeValidation()');
                 $this->reinitializeValidation();
                 logger()->debug('reinitializeValidation() completed');
-                
+
                 $this->saveProgress();
                 logger()->debug('Progress saved');
             }
@@ -577,16 +577,16 @@ class CandidateForm extends Component
         try {
             logger()->debug('Starting previousStep method');
             logger()->debug('Current step: ' . $this->currentStep);
-            
+
         if ($this->currentStep > 1) {
             $this->currentStep--;
                 logger()->debug('New step: ' . $this->currentStep);
-                
+
                 // Переинициализируем валидацию для нового шага
                 logger()->debug('About to call reinitializeValidation()');
                 $this->reinitializeValidation();
                 logger()->debug('reinitializeValidation() completed');
-                
+
                 $this->saveProgress();
                 logger()->debug('Progress saved');
             }
@@ -602,7 +602,7 @@ class CandidateForm extends Component
     protected function getStepRules()
     {
         $allRules = $this->rules();
-        
+
         return match($this->currentStep) {
             1 => [
                 'last_name' => $allRules['last_name'],
@@ -686,7 +686,7 @@ class CandidateForm extends Component
                 'countries_count' => count($this->countries),
                 'first_country' => $this->countries[0] ?? null
             ]);
-            
+
             if ($value) {
                 $country = collect($this->countries)->firstWhere('name_ru', $value);
                 logger()->debug('Found country:', [
@@ -694,7 +694,7 @@ class CandidateForm extends Component
                     'has_flag_url' => isset($country['flag_url']),
                     'flag_url_value' => $country['flag_url'] ?? null
                 ]);
-                
+
                 if ($country && !in_array($value, $this->visited_countries)) {
                     $this->visited_countries[] = $value;
                     $this->newCountry = '';
@@ -744,10 +744,10 @@ class CandidateForm extends Component
         if (empty($this->languages)) {
             $this->loadLanguages();
         }
-        
+
         // Добавляем новый язык с безопасными значениями по умолчанию
         $firstLanguage = !empty($this->languages) ? $this->languages[0] : 'Русский';
-        
+
         $this->language_skills[] = [
             'language' => $firstLanguage,
             'level' => 'Начальный'
@@ -761,12 +761,12 @@ class CandidateForm extends Component
             if (!file_exists($jsonPath)) {
                 throw new \Exception('Languages JSON file not found');
             }
-            
+
             $languagesData = json_decode(file_get_contents($jsonPath), true);
             if (json_last_error() !== JSON_ERROR_NONE) {
                 throw new \Exception('Invalid JSON in languages file: ' . json_last_error_msg());
             }
-            
+
             $this->languages = [];
             if (isset($languagesData['languages']) && is_array($languagesData['languages'])) {
                 foreach ($languagesData['languages'] as $language) {
@@ -775,12 +775,12 @@ class CandidateForm extends Component
                     }
                 }
             }
-            
+
             // Если массив языков пустой, используем fallback
             if (empty($this->languages)) {
                 $this->languages = ['Русский', 'Английский', 'Испанский', 'Французский', 'Немецкий', 'Китайский', 'Японский'];
             }
-            
+
         } catch (\Exception $e) {
             logger()->error('Error loading languages: ' . $e->getMessage());
             // Fallback к базовым языкам
@@ -822,10 +822,10 @@ class CandidateForm extends Component
             try {
                 // Принудительно сохраняем фото в постоянное место хранения
                 $this->savePhotoImmediately();
-                
+
                 // Отправляем событие в браузер
                 $this->dispatch('photoUploaded');
-                
+
             } catch (\Exception $e) {
                 // Обработка ошибок
                 $this->addError('photo', 'Ошибка при обработке фото: ' . $e->getMessage());
@@ -867,7 +867,7 @@ class CandidateForm extends Component
 
             // Обновляем предпросмотр на постоянный URL
             $this->photoPreview = Storage::disk('public')->url($photoPath);
-            
+
             // Устанавливаем фото как строку, чтобы указать что оно уже сохранено
             $this->photo = $photoPath;
 
@@ -886,17 +886,17 @@ class CandidateForm extends Component
             if ($this->candidate && $this->candidate->photo) {
                 Storage::disk('public')->delete($this->candidate->photo);
             }
-            
+
             // Очищаем свойство фото
             $this->photo = null;
             $this->photoPreview = null;
-            
+
             // Обновляем базу данных если кандидат существует
             if ($this->candidate) {
                 $this->candidate->photo = null;
                 $this->candidate->save();
             }
-            
+
             session()->flash('message', 'Фото удалено');
         } catch (\Exception $e) {
             logger()->error('Error removing photo: ' . $e->getMessage());
@@ -910,7 +910,7 @@ class CandidateForm extends Component
             'file_present' => $this->gallup_pdf ? 'yes' : 'no',
             'file_type' => $this->gallup_pdf ? get_class($this->gallup_pdf) : 'null'
         ]);
-        
+
         if ($this->gallup_pdf) {
             try {
                 // Логируем информацию о файле
@@ -919,14 +919,14 @@ class CandidateForm extends Component
                     'size' => $this->gallup_pdf->getSize(),
                     'mime_type' => $this->gallup_pdf->getMimeType(),
                 ]);
-                
+
                 // Базовая валидация файла
                 $this->validate([
                     'gallup_pdf' => 'file|mimes:pdf|max:10240'
                 ]);
-                
+
                 logger()->info('Gallup PDF passed basic validation');
-                
+
                 // Проверяем, что это корректный Gallup PDF
                 if (!$this->isGallupPdf($this->gallup_pdf)) {
                     logger()->warning('Gallup PDF failed content validation');
@@ -934,12 +934,12 @@ class CandidateForm extends Component
                     $this->resetGallupFile();
                     return;
                 }
-                
+
                 logger()->info('Gallup PDF validation successful');
-                
+
                 // Отправляем событие в JavaScript
                 $this->dispatch('gallup-file-uploaded');
-                
+
                 session()->flash('message', 'PDF файл загружен и проверен');
             } catch (\Exception $e) {
                 logger()->error('Error processing Gallup PDF', [
@@ -968,10 +968,10 @@ class CandidateForm extends Component
             logger()->debug('Current step: ' . $this->currentStep);
             logger()->debug('Gallup PDF: ', ['gallup_pdf' => $this->gallup_pdf ? 'present' : 'null', 'candidate_gallup' => $this->candidate?->gallup_pdf]);
             logger()->debug('MBTI type: ' . $this->mbti_type);
-            
+
             // Создаем специальные правила для финального submit
             $rules = $this->rules();
-            
+
             // Если фото уже сохранено (строка) и не загружается новое, исключаем из валидации
             if ($this->candidate && $this->candidate->photo && is_string($this->photo)) {
                 unset($rules['photo']);
@@ -981,7 +981,7 @@ class CandidateForm extends Component
                 $rules['photo'] = ['nullable', 'image', 'max:2048'];
                 logger()->debug('Photo rule modified to nullable (candidate has existing photo)');
             }
-            
+
             // Если Gallup PDF уже сохранен (строка) и не загружается новый, исключаем из валидации
             if ($this->candidate && $this->candidate->gallup_pdf && is_string($this->gallup_pdf)) {
                 unset($rules['gallup_pdf']);
@@ -989,9 +989,9 @@ class CandidateForm extends Component
             } else if ($this->candidate && $this->candidate->gallup_pdf) {
                 // Если есть сохраненный файл, но загружается новый
                 $rules['gallup_pdf'] = [
-                    'nullable', 
-                    'file', 
-                    'mimes:pdf', 
+                    'nullable',
+                    'file',
+                    'mimes:pdf',
                     'max:10240',
                     function ($attribute, $value, $fail) {
                         if ($value && !is_string($value) && !$this->isGallupPdf($value)) {
@@ -1001,16 +1001,16 @@ class CandidateForm extends Component
                 ];
                 logger()->debug('Gallup PDF rule modified to nullable with validation (file exists in DB)');
             }
-            
+
             logger()->debug('Validation rules for submit:', ['photo' => $rules['photo'] ?? 'not set', 'gallup_pdf' => $rules['gallup_pdf'] ?? 'not set', 'mbti_type' => $rules['mbti_type'] ?? 'not set']);
-            
+
             // Отладка значения религии
             logger()->debug('Religion debug:', [
                 'current_religion_value' => $this->religion,
                 'allowed_religions' => array_values(config('lists.religions')),
                 'religion_validation_rule' => $rules['religion'] ?? 'not set'
             ]);
-            
+
             $this->validate($rules);
             logger()->debug('Validation passed');
 
@@ -1018,7 +1018,7 @@ class CandidateForm extends Component
                 $this->candidate = new Candidate();
                 $this->candidate->user_id = auth()->id();
             }
-            
+
             // Basic Information
             // Объединяем ФИО
             $this->candidate->full_name = trim($this->last_name . ' ' . $this->first_name . ' ' . $this->middle_name);
@@ -1057,14 +1057,14 @@ class CandidateForm extends Component
             // Education and Work
             $this->candidate->school = $this->school;
             $this->candidate->universities = $this->universities;
-            
+
             // Фильтруем пустые языковые навыки
             $this->candidate->language_skills = array_filter($this->language_skills, function($skill) {
                 return !empty($skill['language']) && !empty($skill['level']);
             });
-            
+
             $this->candidate->computer_skills = $this->computer_skills;
-            
+
             // Фильтруем пустые записи опыта работы
             $this->candidate->work_experience = array_filter($this->work_experience, function($experience) {
                 return !empty($experience['years']) || !empty($experience['company']) || !empty($experience['city']) || !empty($experience['position']);
@@ -1109,7 +1109,7 @@ class CandidateForm extends Component
             }
 
             session()->flash('message', 'Анкета успешно сохранена!');
-            
+
             // Перенаправляем на дашборд
             return redirect()->route('dashboard');
         } catch (\Illuminate\Validation\ValidationException $e) {
@@ -1145,7 +1145,7 @@ class CandidateForm extends Component
         if ($this->birth_date) $this->candidate->birth_date = $this->birth_date;
         if ($this->birth_place) $this->candidate->birth_place = $this->birth_place;
         if ($this->current_city) $this->candidate->current_city = $this->current_city;
-        
+
         // Фото обрабатываем отдельно
         if ($this->photo && !is_string($this->photo)) {
             if ($this->candidate->photo) {
@@ -1158,12 +1158,12 @@ class CandidateForm extends Component
         // Дополнительная информация
         if ($this->religion !== null) $this->candidate->religion = $this->religion;
         if ($this->is_practicing !== null) $this->candidate->is_practicing = $this->is_practicing;
-        
+
         // Сохраняем членов семьи только если массив не пустой и все обязательные поля заполнены
         if (!empty($this->family_members)) {
             $validMembers = array_filter($this->family_members, function($member) {
-                return !empty($member['type']) && 
-                       !empty($member['birth_year']) && 
+                return !empty($member['type']) &&
+                       !empty($member['birth_year']) &&
                        !empty($member['profession']);
             });
             if (!empty($validMembers)) {
@@ -1184,7 +1184,7 @@ class CandidateForm extends Component
         // Образование и работа
         if ($this->school) $this->candidate->school = $this->school;
         if (!empty($this->universities)) $this->candidate->universities = $this->universities;
-        
+
         // Фильтруем пустые языковые навыки
         if (!empty($this->language_skills)) {
             $filteredLanguageSkills = array_filter($this->language_skills, function($skill) {
@@ -1192,9 +1192,9 @@ class CandidateForm extends Component
             });
             $this->candidate->language_skills = array_values($filteredLanguageSkills);
         }
-        
+
         if ($this->computer_skills !== null) $this->candidate->computer_skills = $this->computer_skills;
-        
+
         // Фильтруем пустые записи опыта работы
         if (!empty($this->work_experience)) {
             $filteredWorkExperience = array_filter($this->work_experience, function($experience) {
@@ -1255,11 +1255,11 @@ class CandidateForm extends Component
             'countries_count' => count($this->countries),
             'first_country' => $this->countries[0] ?? null
         ]);
-        
+
         if ($this->newCountry && !in_array($this->newCountry, $this->visited_countries)) {
             $this->visited_countries[] = $this->newCountry;
             $this->newCountry = '';
-            
+
             logger()->debug('Country added:', [
                 'visited_countries' => $this->visited_countries,
                 'last_added' => end($this->visited_countries)
@@ -1299,7 +1299,7 @@ class CandidateForm extends Component
 
         // Если это сохраненный файл (строка с путем)
         $filePath = Storage::disk('public')->path($this->gallup_pdf);
-        
+
         if (!file_exists($filePath)) {
             return [
                 'fileName' => 'Файл не найден',
@@ -1307,30 +1307,30 @@ class CandidateForm extends Component
                 'isExisting' => true
             ];
         }
-        
+
         $pathInfo = pathinfo($this->gallup_pdf);
         $fileName = $pathInfo['basename'];
-        
+
         // Убираем timestamp префикс если есть
         $cleanName = preg_replace('/^\d+_/', '', $fileName);
-        
+
         return [
             'fileName' => $cleanName ?: 'Gallup результаты.pdf',
             'fileSize' => $this->formatFileSize(filesize($filePath)),
             'isExisting' => true
         ];
     }
-    
+
     private function formatFileSize($bytes)
     {
         if ($bytes == 0) {
             return '0 Bytes';
         }
-        
+
         $k = 1024;
         $sizes = ['Bytes', 'KB', 'MB', 'GB'];
         $i = floor(log($bytes) / log($k));
-        
+
         return round($bytes / pow($k, $i), 2) . ' ' . $sizes[$i];
     }
 
@@ -1342,7 +1342,7 @@ class CandidateForm extends Component
         try {
             // Получаем временный путь к файлу
             $tempPath = $file->getRealPath();
-            
+
             $parser = new \Smalot\PdfParser\Parser();
             $pdf = $parser->parseFile($tempPath);
             $text = $pdf->getText();
@@ -1357,14 +1357,14 @@ class CandidateForm extends Component
 
             // Смягченные условия проверки Gallup-отчета
             $hasMinimumPages = count($pages) >= 10; // Минимум 10 страниц
-            $containsGallupKeywords = str_contains($text, 'Gallup') || 
-                                    str_contains($text, 'CliftonStrengths') || 
+            $containsGallupKeywords = str_contains($text, 'Gallup') ||
+                                    str_contains($text, 'CliftonStrengths') ||
                                     str_contains($text, 'StrengthsFinder') ||
                                     str_contains($text, 'Clifton');
-            
+
             // Если это PDF и содержит ключевые слова Gallup - считаем валидным
             $isValid = $hasMinimumPages && $containsGallupKeywords;
-            
+
             logger()->info('Gallup PDF validation result', [
                 'is_valid' => $isValid,
                 'minimum_pages' => $hasMinimumPages,
@@ -1385,17 +1385,17 @@ class CandidateForm extends Component
     private function convertReligionToRussian($religion)
     {
         $religions = config('lists.religions');
-        
+
         // Если это уже русское значение, возвращаем как есть
         if (in_array($religion, array_values($religions))) {
             return $religion;
         }
-        
+
         // Если это английский ключ, конвертируем в русское значение
         if (array_key_exists($religion, $religions)) {
             return $religions[$religion];
         }
-        
+
         return $religion;
     }
 
@@ -1405,14 +1405,14 @@ class CandidateForm extends Component
     private function convertWorkExperienceFormat($workExperience)
     {
         logger()->debug('Converting work experience format:', ['input' => $workExperience]);
-        
+
         if (empty($workExperience)) {
             logger()->debug('Work experience is empty, returning empty array');
             return [];
         }
 
         $converted = [];
-        
+
         foreach ($workExperience as $experience) {
             // Если это уже новый формат (есть поле 'years'), оставляем как есть
             if (isset($experience['years'])) {
@@ -1422,7 +1422,7 @@ class CandidateForm extends Component
                     'city' => $experience['city'] ?? '',
                     'position' => $experience['position'] ?? '',
                 ];
-            } 
+            }
             // Если это старый формат, конвертируем
             else {
                 $years = '';
@@ -1431,7 +1431,7 @@ class CandidateForm extends Component
                     $endYear = $experience['end_date'] ? date('Y', strtotime($experience['end_date'])) : '';
                     $years = $startYear && $endYear ? "$startYear-$endYear" : ($startYear ?: $endYear);
                 }
-                
+
                 $converted[] = [
                     'years' => $years,
                     'company' => $experience['company'] ?? '',
@@ -1440,7 +1440,7 @@ class CandidateForm extends Component
                 ];
             }
         }
-        
+
         logger()->debug('Work experience conversion completed:', ['output' => $converted]);
         return $converted;
     }
@@ -1452,16 +1452,16 @@ class CandidateForm extends Component
     {
         // Сбрасываем только ошибки валидации, не затрагивая состояние полей
         $this->resetErrorBag();
-        
+
         // Не вызываем resetValidation() чтобы не мешать JavaScript
         // $this->resetValidation();
-        
+
         // Отправляем событие в браузер для переинициализации JavaScript
         $this->dispatch('step-changed', ['step' => $this->currentStep]);
-        
+
         // Дополнительно отправляем событие для переинициализации JavaScript компонентов
         $this->dispatch('reinitialize-js');
-        
+
         // Логируем для отладки
         logger()->debug('Validation reinitialized for step: ' . $this->currentStep);
         logger()->debug('Events dispatched: step-changed, reinitialize-js');
@@ -1471,4 +1471,4 @@ class CandidateForm extends Component
     {
         return view('livewire.candidate-form');
     }
-} 
+}
