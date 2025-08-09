@@ -294,7 +294,8 @@ class CandidateForm extends Component
             'first_name' => ['required', 'string', 'max:255', new CyrillicRule()],
             'middle_name' => ['nullable', 'string', 'max:255', new CyrillicRule()],
         'email' => 'required|email|max:255',
-            'phone' => ['required', 'string', 'regex:/^\+7 \(\d{3}\) \d{3}-\d{2}-\d{2}$/'],
+            // Универсальный международный формат: допускает +, цифры, пробелы, дефисы и скобки; 8-15 цифр всего
+            'phone' => ['required', 'string', 'regex:/^(?=(?:.*\d){8,15})\+?[\d\s\-\(\)]{7,20}$/'],
             'gender' => 'required|in:Мужской,Женский',
             'marital_status' => 'required|in:Холост/Не замужем,Женат/Замужем,Разведен(а),Вдовец/Вдова',
             'birth_date' => 'required|date|before:today',
@@ -304,45 +305,45 @@ class CandidateForm extends Component
 
             // Step 2 validation rules
             'religion' => 'required|string|in:' . implode(',', array_values(config('lists.religions'))),
-            'is_practicing' => 'nullable|boolean',
-            'family_members' => 'nullable|array',
+            'is_practicing' => 'required|boolean',
+            'family_members' => 'required|array|min:1',
             'family_members.*.type' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
             'family_members.*.birth_year' => 'required|integer|min:1900|max:' . date('Y'),
             'family_members.*.profession' => ['required', 'string', 'max:255'],
-            'hobbies' => ['nullable', 'string', 'max:1000'],
-            'interests' => ['nullable', 'string', 'max:1000'],
-            'visited_countries' => 'nullable|array',
-            'visited_countries.*' => 'string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
-            'books_per_year' => 'nullable|integer|min:0',
-            'favorite_sports' => ['nullable', 'string', 'max:1000', new CyrillicRule()],
-            'entertainment_hours_weekly' => 'nullable|integer|min:0|max:168',
-            'educational_hours_weekly' => 'nullable|integer|min:0|max:168',
-            'social_media_hours_weekly' => 'nullable|integer|min:0|max:168',
+            'hobbies' => ['required', 'string', 'max:1000'],
+            'interests' => ['required', 'string', 'max:1000'],
+            'visited_countries' => 'required|array|min:1',
+            'visited_countries.*' => 'required|string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
+            'books_per_year' => 'required|integer|min:0',
+            'favorite_sports' => ['required', 'string', 'max:1000', new CyrillicRule()],
+            'entertainment_hours_weekly' => 'required|integer|min:0|max:168',
+            'educational_hours_weekly' => 'required|integer|min:0|max:168',
+            'social_media_hours_weekly' => 'required|integer|min:0|max:168',
             'has_driving_license' => 'required|boolean',
 
             // Step 3 validation rules
             'school' => ['required', 'string', 'max:255'],
-            'universities' => 'nullable|array',
+            'universities' => 'required|array|min:1',
             'universities.*.name' => 'required|string|max:255',
             'universities.*.graduation_year' => 'required|integer|min:1950|max:' . date('Y'),
             'universities.*.speciality' => 'required|string|max:255',
             'universities.*.gpa' => 'required|numeric|min:0|max:4',
-            'language_skills' => 'nullable|array',
+            'language_skills' => 'required|array|min:1',
             'language_skills.*.language' => 'required|string' . (!empty($this->languages) ? '|in:' . implode(',', array_map(function($lang) {
                 return mb_convert_case($lang, MB_CASE_TITLE, 'UTF-8');
             }, $this->languages)) : ''),
             'language_skills.*.level' => 'required|in:Начальный,Средний,Выше среднего,Продвинутый,В совершенстве',
-            'computer_skills' => 'nullable|string',
-            'work_experience' => 'nullable|array',
-            'work_experience.*.years' => 'nullable|string|max:255',
-            'work_experience.*.company' => 'nullable|string|max:255',
-            'work_experience.*.city' => 'nullable|string|max:255',
-            'work_experience.*.position' => 'nullable|string|max:255',
+            'computer_skills' => 'required|string',
+            'work_experience' => 'required|array|min:1',
+            'work_experience.*.years' => 'required|string|max:255',
+            'work_experience.*.company' => 'required|string|max:255',
+            'work_experience.*.city' => 'required|string|max:255',
+            'work_experience.*.position' => 'required|string|max:255',
             'total_experience_years' => 'required|integer|min:0',
-            'job_satisfaction' => 'nullable|integer|min:1|max:10',
+            'job_satisfaction' => 'required|integer|min:1|max:10',
             'desired_position' => ['required', 'string', 'max:255'],
             'expected_salary' => 'required|numeric|min:0|max:999999999999',
-            'employer_requirements' => ['nullable', 'string', 'max:2000', new CyrillicRule()],
+            'employer_requirements' => ['required', 'string', 'max:2000', new CyrillicRule()],
 
             // Step 4 validation rules
             'gallup_pdf' => [
@@ -378,7 +379,7 @@ class CandidateForm extends Component
         'email.required' => 'Email обязателен для заполнения',
         'email.email' => 'Введите корректный email адрес',
         'phone.required' => 'Телефон обязателен для заполнения',
-        'phone.regex' => 'Введите телефон в формате +7 (XXX) XXX-XX-XX',
+        'phone.regex' => 'Введите корректный номер телефона (разрешены +, цифры, пробелы, -, ())',
         'gender.required' => 'Выберите пол',
         'marital_status.required' => 'Выберите семейное положение',
         'birth_date.required' => 'Дата рождения обязательна для заполнения',
@@ -407,6 +408,84 @@ class CandidateForm extends Component
         'desired_position.cyrillic' => 'Поле "Желаемая должность" должно содержать только кириллические символы, цифры и знаки препинания',
         'employer_requirements.cyrillic' => 'Поле "Требования к работодателю" должно содержать только кириллические символы, цифры и знаки препинания',
         'family_members.*.profession.cyrillic' => 'Поле "Профессия" должно содержать только кириллические символы, цифры и знаки препинания',
+
+        // Дополнительные сообщения для обязательных полей
+        'hobbies.required' => 'Хобби обязательно для заполнения',
+        'interests.required' => 'Интересы обязательны для заполнения',
+        'favorite_sports.required' => 'Любимые виды спорта обязательны для заполнения',
+        'books_per_year.required' => 'Количество книг в год обязательно для заполнения',
+        'is_practicing.required' => 'Укажите, являетесь ли вы практикующим',
+        'visited_countries.required' => 'Добавьте хотя бы одну страну',
+        'visited_countries.min' => 'Добавьте хотя бы одну страну',
+        'visited_countries.*.required' => 'Выберите страну из списка',
+        'visited_countries.*.in' => 'Выберите страну из списка',
+        'family_members.required' => 'Добавьте минимум одного члена семьи',
+        'family_members.min' => 'Добавьте минимум одного члена семьи',
+        'computer_skills.required' => 'Укажите компьютерные навыки',
+        'universities.required' => 'Добавьте минимум один университет',
+        'language_skills.required' => 'Добавьте минимум один язык',
+        'work_experience.required' => 'Добавьте минимум одно место работы',
+        'job_satisfaction.required' => 'Укажите уровень удовлетворенности работой',
+        'employer_requirements.required' => 'Укажите требования к работодателю',
+    ];
+
+    protected $validationAttributes = [
+        // Шаг 1
+        'last_name' => 'Фамилия',
+        'first_name' => 'Имя',
+        'middle_name' => 'Отчество',
+        'email' => 'Email',
+        'phone' => 'Телефон',
+        'gender' => 'Пол',
+        'marital_status' => 'Семейное положение',
+        'birth_date' => 'Дата рождения',
+        'birth_place' => 'Место рождения',
+        'current_city' => 'Текущий город',
+        'photo' => 'Фото',
+
+        // Шаг 2
+        'has_driving_license' => 'Водительские права',
+        'religion' => 'Религия',
+        'is_practicing' => 'Практикующий',
+        'family_members' => 'Члены семьи',
+        'family_members.*.type' => 'Тип родства',
+        'family_members.*.birth_year' => 'Год рождения',
+        'family_members.*.profession' => 'Профессия',
+        'hobbies' => 'Хобби',
+        'interests' => 'Интересы',
+        'visited_countries' => 'Посещенные страны',
+        'visited_countries.*' => 'Страна',
+        'books_per_year' => 'Количество книг в год',
+        'favorite_sports' => 'Любимые виды спорта',
+        'entertainment_hours_weekly' => 'Часы развлекательных видео в неделю',
+        'educational_hours_weekly' => 'Часы образовательных видео в неделю',
+        'social_media_hours_weekly' => 'Часы соцсетей в неделю',
+
+        // Шаг 3
+        'school' => 'Школа',
+        'universities' => 'Университеты',
+        'universities.*.name' => 'Название университета',
+        'universities.*.graduation_year' => 'Год окончания',
+        'universities.*.speciality' => 'Специальность',
+        'universities.*.gpa' => 'GPA',
+        'language_skills' => 'Языковые навыки',
+        'language_skills.*.language' => 'Язык',
+        'language_skills.*.level' => 'Уровень',
+        'computer_skills' => 'Компьютерные навыки',
+        'work_experience' => 'Опыт работы',
+        'work_experience.*.years' => 'Период',
+        'work_experience.*.company' => 'Название компании',
+        'work_experience.*.city' => 'Город',
+        'work_experience.*.position' => 'Должность',
+        'total_experience_years' => 'Общий стаж работы',
+        'job_satisfaction' => 'Удовлетворенность работой',
+        'desired_position' => 'Желаемая должность',
+        'expected_salary' => 'Ожидаемая зарплата',
+        'employer_requirements' => 'Требования к работодателю',
+
+        // Шаг 4
+        'gallup_pdf' => 'Gallup PDF',
+        'mbti_type' => 'Тип личности MBTI',
     ];
 
     public function updated($propertyName)
@@ -621,10 +700,13 @@ class CandidateForm extends Component
                 'religion' => $allRules['religion'],
                 'is_practicing' => $allRules['is_practicing'],
                 'family_members' => $allRules['family_members'],
+                'family_members.*.type' => $allRules['family_members.*.type'],
+                'family_members.*.birth_year' => $allRules['family_members.*.birth_year'],
+                'family_members.*.profession' => $allRules['family_members.*.profession'],
                 'hobbies' => $allRules['hobbies'],
                 'interests' => $allRules['interests'],
                 'visited_countries' => $allRules['visited_countries'],
-                'visited_countries.*' => 'string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
+                'visited_countries.*' => $allRules['visited_countries.*'],
                 'books_per_year' => $allRules['books_per_year'],
                 'favorite_sports' => $allRules['favorite_sports'],
                 'entertainment_hours_weekly' => $allRules['entertainment_hours_weekly'],
@@ -635,9 +717,19 @@ class CandidateForm extends Component
             3 => [
                 'school' => $allRules['school'],
                 'universities' => $allRules['universities'],
+                'universities.*.name' => $allRules['universities.*.name'],
+                'universities.*.graduation_year' => $allRules['universities.*.graduation_year'],
+                'universities.*.speciality' => $allRules['universities.*.speciality'],
+                'universities.*.gpa' => $allRules['universities.*.gpa'],
                 'language_skills' => $allRules['language_skills'],
+                'language_skills.*.language' => $allRules['language_skills.*.language'],
+                'language_skills.*.level' => $allRules['language_skills.*.level'],
                 'computer_skills' => $allRules['computer_skills'],
                 'work_experience' => $allRules['work_experience'],
+                'work_experience.*.years' => $allRules['work_experience.*.years'],
+                'work_experience.*.company' => $allRules['work_experience.*.company'],
+                'work_experience.*.city' => $allRules['work_experience.*.city'],
+                'work_experience.*.position' => $allRules['work_experience.*.position'],
                 'total_experience_years' => $allRules['total_experience_years'],
                 'job_satisfaction' => $allRules['job_satisfaction'],
                 'desired_position' => $allRules['desired_position'],
@@ -660,6 +752,25 @@ class CandidateForm extends Component
             ],
             default => [],
         };
+    }
+
+    /**
+     * Возвращает номер шага для указанного поля
+     */
+    private function getFieldStep(string $field): ?int
+    {
+        $baseField = explode('.', $field)[0];
+
+        $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'photo'];
+        $step2Fields = ['religion', 'is_practicing', 'family_members', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
+        $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'expected_salary', 'employer_requirements'];
+        $step4Fields = ['gallup_pdf', 'mbti_type'];
+
+        if (in_array($baseField, $step1Fields, true)) return 1;
+        if (in_array($baseField, $step2Fields, true)) return 2;
+        if (in_array($baseField, $step3Fields, true)) return 3;
+        if (in_array($baseField, $step4Fields, true)) return 4;
+        return null;
     }
 
     // Dynamic field methods

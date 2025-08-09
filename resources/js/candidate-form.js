@@ -34,10 +34,70 @@ export function initPhoneMask() {
     }
 
     try {
+        // Универсальная маска: свободный ввод + принудительный префикс '+'
         phoneMask = IMask(phoneInput, {
-            mask: '+7 (000) 000-00-00',
-            lazy: false,
-            placeholderChar: '_'
+            mask: String,
+            prepare: (str) => str,
+            commit: (value, masked) => { masked._value = value; },
+        });
+
+        // Гарантируем, что номер всегда начинается с '+' и его нельзя удалить
+        const ensurePlusPrefix = () => {
+            const raw = phoneInput.value || '';
+            // Удаляем все лишние '+' кроме первого
+            let rest = raw.replace(/^\+/, '');
+            rest = rest.replace(/\+/g, '');
+            // Фильтруем недопустимые символы (разрешаем цифры, пробелы, дефисы и скобки)
+            rest = rest.replace(/[^0-9\s\-()]/g, '');
+            const next = '+' + rest;
+            if (next !== raw) {
+                const pos = phoneInput.selectionStart || next.length;
+                phoneInput.value = next;
+                // Ставим курсор в конец, чтобы избежать смещений
+                setTimeout(() => {
+                    const end = next.length;
+                    phoneInput.setSelectionRange(end, end);
+                }, 0);
+                // Синхронизируем с Livewire
+                phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
+                phoneInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        };
+
+        // Инициализация значения
+        if (!phoneInput.value || !phoneInput.value.startsWith('+')) {
+            phoneInput.value = '+' + (phoneInput.value || '').replace(/^\+/, '');
+        }
+
+        // Блокируем удаление '+'
+        phoneInput.addEventListener('keydown', (e) => {
+            const start = phoneInput.selectionStart || 0;
+            const end = phoneInput.selectionEnd || 0;
+            // Нельзя удалять первый символ и печатать перед ним
+            if ((e.key === 'Backspace' && start <= 1 && end <= 1) ||
+                (e.key === 'Delete' && start === 0 && end <= 1)) {
+                e.preventDefault();
+                return false;
+            }
+            // Запрещаем ввод '+' в любом месте кроме первого символа
+            if (e.key === '+' && start > 0) {
+                e.preventDefault();
+                return false;
+            }
+        });
+
+        // При фокусе ставим '+' если пусто
+        phoneInput.addEventListener('focus', () => {
+            if (!phoneInput.value || !phoneInput.value.startsWith('+')) {
+                phoneInput.value = '+';
+                setTimeout(() => phoneInput.setSelectionRange(1, 1), 0);
+            }
+        });
+
+        // Санитизация ввода и поддержание '+'
+        phoneInput.addEventListener('input', ensurePlusPrefix);
+        phoneInput.addEventListener('paste', (e) => {
+            setTimeout(ensurePlusPrefix, 0);
         });
 
         // Синхронизация с Livewire
@@ -48,6 +108,7 @@ export function initPhoneMask() {
 
         // Если в поле уже есть значение, применяем маску
         if (phoneInput.value) {
+            ensurePlusPrefix();
             phoneMask.value = phoneInput.value;
         }
 

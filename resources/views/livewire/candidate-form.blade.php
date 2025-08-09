@@ -81,6 +81,16 @@
         <!-- Remove old progress bar -->
 
         <form wire:submit.prevent="submit" class="p-3 sm:p-6 space-y-6">
+            @if ($errors->any())
+                <div id="validation-errors" tabindex="-1" role="alert" aria-live="assertive" class="px-4 py-3 rounded-md bg-red-50 border border-red-200">
+                    <div class="text-red-700 font-semibold mb-1">Пожалуйста, исправьте ошибки ниже:</div>
+                    <ul class="text-sm text-red-600 list-disc pl-5 space-y-1">
+                        @foreach ($errors->all() as $error)
+                            <li class="ml-6">{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <!-- Step Content -->
             @include('livewire.candidate-form.step1')
             @include('livewire.candidate-form.step2')
@@ -120,6 +130,11 @@
                             </svg>
                             Сохранить и завершить
                         </button>
+                        @if ($errors->any())
+                            <div class="text-sm text-red-600 flex items-center">
+                                Проверьте ошибки сверху формы
+                            </div>
+                        @endif
                     </div>
                 @endif
             </div>
@@ -179,9 +194,32 @@
         setupLivewireHooks() {
             if (typeof Livewire !== 'undefined') {
                 // Хук для обновлений Livewire
-                Livewire.hook('message.processed', () => {
+                Livewire.hook('message.processed', (message, component) => {
                     console.log('🔄 Livewire message processed');
                     setTimeout(() => this.scanAndInitSliders(), 100);
+
+                    // Скролл к блоку ошибок, если есть ошибки
+                    try {
+                        const errs = component?.serverMemo?.errors || {};
+                        if (errs && Object.keys(errs).length > 0) {
+                            const errorBox = document.getElementById('validation-errors');
+                            if (errorBox) {
+                                // Вычисляем динамический отступ с учетом фиксированных элементов/хедера
+                                const viewportHeight = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+                                const rect = errorBox.getBoundingClientRect();
+                                const absoluteTop = rect.top + window.pageYOffset;
+                                const extraOffset = 350; // увеличенный отступ, чтобы блок гарантированно попал в видимую область
+                                const targetTop = Math.max(absoluteTop - extraOffset, 0);
+
+                                window.scrollTo({ top: targetTop, behavior: 'smooth' });
+                                errorBox.focus({ preventScroll: true });
+                            } else {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Scroll-to-errors failed', e);
+                    }
                 });
                 
                 // Хук для навигации
