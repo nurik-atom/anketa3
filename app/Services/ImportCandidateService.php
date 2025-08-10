@@ -22,7 +22,7 @@ class ImportCandidateService
         DB::transaction(function () {
             $row = DB::table('import_candidates')
                 ->where('status', 'new')
-                ->where('id' ,  952) // Убедимся, что есть хотя бы одна запись
+                ->where('id' , '>', 952)
                 ->lockForUpdate()
                 ->orderBy('id')
                 ->first();
