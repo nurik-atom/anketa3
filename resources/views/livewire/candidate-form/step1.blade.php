@@ -161,13 +161,13 @@
         <!-- Телефон -->
         <div>
             <label class="block text-sm font-medium text-gray-700">
-                Телефон <span class="text-red-500">*</span>
+                Телефон <span class="text-red-500">*</span><span class="text-gray-500"> (в формате +77081992519)</span>
             </label>
             <input type="text"
                    wire:model.lazy="phone"
                    id="phone-input"
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                   placeholder="+7 (___) ___-__-__">
+                   placeholder="+77081992519">
             @error('phone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 

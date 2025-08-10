@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\GallupController;
+use App\Http\Controllers\ImportController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,3 +16,4 @@ Route::post('/gallup/process', [GallupController::class, 'process']);
 
 Route::post('/candidates/parse-gallup/{candidate}', [GallupController::class, 'parseGallupFromCandidateFile']);
 Route::post('/candidates/merge-gallup/{candidate}', [GallupController::class, 'mergeCandidateReportPdfs']);
+Route::post('/imports/candidates', [ImportController::class, 'importXlsx']);
