@@ -22,7 +22,7 @@ class ImportCandidateService
         DB::transaction(function () {
             $row = DB::table('import_candidates')
                 ->where('status', 'new')
-                ->where('id' , '>', 952)
+//                ->where('id' , '>', 952)
                 ->lockForUpdate()
                 ->orderBy('id')
                 ->first();
