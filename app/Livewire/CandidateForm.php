@@ -306,7 +306,7 @@ class CandidateForm extends Component
             // Step 2 validation rules
             'religion' => 'required|string|in:' . implode(',', array_values(config('lists.religions'))),
             'is_practicing' => 'required|boolean',
-            'family_members' => 'required|array|min:1',
+            'family_members' => 'nullable|array|min:0',
             'family_members.*.type' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
             'family_members.*.birth_year' => 'required|integer|min:1900|max:' . date('Y'),
             'family_members.*.profession' => ['required', 'string', 'max:255'],
@@ -323,7 +323,7 @@ class CandidateForm extends Component
 
             // Step 3 validation rules
             'school' => ['required', 'string', 'max:255'],
-            'universities' => 'required|array|min:1',
+            'universities' => 'nullable|array|min:0',
             'universities.*.name' => 'required|string|max:255',
             'universities.*.graduation_year' => 'required|integer|min:1950|max:' . date('Y'),
             'universities.*.speciality' => 'required|string|max:255',
@@ -334,7 +334,7 @@ class CandidateForm extends Component
             }, $this->languages)) : ''),
             'language_skills.*.level' => 'required|in:Начальный,Средний,Выше среднего,Продвинутый,В совершенстве',
             'computer_skills' => 'required|string',
-            'work_experience' => 'required|array|min:1',
+            'work_experience' => 'nullable|array|min:0',
             'work_experience.*.years' => 'required|string|max:255',
             'work_experience.*.company' => 'required|string|max:255',
             'work_experience.*.city' => 'required|string|max:255',
