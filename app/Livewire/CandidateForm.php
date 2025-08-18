@@ -44,6 +44,10 @@ class CandidateForm extends Component
     public $religion;
     public $is_practicing;
     public $family_members = [];
+    // Новая структура для разделенных категорий семьи
+    public $parents = [];
+    public $siblings = [];
+    public $children = [];
     public $hobbies;
     public $interests;
     public $visited_countries = [];
@@ -174,6 +178,9 @@ class CandidateForm extends Component
         // Инициализируем массивы
         $this->universities = [];
         $this->family_members = [];
+        $this->parents = [];
+        $this->siblings = [];
+        $this->children = [];
         $this->visited_countries = [];
         $this->favorite_sports = '';
         $this->language_skills = [];
@@ -212,6 +219,9 @@ class CandidateForm extends Component
                 } else {
                     // Инициализируем пустые массивы для нового кандидата
                     $this->family_members = [];
+                    $this->parents = [];
+                    $this->siblings = [];
+                    $this->children = [];
                     // Убеждаемся что work_experience пустой массив
                     $this->work_experience = [];
                 }
@@ -256,6 +266,10 @@ class CandidateForm extends Component
         logger()->debug('Loading candidate religion:', ['original' => $this->candidate->religion, 'converted' => $this->religion]);
         $this->is_practicing = $this->candidate->is_practicing;
         $this->family_members = $this->candidate->family_members ?? [];
+        
+        // Инициализируем новые категории семьи
+        $this->loadFamilyCategories();
+        
         $this->hobbies = $this->candidate->hobbies;
         $this->interests = $this->candidate->interests;
         $this->visited_countries = $this->candidate->visited_countries ?? [];
@@ -306,10 +320,16 @@ class CandidateForm extends Component
             // Step 2 validation rules
             'religion' => 'required|string|in:' . implode(',', array_values(config('lists.religions'))),
             'is_practicing' => 'required|boolean',
-            'family_members' => 'nullable|array|min:0',
-            'family_members.*.type' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
-            'family_members.*.birth_year' => 'required|integer|min:1900|max:' . date('Y'),
-            'family_members.*.profession' => ['required', 'string', 'max:255'],
+            // Отключаем валидацию старой структуры family_members
+            // 'family_members' => 'nullable|array|min:0',
+            // 'family_members.*.type' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
+            // 'family_members.*.birth_year' => 'required|integer|min:1900|max:' . date('Y'),
+            // 'family_members.*.profession' => ['required', 'string', 'max:255'],
+            
+            // Новые правила валидации для категорий семьи - полностью убираем правила
+            'parents' => 'sometimes|array|max:2',
+            'siblings' => 'sometimes|array', 
+            'children' => 'sometimes|array',
             'hobbies' => ['required', 'string', 'max:1000'],
             'interests' => ['required', 'string', 'max:1000'],
             'visited_countries' => 'required|array|min:1',
@@ -340,7 +360,7 @@ class CandidateForm extends Component
             'work_experience.*.city' => 'required|string|max:255',
             'work_experience.*.position' => 'required|string|max:255',
             'total_experience_years' => 'required|integer|min:0',
-            'job_satisfaction' => 'required|integer|min:1|max:10',
+            'job_satisfaction' => 'required|integer|min:1|max:5',
             'desired_position' => ['required', 'string', 'max:255'],
             'expected_salary' => 'required|numeric|min:0|max:999999999999',
             'employer_requirements' => ['required', 'string', 'max:2000', new CyrillicRule()],
@@ -451,6 +471,20 @@ class CandidateForm extends Component
         'family_members.*.type' => 'Тип родства',
         'family_members.*.birth_year' => 'Год рождения',
         'family_members.*.profession' => 'Профессия',
+        
+        // Новые атрибуты для категорий семьи
+        'parents' => 'Родители',
+        'parents.*.relation' => 'Родство',
+        'parents.*.birth_year' => 'Год рождения',
+        'parents.*.profession' => 'Профессия',
+        
+        'siblings' => 'Братья и сестры',
+        'siblings.*.relation' => 'Родство',
+        'siblings.*.birth_year' => 'Год рождения',
+        
+        'children' => 'Дети',
+        'children.*.name' => 'Имя ребенка',
+        'children.*.birth_year' => 'Год рождения',
         'hobbies' => 'Хобби',
         'interests' => 'Интересы',
         'visited_countries' => 'Посещенные страны',
@@ -513,6 +547,15 @@ class CandidateForm extends Component
         // Если обновляется поле члена семьи
         if (strpos($propertyName, 'family_members.') === 0) {
             $this->validateOnly($propertyName);
+            return;
+        }
+
+        // Если обновляется поле новых категорий семьи - отключаем live валидацию
+        if (strpos($propertyName, 'parents.') === 0 || 
+            strpos($propertyName, 'siblings.') === 0 || 
+            strpos($propertyName, 'children.') === 0) {
+            // Просто сбрасываем ошибки для этого поля без валидации
+            $this->resetErrorBag($propertyName);
             return;
         }
 
@@ -593,7 +636,7 @@ class CandidateForm extends Component
         $baseField = explode('.', $field)[0];
 
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'photo'];
-        $step2Fields = ['religion', 'is_practicing', 'family_members', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
+        $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
         $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'expected_salary', 'employer_requirements'];
         $step4Fields = ['gallup_pdf', 'mbti_type'];
 
@@ -612,7 +655,17 @@ class CandidateForm extends Component
             logger()->debug('Starting nextStep method');
             logger()->debug('Current step: ' . $this->currentStep);
 
+            // Фильтруем пустые элементы семьи перед валидацией
+            $this->filterEmptyFamilyElements();
+
             $rules = $this->getStepRules();
+            
+            logger()->debug('Validation rules for step ' . $this->currentStep . ':', $rules);
+            logger()->debug('Current family data:', [
+                'parents' => $this->parents,
+                'siblings' => $this->siblings, 
+                'children' => $this->children
+            ]);
 
             // Специальная обработка для фото на первом шаге
             if ($this->currentStep === 1) {
@@ -699,10 +752,13 @@ class CandidateForm extends Component
             2 => [
                 'religion' => $allRules['religion'],
                 'is_practicing' => $allRules['is_practicing'],
-                'family_members' => $allRules['family_members'],
-                'family_members.*.type' => $allRules['family_members.*.type'],
-                'family_members.*.birth_year' => $allRules['family_members.*.birth_year'],
-                'family_members.*.profession' => $allRules['family_members.*.profession'],
+                // Убираем валидацию старой структуры family_members
+                
+                // Добавляем новые правила валидации для категорий семьи
+                'parents' => $allRules['parents'],
+                'siblings' => $allRules['siblings'],
+                'children' => $allRules['children'],
+                
                 'hobbies' => $allRules['hobbies'],
                 'interests' => $allRules['interests'],
                 'visited_countries' => $allRules['visited_countries'],
@@ -762,7 +818,7 @@ class CandidateForm extends Component
         $baseField = explode('.', $field)[0];
 
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'photo'];
-        $step2Fields = ['religion', 'is_practicing', 'family_members', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
+        $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
         $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'expected_salary', 'employer_requirements'];
         $step4Fields = ['gallup_pdf', 'mbti_type'];
 
@@ -783,10 +839,318 @@ class CandidateForm extends Component
         ];
     }
 
+    // Новые методы для работы с категориями семьи
+    public function addParent()
+    {
+        $this->parents[] = [
+            'relation' => '',
+            'birth_year' => '',
+            'profession' => ''
+        ];
+    }
+
+    public function removeParent($index)
+    {
+        unset($this->parents[$index]);
+        $this->parents = array_values($this->parents);
+    }
+
+    public function addSibling()
+    {
+        $this->siblings[] = [
+            'relation' => '',
+            'birth_year' => ''
+        ];
+    }
+
+    public function removeSibling($index)
+    {
+        unset($this->siblings[$index]);
+        $this->siblings = array_values($this->siblings);
+    }
+
+    public function addChild()
+    {
+        $this->children[] = [
+            'name' => '',
+            'birth_year' => ''
+        ];
+    }
+
+    public function removeChild($index)
+    {
+        unset($this->children[$index]);
+        $this->children = array_values($this->children);
+    }
+
+    /**
+     * Фильтрует пустые элементы из массивов семьи перед валидацией
+     */
+    private function filterEmptyFamilyElements()
+    {
+        logger()->debug('FILTER START - Original data:', [
+            'parents' => $this->parents,
+            'siblings' => $this->siblings,
+            'children' => $this->children,
+            'family_members' => $this->family_members
+        ]);
+
+        // ВАЖНО: Очищаем старую структуру family_members чтобы избежать конфликтов валидации
+        $this->family_members = [];
+
+        // Фильтруем родителей - удаляем полностью пустые записи
+        if (is_array($this->parents)) {
+            $originalCount = count($this->parents);
+            $this->parents = array_filter($this->parents, function($parent) {
+                $hasData = !empty($parent['relation']) || !empty($parent['birth_year']) || !empty($parent['profession']);
+                logger()->debug('Parent filter check:', ['parent' => $parent, 'hasData' => $hasData]);
+                return $hasData;
+            });
+            $this->parents = array_values($this->parents); // Переиндексируем
+            logger()->debug('Parents filtered: ' . $originalCount . ' -> ' . count($this->parents));
+        }
+
+        // Фильтруем братьев и сестер
+        if (is_array($this->siblings)) {
+            $originalCount = count($this->siblings);
+            $this->siblings = array_filter($this->siblings, function($sibling) {
+                $hasData = !empty($sibling['relation']) || !empty($sibling['birth_year']);
+                logger()->debug('Sibling filter check:', ['sibling' => $sibling, 'hasData' => $hasData]);
+                return $hasData;
+            });
+            $this->siblings = array_values($this->siblings);
+            logger()->debug('Siblings filtered: ' . $originalCount . ' -> ' . count($this->siblings));
+        }
+
+        // Фильтруем детей
+        if (is_array($this->children)) {
+            $originalCount = count($this->children);
+            $this->children = array_filter($this->children, function($child) {
+                $hasData = !empty($child['name']) || !empty($child['birth_year']);
+                logger()->debug('Child filter check:', ['child' => $child, 'hasData' => $hasData]);
+                return $hasData;
+            });
+            $this->children = array_values($this->children);
+            logger()->debug('Children filtered: ' . $originalCount . ' -> ' . count($this->children));
+        }
+
+        logger()->debug('FILTER END - Filtered data:', [
+            'parents' => $this->parents,
+            'siblings' => $this->siblings,
+            'children' => $this->children,
+            'family_members' => $this->family_members
+        ]);
+    }
+
+
+
     public function removeFamilyMember($index)
     {
         unset($this->family_members[$index]);
         $this->family_members = array_values($this->family_members);
+    }
+
+    /**
+     * Загрузка категорий семьи из старых данных или инициализация новых структур
+     */
+    private function loadFamilyCategories()
+    {
+        // Проверяем, есть ли новые поля в JSON структуре
+        $familyData = $this->candidate->family_members ?? [];
+        
+        if (is_array($familyData) && isset($familyData['parents'])) {
+            // Новая структура - загружаем как есть
+            $this->parents = $familyData['parents'] ?? [];
+            $this->siblings = $familyData['siblings'] ?? [];
+            $this->children = $familyData['children'] ?? [];
+        } else {
+            // Старая структура - мигрируем данные
+            $this->parents = [];
+            $this->siblings = [];
+            $this->children = [];
+            
+            foreach ($familyData as $member) {
+                if (!is_array($member)) continue;
+                
+                $type = $member['type'] ?? '';
+                switch ($type) {
+                    case 'Отец':
+                    case 'Мать':
+                        $this->parents[] = [
+                            'relation' => $type,
+                            'birth_year' => $member['birth_year'] ?? '',
+                            'profession' => $member['profession'] ?? ''
+                        ];
+                        break;
+                    case 'Брат':
+                    case 'Сестра':
+                        $this->siblings[] = [
+                            'relation' => $type,
+                            'birth_year' => $member['birth_year'] ?? '',
+                        ];
+                        break;
+                    case 'Сын':
+                    case 'Дочь':
+                        $this->children[] = [
+                            'name' => $member['profession'] ?? '', // В старой структуре имя было в поле profession
+                            'birth_year' => $member['birth_year'] ?? '',
+                        ];
+                        break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Строит новую структуру JSON для сохранения в БД
+     */
+    private function buildFamilyStructure()
+    {
+        return [
+            'parents' => $this->parents ?? [],
+            'siblings' => $this->siblings ?? [],
+            'children' => $this->children ?? []
+        ];
+    }
+
+    /**
+     * Переопределяем метод validate для фильтрации семьи перед валидацией
+     */
+    public function validate($rules = null, $messages = [], $attributes = [])
+    {
+        // Фильтруем семью перед любой валидацией
+        $this->filterEmptyFamilyElements();
+        
+        // Добавляем кастомную валидацию для семьи
+        $this->validateFamilyData();
+        
+        // Вызываем родительский метод с оригинальными правилами
+        return parent::validate($rules, $messages, $attributes);
+    }
+
+    /**
+     * Модифицирует правила валидации для семьи, делая их обязательными только для заполненных элементов
+     */
+    private function modifyFamilyValidationRules($rules)
+    {
+        // Создаем новые правила для каждого заполненного элемента
+        $modifiedRules = $rules;
+        
+        // Удаляем старые правила для массивов семьи
+        unset($modifiedRules['parents.*.relation']);
+        unset($modifiedRules['parents.*.birth_year']);
+        unset($modifiedRules['parents.*.profession']);
+        unset($modifiedRules['siblings.*.relation']);
+        unset($modifiedRules['siblings.*.birth_year']);
+        unset($modifiedRules['children.*.name']);
+        unset($modifiedRules['children.*.birth_year']);
+        
+        // Добавляем правила для каждого конкретного элемента
+        foreach ($this->parents as $index => $parent) {
+            $modifiedRules["parents.{$index}.relation"] = 'required|string|in:Отец,Мать';
+            $modifiedRules["parents.{$index}.birth_year"] = 'required|integer|min:1900|max:' . date('Y');
+            $modifiedRules["parents.{$index}.profession"] = 'required|string|max:255';
+        }
+        
+        foreach ($this->siblings as $index => $sibling) {
+            $modifiedRules["siblings.{$index}.relation"] = 'required|string|in:Брат,Сестра';
+            $modifiedRules["siblings.{$index}.birth_year"] = 'required|integer|min:1900|max:' . date('Y');
+        }
+        
+        foreach ($this->children as $index => $child) {
+            $modifiedRules["children.{$index}.name"] = 'required|string|max:255';
+            $modifiedRules["children.{$index}.birth_year"] = 'required|integer|min:1900|max:' . date('Y');
+        }
+        
+        return $modifiedRules;
+    }
+
+    /**
+     * Кастомная валидация данных семьи
+     */
+    private function validateFamilyData()
+    {
+        logger()->debug('CUSTOM VALIDATION - Family data:', [
+            'parents' => $this->parents,
+            'siblings' => $this->siblings,
+            'children' => $this->children
+        ]);
+
+        $errors = [];
+
+        // Валидируем родителей
+        foreach ($this->parents as $index => $parent) {
+            if (empty($parent['relation'])) {
+                $errors["parents.{$index}.relation"] = 'Поле Родство обязательно.';
+            } elseif (!in_array($parent['relation'], ['Отец', 'Мать'])) {
+                $errors["parents.{$index}.relation"] = 'Выберите корректное родство.';
+            }
+
+            if (empty($parent['birth_year'])) {
+                $errors["parents.{$index}.birth_year"] = 'Поле Год рождения обязательно.';
+            } elseif (!is_numeric($parent['birth_year']) || $parent['birth_year'] < 1900 || $parent['birth_year'] > date('Y')) {
+                $errors["parents.{$index}.birth_year"] = 'Введите корректный год рождения.';
+            }
+
+            if (empty($parent['profession'])) {
+                $errors["parents.{$index}.profession"] = 'Поле Профессия обязательно.';
+            }
+        }
+
+        // Валидируем братьев и сестер
+        foreach ($this->siblings as $index => $sibling) {
+            if (empty($sibling['relation'])) {
+                $errors["siblings.{$index}.relation"] = 'Поле Родство обязательно.';
+            } elseif (!in_array($sibling['relation'], ['Брат', 'Сестра'])) {
+                $errors["siblings.{$index}.relation"] = 'Выберите корректное родство.';
+            }
+
+            if (empty($sibling['birth_year'])) {
+                $errors["siblings.{$index}.birth_year"] = 'Поле Год рождения обязательно.';
+            } elseif (!is_numeric($sibling['birth_year']) || $sibling['birth_year'] < 1900 || $sibling['birth_year'] > date('Y')) {
+                $errors["siblings.{$index}.birth_year"] = 'Введите корректный год рождения.';
+            }
+        }
+
+        // Валидируем детей
+        foreach ($this->children as $index => $child) {
+            if (empty($child['name'])) {
+                $errors["children.{$index}.name"] = 'Поле Имя ребенка обязательно.';
+            }
+
+            if (empty($child['birth_year'])) {
+                $errors["children.{$index}.birth_year"] = 'Поле Год рождения обязательно.';
+            } elseif (!is_numeric($child['birth_year']) || $child['birth_year'] < 1900 || $child['birth_year'] > date('Y')) {
+                $errors["children.{$index}.birth_year"] = 'Введите корректный год рождения.';
+            }
+        }
+
+        // Если есть ошибки, выбрасываем исключение валидации
+        if (!empty($errors)) {
+            throw \Illuminate\Validation\ValidationException::withMessages($errors);
+        }
+    }
+
+    /**
+     * Переопределяем метод validateOnly для фильтрации семьи перед валидацией
+     */
+    public function validateOnly($field, $rules = null, $messages = [], $attributes = [], $dataOverrides = [])
+    {
+        // Если валидируем поля семьи, сначала фильтруем
+        if (strpos($field, 'parents.') === 0 || 
+            strpos($field, 'siblings.') === 0 || 
+            strpos($field, 'children.') === 0) {
+            $this->filterEmptyFamilyElements();
+            
+            // Если правила не переданы, получаем правила и модифицируем их
+            if ($rules === null) {
+                $allRules = $this->rules();
+                $rules = $this->modifyFamilyValidationRules($allRules);
+            }
+        }
+        
+        // Вызываем родительский метод
+        return parent::validateOnly($field, $rules, $messages, $attributes, $dataOverrides);
     }
 
     public function updatedNewCountry($value)
@@ -1080,6 +1444,9 @@ class CandidateForm extends Component
             logger()->debug('Gallup PDF: ', ['gallup_pdf' => $this->gallup_pdf ? 'present' : 'null', 'candidate_gallup' => $this->candidate?->gallup_pdf]);
             logger()->debug('MBTI type: ' . $this->mbti_type);
 
+            // Фильтруем пустые элементы семьи перед валидацией
+            $this->filterEmptyFamilyElements();
+
             // Создаем специальные правила для финального submit
             $rules = $this->rules();
 
@@ -1154,7 +1521,10 @@ class CandidateForm extends Component
             // Additional Information
             $this->candidate->religion = $this->religion;
             $this->candidate->is_practicing = $this->is_practicing;
-            $this->candidate->family_members = $this->family_members;
+            
+            // Сохраняем новую структуру семьи в JSON
+            $this->candidate->family_members = $this->buildFamilyStructure();
+            
             $this->candidate->hobbies = $this->hobbies;
             $this->candidate->interests = $this->interests;
             $this->candidate->visited_countries = $this->visited_countries;
@@ -1270,15 +1640,23 @@ class CandidateForm extends Component
         if ($this->religion !== null) $this->candidate->religion = $this->religion;
         if ($this->is_practicing !== null) $this->candidate->is_practicing = $this->is_practicing;
 
-        // Сохраняем членов семьи только если массив не пустой и все обязательные поля заполнены
-        if (!empty($this->family_members)) {
-            $validMembers = array_filter($this->family_members, function($member) {
-                return !empty($member['type']) &&
-                       !empty($member['birth_year']) &&
-                       !empty($member['profession']);
-            });
-            if (!empty($validMembers)) {
-                $this->candidate->family_members = array_values($validMembers);
+        // Сохраняем новую структуру семьи 
+        $familyStructure = $this->buildFamilyStructure();
+        if (!empty($familyStructure['parents']) || 
+            !empty($familyStructure['siblings']) || 
+            !empty($familyStructure['children'])) {
+            $this->candidate->family_members = $familyStructure;
+        } else {
+            // Если используем старую структуру
+            if (!empty($this->family_members)) {
+                $validMembers = array_filter($this->family_members, function($member) {
+                    return !empty($member['type']) &&
+                           !empty($member['birth_year']) &&
+                           !empty($member['profession']);
+                });
+                if (!empty($validMembers)) {
+                    $this->candidate->family_members = array_values($validMembers);
+                }
             }
         }
 

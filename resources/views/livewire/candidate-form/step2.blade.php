@@ -44,70 +44,167 @@
             </div>
         </div>
 
-        <!-- Семья -->
-        <div>
-            <label class="block text-sm font-medium text-gray-700">Члены семьи</label>
-            <div class="space-y-4">
-                @foreach($family_members as $index => $member)
-                    <div class="p-4 bg-gray-50 rounded-lg">
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Тип родства <span class="text-red-500">*</span>
-                                </label>
-                                <select wire:model="family_members.{{ $index }}.type" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Выберите тип родства</option>
-                                    <option value="Отец">Отец</option>
-                                    <option value="Мать">Мать</option>
-                                    <option value="Брат">Брат</option>
-                                    <option value="Сестра">Сестра</option>
-                                    <option value="Жена">Жена</option>
-                                    <option value="Муж">Муж</option>
-                                    <option value="Сын">Сын</option>
-                                    <option value="Дочь">Дочь</option>
-                                </select>
-                                @error("family_members.{$index}.type") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                            </div>
+        <!-- Новая структура семьи -->
+        <div class="space-y-6">
+            <!-- Родители -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Родители</label>
+                <div class="space-y-4">
+                    @foreach($parents as $index => $parent)
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Родство <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model="parents.{{ $index }}.relation" 
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Выберите</option>
+                                        <option value="Отец">Отец</option>
+                                        <option value="Мать">Мать</option>
+                                    </select>
+                                    @error("parents.{$index}.relation") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Год рождения <span class="text-red-500">*</span>
-                                </label>
-                                <select wire:model="family_members.{{ $index }}.birth_year" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Год рождения</option>
-                                    @foreach($familyYears as $year)
-                                        <option value="{{ $year }}">{{ $year }}</option>
-                                    @endforeach
-                                </select>
-                                @error("family_members.{$index}.birth_year") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                            </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Год рождения <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model="parents.{{ $index }}.birth_year" 
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Год рождения</option>
+                                        @foreach($familyYears as $year)
+                                            <option value="{{ $year }}">{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error("parents.{$index}.birth_year") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700">
-                                    Профессия <span class="text-red-500">*</span>
-                                </label>
-                                <input type="text" 
-                                       wire:model="family_members.{{ $index }}.profession" 
-                                       placeholder="Профессия"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                @error("family_members.{$index}.profession") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Профессия <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           wire:model="parents.{{ $index }}.profession" 
+                                           placeholder="Профессия"
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("parents.{$index}.profession") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" wire:click="removeParent({{ $index }})" class="text-red-600 hover:text-red-800">
+                                    Удалить
+                                </button>
                             </div>
                         </div>
-                        <div class="mt-2">
-                            <button type="button" wire:click="removeFamilyMember({{ $index }})" class="text-red-600 hover:text-red-800">
-                                Удалить
-                            </button>
-                        </div>
-                    </div>
-                @endforeach
+                    @endforeach
 
-                <button type="button" 
-                        wire:click="addFamilyMember" 
-                        class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
-                    Добавить члена семьи
-                </button>
+                    @if(count($parents) < 2)
+                        <button type="button" 
+                                wire:click="addParent" 
+                                class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                            Добавить родителя
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Братья и сестры -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Братья и сестры</label>
+                <div class="space-y-4">
+                    @foreach($siblings as $index => $sibling)
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Родство <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model="siblings.{{ $index }}.relation" 
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Выберите</option>
+                                        <option value="Брат">Брат</option>
+                                        <option value="Сестра">Сестра</option>
+                                    </select>
+                                    @error("siblings.{$index}.relation") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Год рождения <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model="siblings.{{ $index }}.birth_year" 
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Год рождения</option>
+                                        @foreach($familyYears as $year)
+                                            <option value="{{ $year }}">{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error("siblings.{$index}.birth_year") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" wire:click="removeSibling({{ $index }})" class="text-red-600 hover:text-red-800">
+                                    Удалить
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <button type="button" 
+                            wire:click="addSibling" 
+                            class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                        Добавить брата/сестру
+                    </button>
+                </div>
+            </div>
+
+            <!-- Дети -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Дети</label>
+                <div class="space-y-4">
+                    @foreach($children as $index => $child)
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Имя ребенка <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" 
+                                           wire:model="children.{{ $index }}.name" 
+                                           placeholder="Имя ребенка"
+                                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    @error("children.{$index}.name") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700">
+                                        Год рождения <span class="text-red-500">*</span>
+                                    </label>
+                                    <select wire:model="children.{{ $index }}.birth_year" 
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                        <option value="">Год рождения</option>
+                                        @foreach($familyYears as $year)
+                                            <option value="{{ $year }}">{{ $year }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error("children.{$index}.birth_year") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" wire:click="removeChild({{ $index }})" class="text-red-600 hover:text-red-800">
+                                    Удалить
+                                </button>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <button type="button" 
+                            wire:click="addChild" 
+                            class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500">
+                        Добавить ребенка
+                    </button>
+                </div>
             </div>
         </div>
 

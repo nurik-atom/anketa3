@@ -293,37 +293,30 @@
                              <span class="w-60 text-base text-gray-600">Семейное положение:</span>
                              <span class="text-base font-medium">{{ $candidate->marital_status ?: 'Не указано' }}</span>
                          </div>
-                         @if($candidate->family_members && count($candidate->family_members) > 0)
-                             <div class="flex">
-                                 <span class="w-60 text-base text-gray-600">Дети:</span>
-                                 <span class="text-base font-medium">
-                                     @php
-                                         $children = collect($candidate->family_members)->where('type', 'like', '%сын%')->union(
-                                             collect($candidate->family_members)->where('type', 'like', '%дочь%')
-                                         )->union(
-                                             collect($candidate->family_members)->where('type', 'like', '%ребенок%')
-                                         );
-                                     @endphp
-                                     @if($children->count() > 0)
-                                         {{ $children->count() > 1 ? 'Есть' : 'Есть' }}
-                                     @else
-                                         Нет
-                                     @endif
-                                 </span>
-                             </div>
-                         @endif
+                         @php
+                             $family = $candidate->getFamilyStructured();
+                         @endphp
+                         
+                         <!-- Дети -->
+                         <div class="flex">
+                             <span class="w-60 text-base text-gray-600">Дети:</span>
+                             <span class="text-base font-medium">
+                                 @if(!empty($family['children']))
+                                     Есть ({{ count($family['children']) }})
+                                 @else
+                                     Нет
+                                 @endif
+                             </span>
+                         </div>
 
-                         @if($candidate->family_members && count($candidate->family_members) > 0)
-                             <div class="flex">
-                                 <span class="w-60 text-base text-gray-600">Родители:</span>
-                                 <span class="text-base font-medium">
-                                 @php
-                                     $parents = collect($candidate->family_members)->whereIn('type', ['Отец', 'Мать']);
-                                 @endphp
-                                 @if($parents->count() > 0)
-                                     @foreach($parents as $parent)
+                         <!-- Родители -->
+                         <div class="flex">
+                             <span class="w-60 text-base text-gray-600">Родители:</span>
+                             <span class="text-base font-medium">
+                                 @if(!empty($family['parents']))
+                                     @foreach($family['parents'] as $parent)
                                          <div class="text-base font-medium">
-                                             {{ $parent['type'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
+                                             {{ $parent['relation'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
                                              @if(!empty($parent['profession']))
                                                  - {{ $parent['profession'] }}
                                              @endif
@@ -332,32 +325,24 @@
                                  @else
                                      <span class="text-base font-medium">Информация не указана</span>
                                  @endif
-                                 </span>
-                             </div>
-                         @endif
+                             </span>
+                         </div>
 
-                         @if($candidate->family_members && count($candidate->family_members) > 0)
-                             <div class="flex">
-                                 <span class="w-60 text-base text-gray-600">Кол-во братьев-сестер:</span>
-                                 <span class="text-base font-medium">
-                                 @php
-                                     $parents = collect($candidate->family_members)->whereIn('type', ['Брат', 'Сестра']);
-                                 @endphp
-                                     @if($parents->count() > 0)
-                                         @foreach($parents as $parent)
-                                             <div class="text-base font-medium">
-                                             {{ $parent['type'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
-                                                 @if(!empty($parent['profession']))
-                                                     - {{ $parent['profession'] }}
-                                                 @endif
+                         <!-- Братья и сестры -->
+                         <div class="flex">
+                             <span class="w-60 text-base text-gray-600">Кол-во братьев-сестер:</span>
+                             <span class="text-base font-medium">
+                                 @if(!empty($family['siblings']))
+                                     @foreach($family['siblings'] as $sibling)
+                                         <div class="text-base font-medium">
+                                             {{ $sibling['relation'] ?? 'Не указано' }} - {{ $sibling['birth_year'] ?? 'Не указано' }}
                                          </div>
-                                         @endforeach
-                                     @else
-                                         <span class="text-base font-medium">Информация не указана</span>
-                                     @endif
-                                 </span>
-                             </div>
-                         @endif
+                                     @endforeach
+                                 @else
+                                     <span class="text-base font-medium">Информация не указана</span>
+                                 @endif
+                             </span>
+                         </div>
 
                      </div>
                 </div>

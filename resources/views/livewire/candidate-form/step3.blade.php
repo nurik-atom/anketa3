@@ -337,7 +337,7 @@
             <div>
                 <div class="flex items-center justify-between">
                     <label class="block text-sm font-medium text-gray-700">
-                        Удовлетворенность текущей работой (1-10)
+                        Удовлетворенность текущей работой (1-5)
                     </label>
                     <span id="satisfaction-display" class="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-md">
                         @if($job_satisfaction && $job_satisfaction > 1)
@@ -353,7 +353,7 @@
                            name="job_satisfaction"
                            value="{{ $job_satisfaction ?? 1 }}"
                            min="1" 
-                           max="10" 
+                           max="5" 
                            step="1"
                            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
                                   [&::-webkit-slider-thumb]:w-4

@@ -138,6 +138,122 @@ class Candidate extends Model
         return $this->hasMany(GallupReport::class);
     }
 
+    /**
+     * Получает структурированные данные о семье
+     */
+    public function getFamilyStructured()
+    {
+        $familyData = $this->family_members ?? [];
+        
+        // Если это новая структура
+        if (is_array($familyData) && isset($familyData['parents'])) {
+            return [
+                'parents' => $familyData['parents'] ?? [],
+                'siblings' => $familyData['siblings'] ?? [],
+                'children' => $familyData['children'] ?? [],
+                'is_new_structure' => true
+            ];
+        }
+        
+        // Если это старая структура - преобразуем
+        $parents = [];
+        $siblings = [];
+        $children = [];
+        
+        if (is_array($familyData)) {
+            foreach ($familyData as $member) {
+                if (!is_array($member)) continue;
+                
+                $type = $member['type'] ?? '';
+                switch ($type) {
+                    case 'Отец':
+                    case 'Мать':
+                        $parents[] = [
+                            'relation' => $type,
+                            'birth_year' => $member['birth_year'] ?? '',
+                            'profession' => $member['profession'] ?? ''
+                        ];
+                        break;
+                    case 'Брат':
+                    case 'Сестра':
+                        $siblings[] = [
+                            'relation' => $type,
+                            'birth_year' => $member['birth_year'] ?? ''
+                        ];
+                        break;
+                    case 'Сын':
+                    case 'Дочь':
+                        $children[] = [
+                            'name' => $member['profession'] ?? '', // В старой структуре имя было в поле profession
+                            'birth_year' => $member['birth_year'] ?? ''
+                        ];
+                        break;
+                }
+            }
+        }
+        
+        return [
+            'parents' => $parents,
+            'siblings' => $siblings,
+            'children' => $children,
+            'is_new_structure' => false
+        ];
+    }
+
+    /**
+     * Получает форматированный список родителей
+     */
+    public function getFormattedParents()
+    {
+        $family = $this->getFamilyStructured();
+        $formatted = [];
+        
+        foreach ($family['parents'] as $parent) {
+            $line = $parent['relation'] ?? 'Не указано';
+            $line .= ' - ' . ($parent['birth_year'] ?? 'Не указано') . ' г.р.';
+            if (!empty($parent['profession'])) {
+                $line .= ' - ' . $parent['profession'];
+            }
+            $formatted[] = $line;
+        }
+        
+        return $formatted;
+    }
+
+    /**
+     * Получает форматированный список братьев и сестер
+     */
+    public function getFormattedSiblings()
+    {
+        $family = $this->getFamilyStructured();
+        $formatted = [];
+        
+        foreach ($family['siblings'] as $sibling) {
+            $line = $sibling['relation'] ?? 'Не указано';
+            $line .= ' - ' . ($sibling['birth_year'] ?? 'Не указано') . ' г.р.';
+            $formatted[] = $line;
+        }
+        
+        return $formatted;
+    }
+
+    /**
+     * Получает форматированный список детей
+     */
+    public function getFormattedChildren()
+    {
+        $family = $this->getFamilyStructured();
+        $formatted = [];
+        
+        foreach ($family['children'] as $child) {
+            $line = $child['name'] ?? 'Не указано';
+            $line .= ' - ' . ($child['birth_year'] ?? 'Не указано') . ' г.р.';
+            $formatted[] = $line;
+        }
+        
+        return $formatted;
+    }
+
     public function gallupReportByType(string $type): ?GallupReport
     {
         return $this->gallupReports()->where('type', $type)->latest()->first();

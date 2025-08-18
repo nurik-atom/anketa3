@@ -194,22 +194,73 @@
 
             <!-- Родственники -->
             <div class="mb-8">
-                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Родственники</h2>
-                @if($candidate->family_members && count($candidate->family_members) > 0)
-                    <div class="space-y-2">
-                        @foreach($candidate->family_members as $index => $member)
-                            <div class="flex text-base">
-                                <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
-                                <span class="flex-1">
-                                    <span class="font-medium">{{ $member['type'] ?? 'Не указано' }}</span> - 
-                                    <span class="font-medium">{{ $member['birth_year'] ?? 'Не указано' }} г.р.</span> - 
-                                    <span>{{ $member['profession'] ?? 'Не указано' }}</span>
-                                </span>
+                <h2 class="section-header text-sm font-medium text-gray-500 p-3 mb-4">Семья</h2>
+                @php
+                    $family = $candidate->getFamilyStructured();
+                    $hasFamily = !empty($family['parents']) || !empty($family['siblings']) || !empty($family['children']);
+                @endphp
+                
+                @if($hasFamily)
+                    <div class="space-y-4">
+                        <!-- Родители -->
+                        @if(!empty($family['parents']))
+                            <div>
+                                <h3 class="text-base font-medium text-gray-700 mb-2">Родители:</h3>
+                                <div class="space-y-1 ml-4">
+                                    @foreach($family['parents'] as $index => $parent)
+                                        <div class="flex text-base">
+                                            <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
+                                            <span class="flex-1">
+                                                <span class="font-medium">{{ $parent['relation'] ?? 'Не указано' }}</span> - 
+                                                <span class="font-medium">{{ $parent['birth_year'] ?? 'Не указано' }} г.р.</span>
+                                                @if(!empty($parent['profession']))
+                                                    - <span>{{ $parent['profession'] }}</span>
+                                                @endif
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                        @endforeach
+                        @endif
+
+                        <!-- Братья и сестры -->
+                        @if(!empty($family['siblings']))
+                            <div>
+                                <h3 class="text-base font-medium text-gray-700 mb-2">Братья и сестры:</h3>
+                                <div class="space-y-1 ml-4">
+                                    @foreach($family['siblings'] as $index => $sibling)
+                                        <div class="flex text-base">
+                                            <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
+                                            <span class="flex-1">
+                                                <span class="font-medium">{{ $sibling['relation'] ?? 'Не указано' }}</span> - 
+                                                <span class="font-medium">{{ $sibling['birth_year'] ?? 'Не указано' }} г.р.</span>
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Дети -->
+                        @if(!empty($family['children']))
+                            <div>
+                                <h3 class="text-base font-medium text-gray-700 mb-2">Дети:</h3>
+                                <div class="space-y-1 ml-4">
+                                    @foreach($family['children'] as $index => $child)
+                                        <div class="flex text-base">
+                                            <span class="w-8 text-gray-600">{{ $index + 1 }}.</span>
+                                            <span class="flex-1">
+                                                <span class="font-medium">{{ $child['name'] ?? 'Не указано' }}</span> - 
+                                                <span class="font-medium">{{ $child['birth_year'] ?? 'Не указано' }} г.р.</span>
+                                            </span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 @else
-                    <p class="text-base text-gray-500">Информация о родственниках не указана</p>
+                    <p class="text-base text-gray-500">Информация о семье не указана</p>
                 @endif
             </div>
 
@@ -268,7 +319,7 @@
                             <span class="text-base font-medium">{{ $candidate->total_experience_years ?? 0 }}</span>
                         </div>
                         <div class="flex">
-                            <span class="text-base text-gray-600 w-40">Любит свою работу (из 10):</span>
+                            <span class="text-base text-gray-600 w-40">Любит свою работу (из 5):</span>
                             <span class="text-base font-medium">{{ $candidate->job_satisfaction ?? 'Не указано' }}</span>
                         </div>
                     </div>
