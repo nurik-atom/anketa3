@@ -201,6 +201,13 @@ class CandidateForm extends Component
 
         if ($candidateId) {
             $this->candidate = Candidate::findOrFail($candidateId);
+            
+            // Дополнительная проверка прав доступа на уровне Livewire компонента
+            // Пользователь может редактировать только свои анкеты, администратор - любые
+            if ($this->candidate->user_id !== auth()->id() && !auth()->user()->is_admin) {
+                abort(403, 'У вас нет прав для редактирования этой анкеты.');
+            }
+            
             $this->loadCandidateData();
             // Если анкета завершена (step >= 5), показываем первый шаг для редактирования
             $this->currentStep = $this->candidate->step >= 5 ? 1 : $this->candidate->step;
@@ -1495,6 +1502,11 @@ class CandidateForm extends Component
             if (!$this->candidate) {
                 $this->candidate = new Candidate();
                 $this->candidate->user_id = auth()->id();
+            } else {
+                // Проверяем права доступа при финальном сохранении
+                if ($this->candidate->user_id !== auth()->id() && !auth()->user()->is_admin) {
+                    abort(403, 'У вас нет прав для изменения этой анкеты.');
+                }
             }
 
             // Basic Information
@@ -1591,8 +1603,14 @@ class CandidateForm extends Component
 
             session()->flash('message', 'Анкета успешно сохранена!');
 
-            // Перенаправляем на дашборд
-            return redirect()->route('dashboard');
+            // Определяем, куда перенаправить пользователя
+            if (auth()->user()->is_admin) {
+                // Администратор возвращается в админ-панель
+                return redirect()->to('/admin/candidates');
+            } else {
+                // Обычный пользователь попадает на дашборд
+                return redirect()->route('dashboard');
+            }
         } catch (\Illuminate\Validation\ValidationException $e) {
             logger()->debug('Validation errors in submit:', $e->errors());
             throw $e;
@@ -1611,6 +1629,11 @@ class CandidateForm extends Component
         if (!$this->candidate) {
             $this->candidate = new Candidate();
             $this->candidate->user_id = auth()->id();
+        } else {
+            // Проверяем права доступа при сохранении существующей анкеты
+            if ($this->candidate->user_id !== auth()->id() && !auth()->user()->is_admin) {
+                abort(403, 'У вас нет прав для изменения этой анкеты.');
+            }
         }
 
         // Базовые данные всегда сохраняем, если они есть

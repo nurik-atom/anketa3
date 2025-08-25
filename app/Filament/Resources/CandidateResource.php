@@ -310,17 +310,6 @@ class CandidateResource extends Resource
                     ),
             ])
             ->actions([
-                // Tables\Actions\Action::make('viewGardnerTest')
-                // ->label('Гарднер')
-                // ->icon('heroicon-o-chart-bar')
-                // ->color('info')
-                // ->url(fn (Candidate $record): string =>
-                //     route('candidate.test') . '?user=' . $record->user_id
-                // )
-                // ->openUrlInNewTab()
-                // ->visible(fn (Candidate $record): bool =>
-                //     $record->user_id !== null && $record->user?->gardnerTestResult !== null
-                // ),
                 Tables\Actions\ActionGroup::make([
                     Tables\Actions\Action::make('Анкета PDF')
                         ->label('Анкета PDF')
@@ -358,13 +347,26 @@ class CandidateResource extends Resource
                     ->visible(fn (Candidate $record): bool =>
                         !empty($record->gallup_pdf) || $record->gallupReports()->exists()
                     ),
-                Tables\Actions\DeleteAction::make()
-                    ->label('Удалить'),
+                    
+                // Кнопка редактирования анкеты (доступна только администраторам)
+                // Перемещена на место кнопки "Удалить" для лучшей видимости
+                Tables\Actions\Action::make('edit_form')
+                    ->label('Редактировать')
+                    ->icon('heroicon-o-pencil')
+                    ->color('primary')
+                    ->url(fn (Candidate $record): string => route('candidate.form', $record->id))
+                    ->openUrlInNewTab(false)
+                    ->visible(fn (): bool => auth()->user()->is_admin ?? false),
+                    
+                // Кнопка удаления временно отключена
+                // Tables\Actions\DeleteAction::make()
+                //     ->label('Удалить'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->label('Удалить'),
+                    // Массовое удаление временно отключено
+                    // Tables\Actions\DeleteBulkAction::make()
+                    //     ->label('Удалить'),
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
