@@ -57,7 +57,7 @@
                                 </div>
                                 
                                 <div class="grid grid-cols-1 gap-2">
-                                    @foreach([1 => 'Полностью согласен', 2 => 'Согласен', 3 => 'Частично согласен', 4 => 'Не согласен', 5 => 'Совершенно не согласен'] as $value => $label)
+                                    @foreach([5 => 'Полностью согласен', 4 => 'Согласен', 3 => 'Частично согласен', 2 => 'Не согласен', 1 => 'Совершенно не согласен'] as $value => $label)
                                         <label class="flex items-center p-3 border border-gray-200 rounded-md hover:bg-gray-50 cursor-pointer {{ isset($answers[$index]) && $answers[$index] == $value ? 'bg-blue-100 border-blue-500' : '' }}">
                                             <input type="radio" 
                                                    name="question_{{ $index }}" 
