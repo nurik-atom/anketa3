@@ -302,9 +302,12 @@
                              <span class="w-60 text-base text-gray-600">Дети:</span>
                              <span class="text-base font-medium">
                                  @if(!empty($family['children']))
-                                     Есть ({{ count($family['children']) }})
+                                     @foreach($family['children'] as $child)
+                                         <span>{{ $child['name'] ?? 'Не указано' }} - {{ $child['birth_year'] ?? 'Не указано' }}</span>
+                                         @if(!$loop->last)<br>@endif
+                                     @endforeach
                                  @else
-                                     Нет
+                                     Не указано
                                  @endif
                              </span>
                          </div>
@@ -315,15 +318,16 @@
                              <span class="text-base font-medium">
                                  @if(!empty($family['parents']))
                                      @foreach($family['parents'] as $parent)
-                                         <div class="text-base font-medium">
+                                         <span>
                                              {{ $parent['relation'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
                                              @if(!empty($parent['profession']))
                                                  - {{ $parent['profession'] }}
                                              @endif
-                                         </div>
+                                         </span>
+                                         @if(!$loop->last)<br>@endif
                                      @endforeach
                                  @else
-                                     <span class="text-base font-medium">Информация не указана</span>
+                                     Не указано
                                  @endif
                              </span>
                          </div>
@@ -333,13 +337,12 @@
                              <span class="w-60 text-base text-gray-600">Кол-во братьев-сестер:</span>
                              <span class="text-base font-medium">
                                  @if(!empty($family['siblings']))
+                                     {{ count($family['siblings']) }}
                                      @foreach($family['siblings'] as $sibling)
-                                         <div class="text-base font-medium">
-                                             {{ $sibling['relation'] ?? 'Не указано' }} - {{ $sibling['birth_year'] ?? 'Не указано' }}
-                                         </div>
+                                         ({{ ($sibling['relation'] ?? 'Не указано') === 'Брат' ? 'Б' : 'С' }}{{ $sibling['birth_year'] ?? 'Не указано' }})
                                      @endforeach
                                  @else
-                                     <span class="text-base font-medium">Информация не указана</span>
+                                     Не указано
                                  @endif
                              </span>
                          </div>

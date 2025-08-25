@@ -140,58 +140,52 @@
                 
                 @if($hasFamily)
                     <div class="space-y-3">
-                        <!-- Родители -->
-                        @if(!empty($family['parents']))
-                            <div>
-                                <h3 class="text-sm font-medium text-gray-700 mb-1">Родители:</h3>
-                                <div class="space-y-1 ml-3">
-                                    @foreach($family['parents'] as $index => $parent)
-                                        <div class="flex text-xs">
-                                            <span class="w-4 text-gray-600">{{ $index + 1 }}.</span>
-                                            <span class="flex-1">
-                                                <span class="font-medium">{{ $parent['relation'] ?? 'Не указано' }}</span> - 
-                                                <span class="font-medium">{{ $parent['birth_year'] ?? 'Не указано' }} г.р.</span>
-                                                @if(!empty($parent['profession']))
-                                                    - <span>{{ $parent['profession'] }}</span>
-                                                @endif
-                                            </span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
-                        <!-- Братья и сестры -->
-                        @if(!empty($family['siblings']))
-                            <div>
-                                <h3 class="text-sm font-medium text-gray-700 mb-1">Братья и сестры:</h3>
-                                <div class="space-y-1 ml-3">
-                                    @foreach($family['siblings'] as $index => $sibling)
-                                        <div class="flex text-xs">
-                                            <span class="w-4 text-gray-600">{{ $index + 1 }}.</span>
-                                            <span class="flex-1">
-                                                <span class="font-medium">{{ $sibling['relation'] ?? 'Не указано' }}</span> - 
-                                                <span class="font-medium">{{ $sibling['birth_year'] ?? 'Не указано' }} г.р.</span>
-                                            </span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-
                         <!-- Дети -->
                         @if(!empty($family['children']))
                             <div>
                                 <h3 class="text-sm font-medium text-gray-700 mb-1">Дети:</h3>
-                                <div class="space-y-1 ml-3">
+                                <div class="ml-3">
                                     @foreach($family['children'] as $index => $child)
-                                        <div class="flex text-xs">
-                                            <span class="w-4 text-gray-600">{{ $index + 1 }}.</span>
-                                            <span class="flex-1">
-                                                <span class="font-medium">{{ $child['name'] ?? 'Не указано' }}</span> - 
-                                                <span class="font-medium">{{ $child['birth_year'] ?? 'Не указано' }} г.р.</span>
-                                            </span>
-                                        </div>
+                                        <span class="text-xs">
+                                            <span class="font-medium">{{ $child['name'] ?? 'Не указано' }}</span> - 
+                                            <span class="font-medium">{{ $child['birth_year'] ?? 'Не указано' }}</span>
+                                        </span>
+                                        @if(!$loop->last)<br>@endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Родители -->
+                        @if(!empty($family['parents']))
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-700 mb-1">Родители:</h3>
+                                <div class="ml-3">
+                                    @foreach($family['parents'] as $index => $parent)
+                                        <span class="text-xs">
+                                            <span class="font-medium">{{ $parent['relation'] ?? 'Не указано' }}</span> - 
+                                            <span class="font-medium">{{ $parent['birth_year'] ?? 'Не указано' }}</span>
+                                            @if(!empty($parent['profession']))
+                                                - <span>{{ $parent['profession'] }}</span>
+                                            @endif
+                                        </span>
+                                        @if(!$loop->last)<br>@endif
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Кол-во братьев-сестер -->
+                        @if(!empty($family['siblings']))
+                            <div>
+                                <h3 class="text-sm font-medium text-gray-700 mb-1">Кол-во братьев-сестер:</h3>
+                                <div class="ml-3">
+                                    <span class="text-xs font-medium">{{ count($family['siblings']) }}</span>
+                                    @foreach($family['siblings'] as $index => $sibling)
+                                        <span class="text-xs">
+                                            ({{ ($sibling['relation'] ?? 'Не указано') === 'Брат' ? 'Б' : 'С' }}{{ $sibling['birth_year'] ?? 'Не указано' }})
+                                        </span>
+                                        @if(!$loop->last) @endif
                                     @endforeach
                                 </div>
                             </div>
