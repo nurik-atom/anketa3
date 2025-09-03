@@ -322,7 +322,7 @@ class CandidateForm extends Component
             'birth_date' => 'required|date|before:today',
             'birth_place' => ['required', 'string', 'max:255', new CyrillicRule()],
         'current_city' => ['required', 'string', 'max:255', new CyrillicRule()],
-            'photo' => !$this->candidate?->photo ? 'required|image|max:2048' : 'nullable|image|max:2048',
+            'photo' => !$this->candidate?->photo ? 'required|image|max:20480' : 'nullable|image|max:20480',
 
             // Step 2 validation rules
             'religion' => 'required|string|in:' . implode(',', array_values(config('lists.religions'))),
@@ -352,13 +352,11 @@ class CandidateForm extends Component
             'school' => ['required', 'string', 'max:255'],
             'universities' => 'nullable|array|min:0',
             'universities.*.name' => 'required|string|max:255',
-            'universities.*.graduation_year' => 'required|integer|min:1950|max:' . date('Y'),
+            'universities.*.graduation_year' => 'required|integer|min:1950',
             'universities.*.speciality' => 'required|string|max:255',
             'universities.*.gpa' => 'required|numeric|min:0|max:4',
             'language_skills' => 'required|array|min:1',
-            'language_skills.*.language' => 'required|string' . (!empty($this->languages) ? '|in:' . implode(',', array_map(function($lang) {
-                return mb_convert_case($lang, MB_CASE_TITLE, 'UTF-8');
-            }, $this->languages)) : ''),
+            'language_skills.*.language' => 'required|string|max:255',
             'language_skills.*.level' => 'required|in:Начальный,Средний,Выше среднего,Продвинутый,В совершенстве',
             'computer_skills' => 'required|string',
             'work_experience' => 'nullable|array|min:0',
@@ -413,7 +411,7 @@ class CandidateForm extends Component
         'birth_date.before' => 'Дата рождения должна быть раньше текущей даты',
         'photo.required' => 'Фото обязательно для загрузки',
         'photo.image' => 'Загружаемый файл должен быть изображением (jpg, jpeg, png)',
-        'photo.max' => 'Размер изображения не должен превышать 2MB',
+        'photo.max' => 'Размер изображения не должен превышать 20MB',
         'gallup_pdf.required' => 'Необходимо загрузить результаты теста Gallup',
         'gallup_pdf.file' => 'Необходимо загрузить файл',
         'gallup_pdf.mimes' => 'Файл должен быть в формате PDF',
@@ -592,18 +590,8 @@ class CandidateForm extends Component
 
         // Если обновляется поле языка, проверяем только если оба поля заполнены
         if (strpos($propertyName, 'language_skills.') === 0) {
-            // Извлекаем индекс языка из имени свойства
-            if (preg_match('/language_skills\.(\d+)\./', $propertyName, $matches)) {
-                $index = $matches[1];
-                // Валидируем только если оба поля заполнены
-                if (!empty($this->language_skills[$index]['language']) && !empty($this->language_skills[$index]['level'])) {
-                    // Обеспечиваем корректную инициализацию языков для валидации
-                    if (empty($this->languages)) {
-                        $this->loadLanguages();
-                    }
-                    $this->validateOnly($propertyName);
-                }
-            }
+            // Валидируем языковые навыки без проверки списка языков
+            $this->validateOnly($propertyName);
             return;
         }
 
@@ -612,10 +600,7 @@ class CandidateForm extends Component
             return $this->isFieldInCurrentStep($field);
         })->toArray();
 
-        // Исключаем валидацию language_skills если языки не загружены
-        if (empty($this->languages) && isset($rules['language_skills.*.language'])) {
-            unset($rules['language_skills.*.language']);
-        }
+
 
         $this->validateOnly($propertyName, $rules);
 
@@ -754,7 +739,7 @@ class CandidateForm extends Component
                 'birth_date' => $allRules['birth_date'],
                 'birth_place' => $allRules['birth_place'],
                 'current_city' => $allRules['current_city'],
-                'photo' => !$this->candidate?->photo ? 'required|image|max:2048' : 'nullable|image|max:2048',
+                'photo' => !$this->candidate?->photo ? 'required|image|max:20480' : 'nullable|image|max:20480',
             ],
             2 => [
                 'religion' => $allRules['religion'],
@@ -1270,6 +1255,8 @@ class CandidateForm extends Component
         }
     }
 
+
+
     public function removeLanguage($index)
     {
         unset($this->language_skills[$index]);
@@ -1297,7 +1284,7 @@ class CandidateForm extends Component
     public function updatedPhoto()
     {
         $this->validate([
-            'photo' => 'image|max:2048' // 2MB
+            'photo' => 'image|max:20480' // 20MB
         ]);
 
         if ($this->photo) {
@@ -1463,7 +1450,7 @@ class CandidateForm extends Component
                 logger()->debug('Photo validation removed (existing file)');
             } else if ($this->candidate && $this->candidate->photo) {
                 // Если есть сохраненное фото, но загружается новое
-                $rules['photo'] = ['nullable', 'image', 'max:2048'];
+                $rules['photo'] = ['nullable', 'image', 'max:20480'];
                 logger()->debug('Photo rule modified to nullable (candidate has existing photo)');
             }
 
@@ -1775,6 +1762,18 @@ class CandidateForm extends Component
             logger()->debug('Country added:', [
                 'visited_countries' => $this->visited_countries,
                 'last_added' => end($this->visited_countries)
+            ]);
+        }
+    }
+
+    public function addCountryByName($countryName)
+    {
+        if ($countryName && !in_array($countryName, $this->visited_countries)) {
+            $this->visited_countries[] = $countryName;
+            
+            logger()->debug('Country added by name:', [
+                'country_name' => $countryName,
+                'visited_countries' => $this->visited_countries
             ]);
         }
     }

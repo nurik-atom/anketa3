@@ -392,7 +392,7 @@
             <!-- Образование -->
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Образование</h2>
-                <div class="grid grid-cols-2 gap-8">
+                <div class="space-y-2">
                     <div>
                         <span class="text-base text-gray-600">Школа:</span>
                         <span class="text-base font-medium">{{ $candidate->school ?: 'Не указано' }}</span>
@@ -477,7 +477,7 @@
                         <span class="w-60 text-base text-gray-600">Интересы:</span>
                         <span class="text-base">{{ $candidate->interests ?: 'Не указано' }}</span>
                     </div>
-                    <div class="flex">
+                    <!-- <div class="flex">
                         <span class="w-60 text-base text-gray-600">Любимые развлечения:</span>
                         <span class="text-base">
                             @if($candidate->entertainment_hours_weekly)
@@ -486,7 +486,7 @@
                                 Не указано
                             @endif
                         </span>
-                    </div>
+                    </div> -->
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Любимые виды спорта:</span>
                         <span class="text-base">

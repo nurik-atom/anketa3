@@ -1,60 +1,137 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+@extends('layouts.auth')
 
-        <x-validation-errors class="mb-4" />
+@section('title', 'Регистрация - Divergents')
 
-        <form method="POST" action="{{ route('register') }}">
-            @csrf
+@section('content')
+<h1>Создать аккаунт</h1>
+<p>Зарегистрируйтесь в системе управления обучением Divergents</p>
 
-            <div>
-                <x-label for="name" value="{{ __('Name') }}" />
-                <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
-            </div>
+<!-- Validation Errors -->
+@if ($errors->any())
+    <div class="error-message">
+        @foreach ($errors->all() as $error)
+            <div>{{ $error }}</div>
+        @endforeach
+    </div>
+@endif
 
-            <div class="mt-4">
-                <x-label for="email" value="{{ __('Email') }}" />
-                <x-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autocomplete="username" />
-            </div>
+<!-- Registration Form -->
+<form method="POST" action="{{ route('register') }}">
+    @csrf
+    
+    <div class="form-group">
+        <input
+            type="text"
+            id="name"
+            name="name"
+            class="form-input"
+            placeholder="Полное имя"
+            value="{{ old('name') }}"
+            required
+            autofocus
+            autocomplete="name"
+        >
+    </div>
 
-            <div class="mt-4">
-                <x-label for="password" value="{{ __('Password') }}" />
-                <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            </div>
+    <div class="form-group">
+        <input
+            type="email"
+            id="email"
+            name="email"
+            class="form-input"
+            placeholder="Email адрес"
+            value="{{ old('email') }}"
+            required
+            autocomplete="username"
+        >
+    </div>
 
-            <div class="mt-4">
-                <x-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
-            </div>
+    <div class="form-group">
+        <div class="password-input-container">
+            <input
+                type="password"
+                id="password"
+                name="password"
+                class="form-input password-input"
+                placeholder="Пароль"
+                required
+                autocomplete="new-password"
+            >
+            <button type="button" class="password-toggle" onclick="togglePassword('password')">
+                <svg class="password-icon show-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg class="password-icon hide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                    <path d="m1 1 22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.71 6.71C4.22 8.04 2.45 10.7 1 12c1.5 2.83 4.95 8 11 8 1.58 0 2.8-.2 3.9-.64" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 10.5A2 2 0 0 1 14 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 
-            @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
-                <div class="mt-4">
-                    <x-label for="terms">
-                        <div class="flex items-center">
-                            <x-checkbox name="terms" id="terms" required />
+    <div class="form-group">
+        <div class="password-input-container">
+            <input
+                type="password"
+                id="password_confirmation"
+                name="password_confirmation"
+                class="form-input password-input"
+                placeholder="Подтвердите пароль"
+                required
+                autocomplete="new-password"
+            >
+            <button type="button" class="password-toggle" onclick="togglePassword('password_confirmation')">
+                <svg class="password-icon show-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <svg class="password-icon hide-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
+                    <path d="m1 1 22 22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M6.71 6.71C4.22 8.04 2.45 10.7 1 12c1.5 2.83 4.95 8 11 8 1.58 0 2.8-.2 3.9-.64" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10.5 10.5A2 2 0 0 1 14 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 
-                            <div class="ms-2">
-                                {!! __('I agree to the :terms_of_service and :privacy_policy', [
-                                        'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Terms of Service').'</a>',
-                                        'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Privacy Policy').'</a>',
-                                ]) !!}
-                            </div>
-                        </div>
-                    </x-label>
-                </div>
-            @endif
+    @if (Laravel\Jetstream\Jetstream::hasTermsAndPrivacyPolicyFeature())
+        <div class="terms-checkbox">
+            <input type="checkbox" name="terms" id="terms" required>
+            <label for="terms">
+                Я согласен с <a href="{{ route('terms.show') }}" target="_blank">Условиями использования</a> и <a href="{{ route('policy.show') }}" target="_blank">Политикой конфиденциальности</a>
+            </label>
+        </div>
+    @endif
 
-            <div class="flex items-center justify-end mt-4">
-                <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                    {{ __('Already registered?') }}
-                </a>
+    <button type="submit" class="btn-auth">
+        Создать аккаунт
+    </button>
+</form>
 
-                <x-button class="ms-4">
-                    {{ __('Register') }}
-                </x-button>
-            </div>
-        </form>
-    </x-authentication-card>
-</x-guest-layout>
+<div class="auth-footer">
+    Уже есть аккаунт? <a href="{{ url('/') }}">Войти в систему</a>
+</div>
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const button = input.nextElementSibling;
+    const showIcon = button.querySelector('.show-icon');
+    const hideIcon = button.querySelector('.hide-icon');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        showIcon.style.display = 'none';
+        hideIcon.style.display = 'block';
+    } else {
+        input.type = 'password';
+        showIcon.style.display = 'block';
+        hideIcon.style.display = 'none';
+    }
+}
+</script>
+@endsection

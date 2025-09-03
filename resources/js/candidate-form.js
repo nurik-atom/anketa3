@@ -215,8 +215,8 @@ function handlePhotoChange(e) {
     console.log('File selected:', file.name);
 
     // Проверки
-    if (file.size > 2 * 1024 * 1024) {
-        alert('Размер файла не должен превышать 2MB');
+    if (file.size > 20 * 1024 * 1024) {
+        alert('Размер файла не должен превышать 20MB');
         e.target.value = '';
         return;
     }

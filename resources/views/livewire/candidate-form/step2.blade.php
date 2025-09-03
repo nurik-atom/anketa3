@@ -229,6 +229,7 @@
             <div>
                 <label class="block text-sm font-medium text-gray-700">Посещенные страны</label>
                 <div class="mt-1">
+                    <!-- Выбранные страны -->
                     <div class="flex flex-wrap gap-2 mb-2 min-h-[2.5rem] bg-gray-50 p-2 rounded-md">
                         @foreach($visited_countries as $index => $country)
                             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -249,12 +250,47 @@
                             </span>
                         @endforeach
                     </div>
-                    <select wire:model="newCountry" wire:change="addCountry" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Выберите страну</option>
-                        @foreach($countries as $country)
-                            <option value="{{ $country['name_ru'] }}">{{ $country['name_ru'] }}</option>
-                        @endforeach
-                    </select>
+                    
+                    <!-- Поиск стран -->
+                    <div class="relative" x-data="countrySearch()">
+                        <input 
+                            type="text" 
+                            x-model="search"
+                            @click="showDropdown = true"
+                            @keydown.escape="showDropdown = false"
+                            @keydown.arrow-down.prevent="highlightNext()"
+                            @keydown.arrow-up.prevent="highlightPrev()"
+                            @keydown.enter.prevent="selectHighlighted()"
+                            placeholder="Поиск страны..."
+                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10"
+                            autocomplete="off"
+                        >
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        
+                        <!-- Выпадающий список -->
+                        <div x-show="showDropdown && filteredCountries.length > 0" 
+                             x-transition
+                             @click.away="showDropdown = false"
+                             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
+                            <template x-for="(country, index) in filteredCountries" :key="country.name_ru">
+                                <div @click="selectCountry(country)" 
+                                     :class="{'bg-blue-100': index === highlightedIndex}"
+                                     class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-50">
+                                    <div class="flex items-center">
+                                        <img :src="country.flag_url" 
+                                             :alt="country.name_ru + ' flag'"
+                                             class="inline w-4 h-4 mr-2 align-middle"
+                                             x-show="country.flag_url">
+                                        <span x-text="country.name_ru" class="font-normal block truncate"></span>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
                 </div>
                 @error('visited_countries') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
@@ -404,6 +440,64 @@
     </div>
 </div>
 @endif
+
+<script>
+function countrySearch() {
+    return {
+        search: '',
+        showDropdown: false,
+        highlightedIndex: -1,
+        countries: @json($countries ?? []),
+        
+        get filteredCountries() {
+            if (!this.search.trim()) {
+                return this.countries.slice(0, 10); // Показываем первые 10 стран по умолчанию
+            }
+            
+            const searchTerm = this.search.toLowerCase();
+            return this.countries.filter(country => 
+                country.name_ru.toLowerCase().includes(searchTerm)
+            ).slice(0, 20); // Ограничиваем до 20 результатов
+        },
+        
+        selectCountry(country) {
+            // Добавляем страну через Livewire
+            @this.call('addCountryByName', country.name_ru);
+            
+            // Очищаем поиск и закрываем dropdown
+            this.search = '';
+            this.showDropdown = false;
+            this.highlightedIndex = -1;
+        },
+        
+        highlightNext() {
+            if (this.highlightedIndex < this.filteredCountries.length - 1) {
+                this.highlightedIndex++;
+            }
+        },
+        
+        highlightPrev() {
+            if (this.highlightedIndex > 0) {
+                this.highlightedIndex--;
+            }
+        },
+        
+        selectHighlighted() {
+            if (this.highlightedIndex >= 0 && this.filteredCountries[this.highlightedIndex]) {
+                this.selectCountry(this.filteredCountries[this.highlightedIndex]);
+            }
+        },
+        
+        init() {
+            // Сбрасываем индекс при изменении поиска
+            this.$watch('search', () => {
+                this.highlightedIndex = -1;
+                this.showDropdown = this.search.length > 0 || this.search === '';
+            });
+        }
+    }
+}
+</script>
 
 <!-- Удаляем дублирующиеся скрипты Tom Select --> 
 

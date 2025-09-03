@@ -66,7 +66,7 @@
                         <p class="mt-2 text-sm text-gray-600">
                             <span class="font-semibold">Нажмите для загрузки</span> или перетащите файл
                         </p>
-                        <p class="text-xs text-gray-500 mt-1">PNG, JPG до 2MB (пропорция 3:4)</p>
+                        <p class="text-xs text-gray-500 mt-1">PNG, JPG до 20MB (пропорция 3:4)</p>
                     </div>
                     <input id="photo-input"
                            type="file"

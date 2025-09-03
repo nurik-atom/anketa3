@@ -57,40 +57,24 @@
                                 <input type="number" 
                                        wire:model="universities.{{ $index }}.graduation_year" 
                                        min="1950"
-                                       max="{{ date('Y') }}"
+                                       placeholder="например: {{ date('Y') + 2 }}"
                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                 @error("universities.{$index}.graduation_year") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
-                                <div class="flex items-center justify-between">
-                                    <label class="block text-sm font-medium text-gray-700">
-                                        GPA <span class="text-red-500">*</span>
-                                    </label>
-                                    <span class="px-2 py-1 bg-orange-100 text-orange-800 text-sm font-medium rounded-md">{{ $universities[$index]['gpa'] ?? 0 }}</span>
-                                </div>
-                                <div class="relative mt-2">
-                                    <input type="range" 
-                                           wire:model="universities.{{ $index }}.gpa"
-                                           name="universities[{{ $index }}][gpa]"
-                                           value="{{ $universities[$index]['gpa'] ?? 0 }}"
-                                           min="0" 
-                                           max="4" 
-                                           step="0.01"
-                                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
-                                                  [&::-webkit-slider-thumb]:w-4
-                                                  [&::-webkit-slider-thumb]:h-4
-                                                  [&::-webkit-slider-thumb]:appearance-none
-                                                  [&::-webkit-slider-thumb]:bg-orange-600
-                                                  [&::-webkit-slider-thumb]:rounded-full
-                                                  [&::-webkit-slider-thumb]:cursor-pointer
-                                                  [&::-moz-range-thumb]:w-4
-                                                  [&::-moz-range-thumb]:h-4
-                                                  [&::-moz-range-thumb]:appearance-none
-                                                  [&::-moz-range-thumb]:bg-orange-600
-                                                  [&::-moz-range-thumb]:rounded-full
-                                                  [&::-moz-range-thumb]:cursor-pointer">
-                                </div>
+                                <label class="block text-sm font-medium text-gray-700">
+                                    GPA <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" 
+                                       wire:model="universities.{{ $index }}.gpa"
+                                       name="universities[{{ $index }}][gpa]"
+                                       min="0" 
+                                       max="4.0" 
+                                       step="0.01"
+                                       placeholder="например: 3.75"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <p class="mt-1 text-xs text-gray-500">Введите значение от 0 до 4.0</p>
                                 @error("universities.{$index}.gpa") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
                         </div>
@@ -175,7 +159,7 @@
         </div>
 
         <!-- Языковые навыки -->
-        <div>
+        <div class="mb-6">
             <label class="block text-sm font-medium text-gray-700">Языковые навыки</label>
             <div class="space-y-4">
                 @foreach($language_skills as $index => $skill)
@@ -183,13 +167,10 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Язык</label>
-                                <select wire:model="language_skills.{{ $index }}.language" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Выберите язык</option>
-                                    @foreach($languages as $name)
-                                        <option value="{{ mb_convert_case($name, MB_CASE_TITLE, 'UTF-8') }}">{{ mb_convert_case($name, MB_CASE_TITLE, 'UTF-8') }}</option>
-                                    @endforeach
-                                </select>
+                                <input type="text" 
+                                       wire:model="language_skills.{{ $index }}.language" 
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                       placeholder="Например: Русский, Английский, Казахский">
                                 @error("language_skills.{$index}.language") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
@@ -222,8 +203,9 @@
                 </button>
             </div>
         </div>
-<!-- Желаемая должность и Ожидаемая зарплата в одном ряду -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+        <!-- Желаемая должность и Ожидаемая зарплата в одном ряду -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             <!-- Желаемая должность -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">
@@ -241,12 +223,27 @@
                 <label class="block text-sm font-medium text-gray-700">
                     Ожидаемая зарплата (тенге) <span class="text-red-500">*</span>
                 </label>
-                <input type="number" 
-                       wire:model="expected_salary" 
-                       min="0" 
-                       step="1000"
-                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                       placeholder="Введите ожидаемую зарплату">
+                <div class="relative mt-1">
+                    <input type="text" 
+                           id="expected_salary_formatted"
+                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-12"
+                           placeholder="500 000"
+                           autocomplete="off"
+                           oninput="formatSalary(this)"
+                           onpaste="handleSalaryPaste(event)"
+                           onkeypress="return allowOnlyNumbers(event)"
+                           onfocus="initializeSalaryField()"
+                           onblur="initializeSalaryField()">
+                    <input type="hidden" 
+                           wire:model="expected_salary" 
+                           id="expected_salary_hidden">
+                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">₸</span>
+                    </div>
+                </div>
+                
+
+                <p class="mt-1 text-xs text-gray-500">Введите сумму без копеек, например: 500 000</p>
                 @error('expected_salary') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
         </div>
@@ -378,9 +375,222 @@
 </div>
 @endif 
 
-@push('scripts')
 <script>
-// JavaScript код для ползунков теперь находится в step2.blade.php (универсальный обработчик)
-// Этот блок можно удалить
+// Глобальные функции для форматирования зарплаты
+window.formatSalary = function(input) {
+    console.log('formatSalary called with:', input.value);
+    
+    // Получаем только цифры
+    let numericValue = input.value.replace(/\D/g, '');
+    console.log('Numeric value:', numericValue);
+    
+    // Форматируем с пробелами
+    let formatted = '';
+    if (numericValue) {
+        formatted = numericValue.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    }
+    
+    console.log('Formatted value:', formatted);
+    
+    // Устанавливаем отформатированное значение
+    input.value = formatted;
+    
+    // Обновляем скрытое поле
+    const hiddenInput = document.getElementById('expected_salary_hidden');
+    if (hiddenInput) {
+        hiddenInput.value = numericValue;
+        // Уведомляем Livewire
+        hiddenInput.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+};
+
+window.allowOnlyNumbers = function(event) {
+    const key = event.key;
+    console.log('Key pressed:', key);
+    
+    // Разрешаем цифры
+    if (key >= '0' && key <= '9') {
+        return true;
+    }
+    
+    // Разрешаем служебные клавиши
+    if (['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+        return true;
+    }
+    
+    // Блокируем все остальное
+    console.log('Blocked key:', key);
+    event.preventDefault();
+    return false;
+};
+
+window.handleSalaryPaste = function(event) {
+    event.preventDefault();
+    console.log('Paste event triggered');
+    
+    // Получаем вставляемый текст
+    const paste = (event.clipboardData || window.clipboardData).getData('text');
+    console.log('Pasted text:', paste);
+    
+    // Извлекаем только цифры
+    const numericOnly = paste.replace(/\D/g, '');
+    console.log('Numeric from paste:', numericOnly);
+    
+    if (numericOnly) {
+        // Устанавливаем значение и форматируем
+        const input = event.target;
+        input.value = numericOnly;
+        window.formatSalary(input);
+    }
+};
+
+// Функция инициализации поля зарплаты
+function initializeSalaryField() {
+    console.log('=== Initializing salary field ===');
+    
+    const formattedInput = document.getElementById('expected_salary_formatted');
+    const hiddenInput = document.getElementById('expected_salary_hidden');
+    
+    console.log('Formatted input found:', !!formattedInput);
+    console.log('Hidden input found:', !!hiddenInput);
+    
+    if (formattedInput && hiddenInput) {
+        console.log('Hidden input value:', hiddenInput.value);
+        console.log('Hidden input value type:', typeof hiddenInput.value);
+        console.log('Hidden input value length:', hiddenInput.value ? hiddenInput.value.length : 0);
+        
+        // Проверяем wire:model значение через Livewire
+        if (window.Livewire) {
+            const component = window.Livewire.find(hiddenInput.closest('[wire\\:id]')?.getAttribute('wire:id'));
+            if (component && component.data.expected_salary) {
+                console.log('Livewire expected_salary:', component.data.expected_salary);
+                
+                let value = component.data.expected_salary.toString();
+                if (value.includes('.')) {
+                    value = value.split('.')[0];
+                }
+                
+                if (value && value !== '0') {
+                    const formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+                    formattedInput.value = formatted;
+                    console.log('Set from Livewire data:', formatted);
+                    return;
+                }
+            }
+        }
+        
+        if (hiddenInput.value && hiddenInput.value !== '0' && hiddenInput.value !== '') {
+            // Убираем десятичную часть (.00) если есть
+            let value = hiddenInput.value.toString();
+            if (value.includes('.')) {
+                value = value.split('.')[0];
+            }
+            
+            console.log('Cleaned value:', value);
+            
+            // Форматируем и устанавливаем значение
+            const formatted = value.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+            formattedInput.value = formatted;
+            
+            console.log('Set formatted value:', formatted);
+        } else {
+            console.log('No valid value to format');
+        }
+    } else {
+        console.log('Salary inputs not found');
+    }
+    console.log('=== End salary field initialization ===');
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded');
+    setTimeout(initializeSalaryField, 100);
+    setTimeout(initializeSalaryField, 500);
+    setTimeout(initializeSalaryField, 1000);
+    setTimeout(initializeSalaryField, 2000);
+});
+
+// Инициализация после загрузки Livewire
+document.addEventListener('livewire:load', function() {
+    console.log('Livewire loaded');
+    setTimeout(initializeSalaryField, 100);
+    setTimeout(initializeSalaryField, 500);
+});
+
+// Инициализация после обновлений Livewire
+document.addEventListener('livewire:update', function() {
+    console.log('Livewire updated');
+    setTimeout(initializeSalaryField, 100);
+});
+
+// Для новых версий Livewire
+if (typeof Livewire !== 'undefined') {
+    Livewire.hook('message.processed', (message, component) => {
+        console.log('Livewire message processed');
+        setTimeout(initializeSalaryField, 100);
+    });
+}
+
+// Дополнительная инициализация при фокусе на поле
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'expected_salary_formatted') {
+        console.log('Salary field clicked, attempting initialization');
+        initializeSalaryField();
+    }
+});
+
+// Инициализация при изменении window
+window.addEventListener('load', function() {
+    console.log('Window loaded');
+    setTimeout(initializeSalaryField, 500);
+    setTimeout(initializeSalaryField, 1000);
+});
+
+// Наблюдатель за изменениями DOM для автоматической инициализации
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+            const salaryField = document.getElementById('expected_salary_formatted');
+            if (salaryField && !salaryField.hasAttribute('data-initialized')) {
+                console.log('Salary field detected in DOM, initializing...');
+                salaryField.setAttribute('data-initialized', 'true');
+                setTimeout(initializeSalaryField, 100);
+                setTimeout(initializeSalaryField, 500);
+                setTimeout(initializeSalaryField, 1000);
+            }
+        }
+    });
+});
+
+// Запускаем наблюдатель
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
+});
+
+// Инициализация при видимости элемента
+const checkVisibilityAndInit = function() {
+    const salaryField = document.getElementById('expected_salary_formatted');
+    if (salaryField) {
+        const rect = salaryField.getBoundingClientRect();
+        if (rect.width > 0 && rect.height > 0) {
+            console.log('Salary field is visible, initializing...');
+            initializeSalaryField();
+            return true;
+        }
+    }
+    return false;
+};
+
+// Проверяем видимость каждые 500ms в течение первых 10 секунд
+let visibilityCheckCount = 0;
+const visibilityInterval = setInterval(function() {
+    visibilityCheckCount++;
+    if (checkVisibilityAndInit() || visibilityCheckCount >= 20) {
+        clearInterval(visibilityInterval);
+    }
+}, 500);
 </script>
-@endpush 
+
+ 

@@ -11,7 +11,7 @@ class PhotoController extends Controller
     public function upload(Request $request)
     {
         $request->validate([
-            'photo' => 'required|image|max:5120' // максимум 5MB
+            'photo' => 'required|image|max:20480' // максимум 20MB
         ]);
 
         if ($request->hasFile('photo')) {
