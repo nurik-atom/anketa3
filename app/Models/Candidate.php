@@ -69,7 +69,7 @@ class Candidate extends Model
         'language_skills' => 'array',
         'computer_skills' => 'string',
         'work_experience' => 'array',
-        'books_per_year' => 'integer',
+        'books_per_year' => 'string',
         'entertainment_hours_weekly' => 'integer',
         'educational_hours_weekly' => 'integer',
         'social_media_hours_weekly' => 'integer',

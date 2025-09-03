@@ -130,9 +130,19 @@ class CandidateResource extends Resource
                         Forms\Components\Textarea::make('interests')
                             ->label('Интересы')
                             ->columnSpanFull(),
-                        Forms\Components\TextInput::make('books_per_year')
+                        Forms\Components\Select::make('books_per_year')
                             ->label('Книг в год')
-                            ->numeric()
+                            ->options([
+                                '0' => '0 книг',
+                                '1-2' => '1-2 книги',
+                                '3-5' => '3-5 книг',
+                                '6-10' => '6-10 книг',
+                                '11-15' => '11-15 книг',
+                                '16-20' => '16-20 книг',
+                                '21-30' => '21-30 книг',
+                                '31-50' => '31-50 книг',
+                                '50+' => 'Более 50 книг',
+                            ])
                             ->default(null),
                         Forms\Components\TextInput::make('entertainment_hours_weekly')
                             ->label('Часов развлечений в неделю')

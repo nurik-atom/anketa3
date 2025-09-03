@@ -307,33 +307,22 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
             <!-- Количество книг читаемых в год -->
             <div>
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700 min-h-[3rem] flex items-center">Количество книг читаемых в год</label>
-                    <div class="flex justify-end">
-                        <span class="px-2 py-1 bg-blue-100 text-blue-800 text-sm font-medium rounded-md">{{ $books_per_year ?? 0 }}</span>
-                    </div>
-                </div>
-                <div class="relative mt-2">
-                    <input type="range" 
-                           wire:model="books_per_year"
-                           name="books_per_year"
-                           value="{{ $books_per_year ?? 0 }}"
-                           min="1" 
-                           max="100" 
-                           step="1"
-                           class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer
-                                  [&::-webkit-slider-thumb]:w-4
-                                  [&::-webkit-slider-thumb]:h-4
-                                  [&::-webkit-slider-thumb]:appearance-none
-                                  [&::-webkit-slider-thumb]:bg-blue-600
-                                  [&::-webkit-slider-thumb]:rounded-full
-                                  [&::-webkit-slider-thumb]:cursor-pointer
-                                  [&::-moz-range-thumb]:w-4
-                                  [&::-moz-range-thumb]:h-4
-                                  [&::-moz-range-thumb]:appearance-none
-                                  [&::-moz-range-thumb]:bg-blue-600
-                                  [&::-moz-range-thumb]:rounded-full
-                                  [&::-moz-range-thumb]:cursor-pointer">
+                <label class="block text-sm font-medium text-gray-700 min-h-[3rem] flex items-center">Количество книг читаемых в год</label>
+                <div class="mt-2">
+                    <select wire:model="books_per_year" 
+                            name="books_per_year"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors">
+                        <option value="">Выберите количество</option>
+                        <option value="0">0 книг</option>
+                        <option value="1-2">1-2 книги</option>
+                        <option value="3-5">3-5 книг</option>
+                        <option value="6-10">6-10 книг</option>
+                        <option value="11-15">11-15 книг</option>
+                        <option value="16-20">16-20 книг</option>
+                        <option value="21-30">21-30 книг</option>
+                        <option value="31-50">31-50 книг</option>
+                        <option value="50+">Более 50 книг</option>
+                    </select>
                 </div>
                 @error('books_per_year') <span class="text-red-500 text-sm mt-1">{{ $message }}</span> @enderror
             </div>

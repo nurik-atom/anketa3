@@ -341,7 +341,7 @@ class CandidateForm extends Component
             'interests' => ['required', 'string', 'max:1000'],
             'visited_countries' => 'required|array|min:1',
             'visited_countries.*' => 'required|string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
-            'books_per_year' => 'required|integer|min:0',
+            'books_per_year' => 'required|string|max:50',
             'favorite_sports' => ['required', 'string', 'max:1000', new CyrillicRule()],
             'entertainment_hours_weekly' => 'required|integer|min:0|max:168',
             'educational_hours_weekly' => 'required|integer|min:0|max:168',
