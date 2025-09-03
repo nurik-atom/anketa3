@@ -53,6 +53,8 @@ class CandidateForm extends Component
     public $visited_countries = [];
     public $newCountry = '';
     public $books_per_year;
+    public $books_per_year_min = 0;
+    public $books_per_year_max = 50;
     public $favorite_sports = [];
     public $entertainment_hours_weekly;
     public $educational_hours_weekly;
@@ -87,7 +89,10 @@ class CandidateForm extends Component
     {
         try {
             // Устанавливаем значение по умолчанию для books_per_year
-            $this->books_per_year = 0;
+            $this->books_per_year = '0';
+            $this->books_per_year_min = 0;
+            $this->books_per_year_max = 0;
+            $this->updateBooksPerYear();
 
             // Устанавливаем начальные значения для часов в неделю
             $this->entertainment_hours_weekly = 0;
@@ -281,6 +286,10 @@ class CandidateForm extends Component
         $this->interests = $this->candidate->interests;
         $this->visited_countries = $this->candidate->visited_countries ?? [];
         $this->books_per_year = $this->candidate->books_per_year;
+        // Парсим диапазон книг для двойного слайдера
+        $this->parseBooksPerYear($this->candidate->books_per_year);
+        // Обновляем books_per_year на основе диапазона
+        $this->updateBooksPerYear();
         $this->favorite_sports = $this->candidate->favorite_sports ?? [];
         $this->entertainment_hours_weekly = $this->candidate->entertainment_hours_weekly;
         $this->educational_hours_weekly = $this->candidate->educational_hours_weekly;
@@ -341,7 +350,8 @@ class CandidateForm extends Component
             'interests' => ['required', 'string', 'max:1000'],
             'visited_countries' => 'required|array|min:1',
             'visited_countries.*' => 'required|string|in:' . implode(',', collect($this->countries)->pluck('name_ru')->all()),
-            'books_per_year' => 'required|string|max:50',
+            'books_per_year_min' => 'required|integer|min:0|max:100',
+            'books_per_year_max' => 'required|integer|min:0|max:100|gte:books_per_year_min',
             'favorite_sports' => ['required', 'string', 'max:1000', new CyrillicRule()],
             'entertainment_hours_weekly' => 'required|integer|min:0|max:168',
             'educational_hours_weekly' => 'required|integer|min:0|max:168',
@@ -438,7 +448,9 @@ class CandidateForm extends Component
         'hobbies.required' => 'Хобби обязательно для заполнения',
         'interests.required' => 'Интересы обязательны для заполнения',
         'favorite_sports.required' => 'Любимые виды спорта обязательны для заполнения',
-        'books_per_year.required' => 'Количество книг в год обязательно для заполнения',
+        'books_per_year_min.required' => 'Минимальное количество книг в год обязательно для заполнения',
+        'books_per_year_max.required' => 'Максимальное количество книг в год обязательно для заполнения',
+        'books_per_year_max.gte' => 'Максимальное количество книг не может быть меньше минимального',
         'is_practicing.required' => 'Укажите, являетесь ли вы практикующим',
         'visited_countries.required' => 'Добавьте хотя бы одну страну',
         'visited_countries.min' => 'Добавьте хотя бы одну страну',
@@ -494,7 +506,8 @@ class CandidateForm extends Component
         'interests' => 'Интересы',
         'visited_countries' => 'Посещенные страны',
         'visited_countries.*' => 'Страна',
-        'books_per_year' => 'Количество книг в год',
+        'books_per_year_min' => 'Минимальное количество книг в год',
+        'books_per_year_max' => 'Максимальное количество книг в год',
         'favorite_sports' => 'Любимые виды спорта',
         'entertainment_hours_weekly' => 'Часы развлекательных видео в неделю',
         'educational_hours_weekly' => 'Часы образовательных видео в неделю',
@@ -628,7 +641,7 @@ class CandidateForm extends Component
         $baseField = explode('.', $field)[0];
 
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'photo'];
-        $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
+        $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year_min', 'books_per_year_max', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
         $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'expected_salary', 'employer_requirements'];
         $step4Fields = ['gallup_pdf', 'mbti_type'];
 
@@ -755,7 +768,8 @@ class CandidateForm extends Component
                 'interests' => $allRules['interests'],
                 'visited_countries' => $allRules['visited_countries'],
                 'visited_countries.*' => $allRules['visited_countries.*'],
-                'books_per_year' => $allRules['books_per_year'],
+                'books_per_year_min' => $allRules['books_per_year_min'],
+                'books_per_year_max' => $allRules['books_per_year_max'],
                 'favorite_sports' => $allRules['favorite_sports'],
                 'entertainment_hours_weekly' => $allRules['entertainment_hours_weekly'],
                 'educational_hours_weekly' => $allRules['educational_hours_weekly'],
@@ -810,7 +824,7 @@ class CandidateForm extends Component
         $baseField = explode('.', $field)[0];
 
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'photo'];
-        $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
+        $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year_min', 'books_per_year_max', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
         $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'expected_salary', 'employer_requirements'];
         $step4Fields = ['gallup_pdf', 'mbti_type'];
 
@@ -1976,6 +1990,46 @@ class CandidateForm extends Component
         // Логируем для отладки
         logger()->debug('Validation reinitialized for step: ' . $this->currentStep);
         logger()->debug('Events dispatched: step-changed, reinitialize-js');
+    }
+
+    public function updatedBooksPerYearMin()
+    {
+        $this->updateBooksPerYear();
+    }
+
+    public function updatedBooksPerYearMax()
+    {
+        $this->updateBooksPerYear();
+    }
+
+    private function updateBooksPerYear()
+    {
+        if ($this->books_per_year_min == $this->books_per_year_max) {
+            $this->books_per_year = (string) $this->books_per_year_min;
+        } else {
+            $this->books_per_year = $this->books_per_year_min . '-' . $this->books_per_year_max;
+        }
+    }
+
+    private function parseBooksPerYear($value)
+    {
+        if (empty($value) || $value === '0' || $value === 0) {
+            $this->books_per_year_min = 0;
+            $this->books_per_year_max = 0;
+            return;
+        }
+
+        // Если значение содержит дефис, это диапазон
+        if (strpos($value, '-') !== false) {
+            $parts = explode('-', $value);
+            $this->books_per_year_min = (int) trim($parts[0]);
+            $this->books_per_year_max = (int) trim($parts[1]);
+        } else {
+            // Иначе это одно значение
+            $single_value = (int) $value;
+            $this->books_per_year_min = $single_value;
+            $this->books_per_year_max = $single_value;
+        }
     }
 
     public function render()
