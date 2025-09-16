@@ -127,44 +127,28 @@
                     <select wire:model="mbti_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <option value="">Выберите тип MBTI</option>
                         <optgroup label="Аналитики">
-                            <option value="INTJ-A">INTJ-A - Архитектор (Уверенный)</option>
-                            <option value="INTJ-T">INTJ-T - Архитектор (Турбулентный)</option>
-                            <option value="INTP-A">INTP-A - Мыслитель (Уверенный)</option>
-                            <option value="INTP-T">INTP-T - Мыслитель (Турбулентный)</option>
-                            <option value="ENTJ-A">ENTJ-A - Командир (Уверенный)</option>
-                            <option value="ENTJ-T">ENTJ-T - Командир (Турбулентный)</option>
-                            <option value="ENTP-A">ENTP-A - Полемист (Уверенный)</option>
-                            <option value="ENTP-T">ENTP-T - Полемист (Турбулентный)</option>
+                            <option value="INTJ">INTJ - Архитектор</option>
+                            <option value="INTP">INTP - Мыслитель</option>
+                            <option value="ENTJ">ENTJ - Командир</option>
+                            <option value="ENTP">ENTP - Полемист</option>
                         </optgroup>
                         <optgroup label="Дипломаты">
-                            <option value="INFJ-A">INFJ-A - Активист (Уверенный)</option>
-                            <option value="INFJ-T">INFJ-T - Активист (Турбулентный)</option>
-                            <option value="INFP-A">INFP-A - Посредник (Уверенный)</option>
-                            <option value="INFP-T">INFP-T - Посредник (Турбулентный)</option>
-                            <option value="ENFJ-A">ENFJ-A - Тренер (Уверенный)</option>
-                            <option value="ENFJ-T">ENFJ-T - Тренер (Турбулентный)</option>
-                            <option value="ENFP-A">ENFP-A - Борец (Уверенный)</option>
-                            <option value="ENFP-T">ENFP-T - Борец (Турбулентный)</option>
+                            <option value="INFJ">INFJ - Активист</option>
+                            <option value="INFP">INFP - Посредник</option>
+                            <option value="ENFJ">ENFJ - Тренер</option>
+                            <option value="ENFP">ENFP - Борец</option>
                         </optgroup>
                         <optgroup label="Хранители">
-                            <option value="ISTJ-A">ISTJ-A - Логист (Уверенный)</option>
-                            <option value="ISTJ-T">ISTJ-T - Логист (Турбулентный)</option>
-                            <option value="ISFJ-A">ISFJ-A - Защитник (Уверенный)</option>
-                            <option value="ISFJ-T">ISFJ-T - Защитник (Турбулентный)</option>
-                            <option value="ESTJ-A">ESTJ-A - Менеджер (Уверенный)</option>
-                            <option value="ESTJ-T">ESTJ-T - Менеджер (Турбулентный)</option>
-                            <option value="ESFJ-A">ESFJ-A - Консул (Уверенный)</option>
-                            <option value="ESFJ-T">ESFJ-T - Консул (Турбулентный)</option>
+                            <option value="ISTJ">ISTJ - Логист</option>
+                            <option value="ISFJ">ISFJ - Защитник</option>
+                            <option value="ESTJ">ESTJ - Менеджер</option>
+                            <option value="ESFJ">ESFJ - Консул</option>
                         </optgroup>
                         <optgroup label="Искатели">
-                            <option value="ISTP-A">ISTP-A - Виртуоз (Уверенный)</option>
-                            <option value="ISTP-T">ISTP-T - Виртуоз (Турбулентный)</option>
-                            <option value="ISFP-A">ISFP-A - Авантюрист (Уверенный)</option>
-                            <option value="ISFP-T">ISFP-T - Авантюрист (Турбулентный)</option>
-                            <option value="ESTP-A">ESTP-A - Делец (Уверенный)</option>
-                            <option value="ESTP-T">ESTP-T - Делец (Турбулентный)</option>
-                            <option value="ESFP-A">ESFP-A - Развлекатель (Уверенный)</option>
-                            <option value="ESFP-T">ESFP-T - Развлекатель (Турбулентный)</option>
+                            <option value="ISTP">ISTP - Виртуоз</option>
+                            <option value="ISFP">ISFP - Авантюрист</option>
+                            <option value="ESTP">ESTP - Делец</option>
+                            <option value="ESFP">ESFP - Развлекатель</option>
                         </optgroup>
                     </select>
                     @error('mbti_type') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror

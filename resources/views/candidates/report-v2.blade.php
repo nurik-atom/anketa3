@@ -426,13 +426,16 @@
                             <div class="mt-2 space-y-1">
                                 @foreach($candidate->work_experience as $experience)
                                     <div class="font-medium">
-                                        {{ $experience['company'] ?? 'Не указано' }} - {{ $experience['position'] ?? 'Не указано' }}
                                         @if(!empty($experience['years']))
-                                            - {{ $experience['years'] }}
+                                            {{ $experience['years'] }} -
                                         @endif
+                                        {{ $experience['company'] ?? 'Не указано' }} - 
                                         @if(!empty($experience['city']))
-                                            - {{ $experience['city'] }}
+                                            {{ $experience['city'] }} -
                                         @endif
+                                        {{ $experience['position'] ?? 'Не указано' }}
+
+
                                     </div>
                                 @endforeach
                             </div>
@@ -475,26 +478,16 @@
                     </div>
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Интересы:</span>
-                        <span class="text-base">{{ $candidate->interests ?: 'Не указано' }}</span>
+                        <span class="text-base">{{ $candidate->interests && trim($candidate->interests) ? mb_convert_case(trim($candidate->interests), MB_CASE_TITLE, 'UTF-8') : 'Не указано' }}</span>
                     </div>
-                    <!-- <div class="flex">
-                        <span class="w-60 text-base text-gray-600">Любимые развлечения:</span>
-                        <span class="text-base">
-                            @if($candidate->entertainment_hours_weekly)
-                                {{ $candidate->entertainment_hours_weekly }} часов в неделю
-                            @else
-                                Не указано
-                            @endif
-                        </span>
-                    </div> -->
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Любимые виды спорта:</span>
                         <span class="text-base">
                             @if($candidate->favorite_sports)
                                 @if(is_array($candidate->favorite_sports))
-                                    {{ implode(', ', $candidate->favorite_sports) }}
+                                    {{ implode(', ', mb_convert_case(trim($candidate->favorite_sports), MB_CASE_TITLE, 'UTF-8')) }}
                                 @else
-                                    {{ $candidate->favorite_sports }}
+                                    {{ mb_convert_case(trim($candidate->favorite_sports), MB_CASE_TITLE, 'UTF-8') }}
                                 @endif
                             @else
                                 Не указано
