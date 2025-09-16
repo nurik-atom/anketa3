@@ -68,6 +68,11 @@
         </form>
 
         <div class="auth-footer">
+            @if (Route::has('password.request'))
+                <div class="forgot-password-link">
+                    <a href="{{ route('password.request') }}">Забыли пароль?</a>
+                </div>
+            @endif
             @if (Route::has('register'))
                 Нет аккаунта? <a href="{{ route('register') }}">Создать аккаунт</a>
             @endif
