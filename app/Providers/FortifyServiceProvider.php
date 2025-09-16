@@ -42,5 +42,15 @@ class FortifyServiceProvider extends ServiceProvider
         RateLimiter::for('two-factor', function (Request $request) {
             return Limit::perMinute(5)->by($request->session()->get('login.id'));
         });
+
+        // Настройка перенаправления после сброса пароля
+        Fortify::resetPasswordView(function () {
+            return view('auth.reset-password');
+        });
+
+        // Перенаправление после успешного сброса пароля
+        Fortify::redirects('password-reset', function () {
+            return redirect('/')->with('status', 'Пароль успешно сброшен! Теперь вы можете войти с новым паролем.');
+        });
     }
 }

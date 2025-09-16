@@ -6,6 +6,12 @@
 <h1>Добро пожаловать</h1>
 <p>Войдите в систему управления обучением Divergents</p>
 
+@if (session('status'))
+    <div class="success-message">
+        {{ session('status') }}
+    </div>
+@endif
+
 @if (Route::has('login'))
     @auth
         <!-- User is authenticated -->
