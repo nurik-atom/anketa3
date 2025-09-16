@@ -848,17 +848,38 @@ class CandidateForm extends Component
     // Новые методы для работы с категориями семьи
     public function addParent()
     {
+        logger()->debug('addParent called', [
+            'current_parents_count' => count($this->parents),
+            'parents_before' => $this->parents
+        ]);
+        
         $this->parents[] = [
             'relation' => '',
             'birth_year' => '',
             'profession' => ''
         ];
+        
+        logger()->debug('addParent completed', [
+            'new_parents_count' => count($this->parents),
+            'parents_after' => $this->parents
+        ]);
     }
 
     public function removeParent($index)
     {
+        logger()->debug('removeParent called', [
+            'index' => $index,
+            'parents_before' => $this->parents,
+            'count_before' => count($this->parents)
+        ]);
+        
         unset($this->parents[$index]);
         $this->parents = array_values($this->parents);
+        
+        logger()->debug('removeParent completed', [
+            'parents_after' => $this->parents,
+            'count_after' => count($this->parents)
+        ]);
     }
 
     public function addSibling()

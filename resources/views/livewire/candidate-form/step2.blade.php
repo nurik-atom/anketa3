@@ -47,7 +47,7 @@
         <!-- Новая структура семьи -->
         <div class="space-y-6">
             <!-- Родители -->
-            <div>
+            <div wire:ignore.self>
                 <label class="block text-sm font-medium text-gray-700 mb-3">Родители</label>
                 <div class="space-y-4">
                     @foreach($parents as $index => $parent)
@@ -92,7 +92,7 @@
                                 </div>
                             </div>
                             <div class="mt-2">
-                                <button type="button" wire:click="removeParent({{ $index }})" class="text-red-600 hover:text-red-800">
+                                <button type="button" onclick="@this.call('removeParent', {{ $index }})" class="text-red-600 hover:text-red-800">
                                     Удалить
                                 </button>
                             </div>
@@ -100,14 +100,19 @@
                     @endforeach
 
                     @if(count($parents) < 2)
+                        <!-- Основная кнопка с @this вызовом -->
                         <button type="button" 
-                                wire:click="addParent" 
+                                onclick="@this.call('addParent')"
                                 class="group mt-4 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50">
                             <svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
                             </svg>
                             Добавить родителя
                         </button>
+                    @else
+                        <div class="mt-4 text-sm text-gray-500">
+                            Максимум 2 родителя (текущее количество: {{ count($parents) }})
+                        </div>
                     @endif
                 </div>
             </div>
@@ -147,7 +152,7 @@
                                 </div>
                             </div>
                             <div class="mt-2">
-                                <button type="button" wire:click="removeSibling({{ $index }})" class="text-red-600 hover:text-red-800">
+                                <button type="button" onclick="@this.call('removeSibling', {{ $index }})" class="text-red-600 hover:text-red-800">
                                     Удалить
                                 </button>
                             </div>
@@ -155,7 +160,7 @@
                     @endforeach
 
                     <button type="button" 
-                            wire:click="addSibling" 
+                            onclick="@this.call('addSibling')"
                             class="group mt-4 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -198,7 +203,7 @@
                                 </div>
                             </div>
                             <div class="mt-2">
-                                <button type="button" wire:click="removeChild({{ $index }})" class="text-red-600 hover:text-red-800">
+                                <button type="button" onclick="@this.call('removeChild', {{ $index }})" class="text-red-600 hover:text-red-800">
                                     Удалить
                                 </button>
                             </div>
@@ -206,7 +211,7 @@
                     @endforeach
 
                     <button type="button" 
-                            wire:click="addChild" 
+                            onclick="@this.call('addChild')"
                             class="group mt-4 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-green-300 focus:ring-opacity-50">
                         <svg class="w-5 h-5 mr-2 group-hover:bounce transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
