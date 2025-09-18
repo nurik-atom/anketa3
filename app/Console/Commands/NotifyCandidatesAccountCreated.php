@@ -41,8 +41,7 @@ class NotifyCandidatesAccountCreated extends Command
 
         // Строим запрос для получения кандидатов
         $query = Candidate::whereNotNull('email')
-            ->whereNotNull('user_id')
-            ->with('user');
+            ->whereNull('user_id');
 
         // Фильтруем по email если указан
         if ($email) {

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +12,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements FilamentUser
+class User extends Authenticatable implements FilamentUser, MustVerifyEmail
 {
     use HasApiTokens;
 
@@ -74,11 +74,24 @@ class User extends Authenticatable implements FilamentUser
         return $this->hasOne(GardnerTestResult::class);
     }
 
+    public function candidate()
+    {
+        return $this->hasOne(Candidate::class);
+    }
+
     /**
      * Determine if the user can access the admin panel.
      */
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->is_admin;
+    }
+
+    /**
+     * Send the email verification notification.
+     */
+    public function sendEmailVerificationNotification()
+    {
+        $this->notify(new \App\Notifications\VerifyEmail);
     }
 }

@@ -15,6 +15,11 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Перенаправление /login на главную страницу (welcome)
+Route::get('/login', function () {
+    return redirect('/');
+})->name('login');
+
 // Кастомный роут для сброса пароля с перенаправлением на главную страницу
 Route::post('/reset-password', function (Illuminate\Http\Request $request) {
     $request->validate([

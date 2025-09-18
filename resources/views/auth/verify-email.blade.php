@@ -1,45 +1,36 @@
-<x-guest-layout>
-    <x-authentication-card>
-        <x-slot name="logo">
-            <x-authentication-card-logo />
-        </x-slot>
+@extends('layouts.auth')
 
-        <div class="mb-4 text-sm text-gray-600">
-            {{ __('Before continuing, could you verify your email address by clicking on the link we just emailed to you? If you didn\'t receive the email, we will gladly send you another.') }}
-        </div>
+@section('title', 'Подтверждение email - Divergents')
 
-        @if (session('status') == 'verification-link-sent')
-            <div class="mb-4 font-medium text-sm text-green-600">
-                {{ __('A new verification link has been sent to the email address you provided in your profile settings.') }}
-            </div>
-        @endif
+@section('content')
+<h1>Подтверждение email</h1>
+<p>Перед продолжением, пожалуйста, подтвердите ваш адрес электронной почты, нажав на ссылку, которую мы только что отправили вам. Если вы не получили письмо, мы с удовольствием отправим вам другое.</p>
 
-        <div class="mt-4 flex items-center justify-between">
-            <form method="POST" action="{{ route('verification.send') }}">
-                @csrf
+<div class="spam-notice">
+    <p><strong>Не нашли письмо?</strong> Проверьте папку "СПАМ" или "Нежелательная почта" - иногда письма попадают туда автоматически.</p>
+</div>
 
-                <div>
-                    <x-button type="submit">
-                        {{ __('Resend Verification Email') }}
-                    </x-button>
-                </div>
-            </form>
+@if (session('status') == 'verification-link-sent')
+    <div class="success-message">
+        Новая ссылка для подтверждения была отправлена на адрес электронной почты, указанный в настройках вашего профиля.
+    </div>
+@endif
 
-            <div>
-                <a
-                    href="{{ route('profile.show') }}"
-                    class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                    {{ __('Edit Profile') }}</a>
+<!-- Resend Verification Form -->
+<form method="POST" action="{{ route('verification.send') }}">
+    @csrf
+    <button type="submit" class="btn-auth">
+        Отправить письмо повторно
+    </button>
+</form>
 
-                <form method="POST" action="{{ route('logout') }}" class="inline">
-                    @csrf
-
-                    <button type="submit" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 ms-2">
-                        {{ __('Log Out') }}
-                    </button>
-                </form>
-            </div>
-        </div>
-    </x-authentication-card>
-</x-guest-layout>
+<div class="auth-footer">
+    <a href="{{ route('profile.show') }}">Редактировать профиль</a>
+    <form method="POST" action="{{ route('logout') }}" class="inline">
+        @csrf
+        <button type="submit" class="logout-link">
+            Выйти
+        </button>
+    </form>
+</div>
+@endsection

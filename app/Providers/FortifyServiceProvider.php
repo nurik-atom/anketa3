@@ -52,5 +52,10 @@ class FortifyServiceProvider extends ServiceProvider
         Fortify::redirects('password-reset', function () {
             return redirect('/')->with('status', 'Пароль успешно сброшен! Теперь вы можете войти с новым паролем.');
         });
+
+        // Перенаправление после регистрации на страницу верификации email
+        Fortify::redirects('register', function () {
+            return redirect('/email/verify');
+        });
     }
 }

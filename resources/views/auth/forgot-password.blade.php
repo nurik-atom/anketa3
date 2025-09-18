@@ -10,6 +10,10 @@
     <div class="success-message">
         {{ $value }}
     </div>
+    
+    <div class="spam-notice">
+        <p><strong>Не нашли письмо?</strong> Проверьте папку "СПАМ" или "Нежелательная почта" - иногда письма попадают туда автоматически.</p>
+    </div>
 @endsession
 
 <!-- Validation Errors -->

@@ -134,6 +134,21 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Fortify View Override
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify custom view paths for Fortify's authentication
+    | views. This is useful if you want to customize the look and feel of
+    | your application's login and registration views.
+    |
+    */
+
+    'view' => [
+        'login' => 'welcome',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Features
     |--------------------------------------------------------------------------
     |
@@ -146,7 +161,7 @@ return [
     'features' => [
         Features::registration(),
         Features::resetPasswords(),
-        // Features::emailVerification(),
+        Features::emailVerification(),
         Features::updateProfileInformation(),
         Features::updatePasswords(),
         Features::twoFactorAuthentication([
