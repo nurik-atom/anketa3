@@ -390,7 +390,7 @@ class CandidateForm extends Component
                 Rule::when($this->currentStep !== 4, ['nullable']),
             ],
             'mbti_type' => [
-                Rule::when($this->currentStep === 4, ['required', 'string', 'in:INTJ-A,INTJ-T,INTP-A,INTP-T,ENTJ-A,ENTJ-T,ENTP-A,ENTP-T,INFJ-A,INFJ-T,INFP-A,INFP-T,ENFJ-A,ENFJ-T,ENFP-A,ENFP-T,ISTJ-A,ISTJ-T,ISFJ-A,ISFJ-T,ESTJ-A,ESTJ-T,ESFJ-A,ESFJ-T,ISTP-A,ISTP-T,ISFP-A,ISFP-T,ESTP-A,ESTP-T,ESFP-A,ESFP-T']),
+                Rule::when($this->currentStep === 4, ['required', 'string']),
                 Rule::when($this->currentStep !== 4, ['nullable']),
             ],
         ];
