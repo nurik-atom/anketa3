@@ -9,7 +9,6 @@ class GallupReportSheetValue extends Model
     protected $fillable = [
         'gallup_report_sheet_id',
         'candidate_id',
-        'user_id',
         'type',
         'name',
         'value',
@@ -22,9 +21,5 @@ class GallupReportSheetValue extends Model
     public function candidate()
     {
         return $this->belongsTo(Candidate::class);
-    }
-    public function user()
-    {
-        return $this->belongsTo(User::class);
     }
 }

@@ -442,7 +442,6 @@ class GallupController extends Controller
             GallupReportSheetValue::create([
                 'gallup_report_sheet_id' => $reportSheet->id,
                 'candidate_id' => $candidate->id,
-                'user_id' => $candidate->user_id,
                 'type' => $index->type,
                 'name' => $index->name,
                 'value' => $value,
@@ -534,7 +533,6 @@ class GallupController extends Controller
             GallupReportSheetValue::create([
                 'gallup_report_sheet_id' => $reportSheet->id,
                 'candidate_id' => $candidate->id,
-                'user_id' => $candidate->user_id,
                 'type' => $meta['type'],
                 'name' => $meta['name'],
                 'value' => (int) $value,
