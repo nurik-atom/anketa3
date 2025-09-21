@@ -20,6 +20,24 @@ Route::get('/login', function () {
     return redirect('/');
 })->name('login');
 
+// Кастомный роут для запроса сброса пароля
+Route::post('/forgot-password', function (Illuminate\Http\Request $request) {
+    $request->validate([
+        'email' => 'required|email',
+    ]);
+
+    $status = Password::sendResetLink(
+        $request->only('email')
+    );
+
+    if ($status === Password::RESET_LINK_SENT) {
+        return back()->with('status', 'Ссылка на сброс пароля была отправлена на ' . $request->email)
+                    ->with('reset_email', $request->email);
+    }
+
+    return back()->withErrors(['email' => [__($status)]]);
+})->name('password.email');
+
 // Кастомный роут для сброса пароля с перенаправлением на главную страницу
 Route::post('/reset-password', function (Illuminate\Http\Request $request) {
     $request->validate([
