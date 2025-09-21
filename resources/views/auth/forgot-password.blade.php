@@ -4,11 +4,14 @@
 
 @section('content')
 <h1>Восстановление пароля</h1>
+
+@if(!session('status'))
 <p>Введите ваш email адрес, и мы отправим вам ссылку для сброса пароля</p>
+@endif
 
 @session('status')
     <div class="success-message">
-        {{ $value }}
+        Ссылка на сброс пароля была отправлена на {{ old('email') }}
     </div>
     
     <div class="spam-notice">
@@ -29,20 +32,23 @@
 <form method="POST" action="{{ route('password.email') }}">
     @csrf
     
+    @if(!session('status'))
     <div class="form-group">
         <input
             type="email"
             id="email"
             name="email"
-            class="form-input @if(session('status')) disabled-input @endif"
+            class="form-input"
             placeholder="Email адрес"
             value="{{ old('email') }}"
             required
-            @if(session('status')) disabled @endif
-            @if(!session('status')) autofocus @endif
+            autofocus
             autocomplete="username"
         >
     </div>
+    @else
+    <input type="hidden" name="email" value="{{ old('email') }}">
+    @endif
 
     @if(!session('status'))
     <button type="submit" class="btn-auth">
