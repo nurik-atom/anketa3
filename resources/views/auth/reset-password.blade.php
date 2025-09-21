@@ -19,7 +19,7 @@
 <form method="POST" action="{{ route('password.update') }}">
     @csrf
 
-    <input type="hidden" name="token" value="{{ $request->route('token') }}">
+    <input type="hidden" name="token" value="{{ $token }}">
 
     <div class="form-group">
         <input
@@ -28,7 +28,7 @@
             name="email"
             class="form-input"
             placeholder="Email адрес"
-            value="{{ old('email', $request->email) }}"
+            value="{{ old('email', $email) }}"
             required
             autofocus
             autocomplete="username"

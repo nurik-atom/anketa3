@@ -44,8 +44,11 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
         // Настройка перенаправления после сброса пароля
-        Fortify::resetPasswordView(function () {
-            return view('auth.reset-password');
+        Fortify::resetPasswordView(function ($request) {
+            return view('auth.reset-password', [
+                'token' => $request->route('token'),
+                'email' => $request->email
+            ]);
         });
 
         // Перенаправление после успешного сброса пароля

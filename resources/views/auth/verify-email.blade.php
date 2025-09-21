@@ -24,7 +24,7 @@
     </button>
 </form>
 
-<div class="auth-footer">
+<div class="auth-footer">x`
     <a href="{{ route('profile.show') }}">Редактировать профиль</a>
     <form method="POST" action="{{ route('logout') }}" class="inline">
         @csrf
