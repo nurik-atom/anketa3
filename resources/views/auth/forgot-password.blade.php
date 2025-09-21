@@ -11,7 +11,7 @@
 
 @session('status')
     <div class="success-message">
-        Ссылка на сброс пароля была отправлена на {{ old('email') }}
+        {{ $value }}
     </div>
     
     <div class="spam-notice">
@@ -47,7 +47,7 @@
         >
     </div>
     @else
-    <input type="hidden" name="email" value="{{ old('email') }}">
+    <input type="hidden" name="email" value="{{ session('reset_email') }}">
     @endif
 
     @if(!session('status'))

@@ -56,6 +56,13 @@ class FortifyServiceProvider extends ServiceProvider
             return redirect('/')->with('status', 'Пароль успешно сброшен! Теперь вы можете войти с новым паролем.');
         });
 
+        // Настройка перенаправления после запроса сброса пароля
+        Fortify::redirects('password-request', function ($request) {
+            return back()
+                ->with('status', 'Ссылка на сброс пароля была отправлена на ' . $request->email)
+                ->with('reset_email', $request->email);
+        });
+
         // Перенаправление после регистрации на страницу верификации email
         Fortify::redirects('register', function () {
             return redirect('/email/verify');
