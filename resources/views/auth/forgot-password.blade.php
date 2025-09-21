@@ -34,18 +34,28 @@
             type="email"
             id="email"
             name="email"
-            class="form-input"
+            class="form-input @if(session('status')) disabled-input @endif"
             placeholder="Email адрес"
             value="{{ old('email') }}"
             required
-            autofocus
+            @if(session('status')) disabled @endif
+            @if(!session('status')) autofocus @endif
             autocomplete="username"
         >
     </div>
 
+    @if(!session('status'))
     <button type="submit" class="btn-auth">
         Отправить ссылку для сброса пароля
     </button>
+    @else
+    <div class="resend-section">
+        <p class="resend-text">Хотите отправить ссылку повторно?</p>
+        <button type="submit" class="btn-auth btn-secondary">
+            Отправить повторно
+        </button>
+    </div>
+    @endif
 </form>
 
 <div class="auth-footer">
