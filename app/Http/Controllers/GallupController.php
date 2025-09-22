@@ -384,8 +384,8 @@ class GallupController extends Controller
         Storage::disk('public')->makeDirectory(dirname($outputRelative));
 
         
-        if (file_exists($candidate->anketa_pdf)) {
-            unlink($candidate->anketa_pdf);
+        if (Storage::disk('public')->exists($candidate->anketa_pdf)) {
+            Storage::disk('public')->delete($candidate->anketa_pdf);
         }
 
         $pdf = new Fpdi();
