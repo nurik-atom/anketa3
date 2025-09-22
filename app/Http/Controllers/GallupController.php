@@ -383,8 +383,9 @@ class GallupController extends Controller
 
         Storage::disk('public')->makeDirectory(dirname($outputRelative));
 
-        if (file_exists($outputFull)) {
-            unlink($outputFull);
+        
+        if (file_exists($candidate->anketa_pdf)) {
+            unlink($candidate->anketa_pdf);
         }
 
         $pdf = new Fpdi();
@@ -406,11 +407,13 @@ class GallupController extends Controller
 
         $pdf->Output($outputFull, 'F');
 
+        //Удаляем временный PDF
+        if (file_exists($tempHtmlPdf)) {
+            unlink($tempHtmlPdf);
+        }
+
         return $outputRelative;
     }
-
-
-
 
     public function importFormulaValues_old(GallupReportSheet $reportSheet, Candidate $candidate)
     {
