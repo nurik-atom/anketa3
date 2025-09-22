@@ -261,14 +261,30 @@
                     <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ $candidate->full_name }}</h1>
                      <div class="text-base mb-6">
                          <div class="mb-4">
-                             <span class="font-medium text-gray-800">{{ $candidate->current_city }}</span>
-                             <span class="font-medium text-gray-800 ml-8">{{ $candidate->phone }}</span>
+                             <!-- <span class="font-medium text-gray-800"></span> -->
                              <span class="font-medium text-gray-800 ml-8">{{ $candidate->email }}</span>
+                             <span class="font-medium text-gray-800 ml-8">{{ $candidate->phone }}</span>
+                             
+                             @if($candidate->instagram)
+                                 <span class="font-medium text-gray-800 ml-8">{{ $candidate->instagram }}</span>
+                             @endif
                          </div>
                      </div>
 
                      <!-- Основная информация -->
                      <div class="space-y-3">
+                         <div class="flex">
+                             <span class="w-60 text-base text-gray-600">Текущий город:</span>
+                             <span class="text-base font-medium">{{ $candidate->current_city }}</span>
+                         </div>
+                         <div class="flex">
+                             <span class="w-60 text-base text-gray-600">Готов к переезду:</span>
+                             <span class="text-base font-medium">{{ $candidate->ready_to_relocate ? 'Да' : 'Нет' }}</span>
+                         </div>
+                         <div class="flex">
+                             <span class="w-60 text-base text-gray-600">Сфера деятельности:</span>
+                             <span class="text-base font-medium">{{ $candidate->activity_sphere ?: 'Не указано' }}</span>
+                         </div>
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Желаемая должность:</span>
                              <span class="text-base font-medium">{{ $candidate->desired_position ?: 'Не указано' }}</span>
@@ -427,11 +443,11 @@
                                 @foreach($candidate->work_experience as $experience)
                                     <div class="font-medium">
                                         @if(!empty($experience['years']))
-                                            {{ $experience['years'] }} -
+                                            {{ $experience['years'] }} |
                                         @endif
-                                        {{ $experience['company'] ?? 'Не указано' }} - 
+                                        {{ $experience['company'] ?? 'Не указано' }} | 
                                         @if(!empty($experience['city']))
-                                            {{ $experience['city'] }} -
+                                            {{ $experience['city'] }} |
                                         @endif
                                         {{ $experience['position'] ?? 'Не указано' }}
 
