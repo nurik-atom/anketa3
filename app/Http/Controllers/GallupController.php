@@ -87,7 +87,9 @@ class GallupController extends Controller
 
         // Проверка на изменения
         $hasChanged = $existingTalents !== $talents;
-
+        
+        //TODO: Убрать после тестирования
+        $hasChanged = true;
         //! Если изменения есть, то обновляем таланты
         if ($hasChanged) {
             $candidate->gallupTalents()->delete();
@@ -100,7 +102,7 @@ class GallupController extends Controller
             }
 
             // Получаем все активные листы отчетов из базы данных
-            $reportSheets = GallupReportSheet::with('indices')->get();
+            $reportSheets = GallupReportSheet::with('indices')->orderBy('id', 'desc')->get();
 
             foreach ($reportSheets as $reportSheet) {
                 // Обновление Google Sheets
