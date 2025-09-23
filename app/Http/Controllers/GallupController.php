@@ -88,8 +88,8 @@ class GallupController extends Controller
         // Проверка на изменения
         $hasChanged = $existingTalents !== $talents;
         
-        //TODO: Убрать после тестирования
-        $hasChanged = true;
+        // //TODO: Убрать после тестирования
+        // $hasChanged = true;
         //! Если изменения есть, то обновляем таланты
         if ($hasChanged) {
             $candidate->gallupTalents()->delete();
@@ -586,7 +586,7 @@ class GallupController extends Controller
         $mergedPath = $this->mergeCandidateReportPdfs($candidate, $version);
         
         // Создаем временный файл с уникальным именем
-        $tempFileName = "{$candidate->full_name}_{$version}_{$candidate->id}_" . date('Y-m-d_H-i-s') . ".pdf";
+        $tempFileName = "{$candidate->full_name}_{$version}_{$candidate->id}_" . date('d.m.Y') . ".pdf";
         $tempPath = "temp_anketas/{$tempFileName}";
         
         // Копируем во временную папку
