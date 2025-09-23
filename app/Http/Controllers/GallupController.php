@@ -299,7 +299,7 @@ class GallupController extends Controller
         return $text;
     }
 
-    public function mergeCandidateReportPdfs(Candidate $candidate)
+    public function mergeCandidateReportPdfs(Candidate $candidate, string $version = 'full')
     {
         $tempHtmlPdf = storage_path("app/temp_candidate_{$candidate->id}.pdf");
         // ✅ Удаляем временный PDF, если он уже существует
@@ -308,7 +308,7 @@ class GallupController extends Controller
         }
         // 1️⃣ Сгенерировать PDF анкеты
         $html = app(\App\Http\Controllers\CandidateReportController::class)
-            ->showV2($candidate)
+            ->showV2($candidate, $version)
             ->render();
         $html = mb_convert_encoding($html, 'HTML-ENTITIES', 'UTF-8');
         if (!mb_check_encoding($html, 'UTF-8')) {
@@ -580,13 +580,13 @@ class GallupController extends Controller
     /**
      * Генерирует объединенную анкету по требованию с временным хранением
      */
-    public function generateAnketaPdfOnDemand(Candidate $candidate)
+    public function generateAnketaPdfOnDemand(Candidate $candidate, string $version = 'full')
     {
         // Генерируем объединенный PDF
-        $mergedPath = $this->mergeCandidateReportPdfs($candidate);
+        $mergedPath = $this->mergeCandidateReportPdfs($candidate, $version);
         
         // Создаем временный файл с уникальным именем
-        $tempFileName = "temp_anketa_candidate_{$candidate->id}_" . date('Y-m-d_H-i-s') . ".pdf";
+        $tempFileName = "temp_anketa_{$version}_candidate_{$candidate->id}_" . date('Y-m-d_H-i-s') . ".pdf";
         $tempPath = "temp_anketas/{$tempFileName}";
         
         // Копируем во временную папку

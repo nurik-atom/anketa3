@@ -236,41 +236,32 @@ class CandidateSearchResource extends Resource
 //                        ->openUrlInNewTab()
 //                        ->visible(fn (Candidate $record): bool => $record->anketa_pdf && Storage::disk('public')->exists($record->anketa_pdf)),
 
-                    Tables\Actions\Action::make('Анкета PDF')
-                        ->label('Анкета PDF')
+                    Tables\Actions\Action::make('Анкета полная')
+                        ->label('Анкета полная')
                         ->icon('heroicon-o-document-text')
+                        ->color('success')
                         ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'anketa']))
                         ->modal()
-                        ->visible(fn (Candidate $record): bool => $record->anketa_pdf && Storage::disk('public')->exists($record->anketa_pdf)),
+                        ->visible(fn (Candidate $record): bool => 
+                            $record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)
+                        ),
 
-                    Tables\Actions\Action::make('downloadDPs')
-                        ->label('DPs отчет')
+                    Tables\Actions\Action::make('Анкета урезанная')
+                        ->label('Анкета урезанная')
                         ->icon('heroicon-o-document-text')
                         ->color('info')
-                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'DPs']))
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'anketa-reduced']))
                         ->modal()
-                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPs')->exists()),
-                    Tables\Actions\Action::make('downloadDPT')
-                        ->label('DPT отчет')
-                        ->icon('heroicon-o-document-text')
-                        ->color('warning')
-                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'DPT']))
-                        ->modal()
-                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPT')->exists()),
-                    Tables\Actions\Action::make('downloadFMD')
-                        ->label('FMD отчет')
-                        ->icon('heroicon-o-document-text')
-                        ->color('danger')
-                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'FMD']))
-                        ->modal()
-                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'FMD')->exists()),
+                        ->visible(fn (Candidate $record): bool => 
+                            $record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)
+                        ),
                 ])
                     ->label('Gallup отчеты')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
                     ->button()
                     ->visible(fn (Candidate $record): bool =>
-                        !empty($record->gallup_pdf) || $record->gallupReports()->exists()
+                        $record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)
                     ),
             ])
             ->bulkActions([

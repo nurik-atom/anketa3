@@ -19,9 +19,14 @@ class ViewCandidatePdf extends Page
         $this->type = strtoupper($type); // для отображения в заголовке
         
         if ($type == 'anketa') {
-            // Генерируем PDF по требованию
+            // Генерируем полную анкету по требованию
             $gallupController = app(\App\Http\Controllers\GallupController::class);
             $pdfPath = $gallupController->generateAnketaPdfOnDemand($candidate);
+            $this->url = Storage::disk('public')->url($pdfPath);
+        } elseif ($type == 'anketa-reduced') {
+            // Генерируем урезанную анкету по требованию
+            $gallupController = app(\App\Http\Controllers\GallupController::class);
+            $pdfPath = $gallupController->generateAnketaPdfOnDemand($candidate, 'reduced');
             $this->url = Storage::disk('public')->url($pdfPath);
         } else {
             $report = $candidate->gallupReportByType($type);
