@@ -119,8 +119,8 @@ class GallupController extends Controller
         // Проверка на изменения
         $hasChanged = $existingTalents !== $talents;
         
-        // //TODO: Убрать после тестирования
-        // $hasChanged = true;
+        //TODO: Убрать после тестирования
+        $hasChanged = true;
         //! Если изменения есть, то обновляем таланты
         if ($hasChanged) {
             $candidate->gallupTalents()->delete();
