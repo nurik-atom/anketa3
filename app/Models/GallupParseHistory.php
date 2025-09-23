@@ -20,6 +20,7 @@ class GallupParseHistory extends Model
         'step',
         'details',
         'status',
+        'created_at',
     ];
 
     protected $casts = [
