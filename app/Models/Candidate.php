@@ -16,6 +16,7 @@ class Candidate extends Model
         // Basic Information
         'user_id',
         'step',
+        'step_parse_gallup',
         'full_name',
         'patronymic',
         'email',

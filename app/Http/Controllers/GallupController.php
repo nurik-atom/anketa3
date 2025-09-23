@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Candidate;
+use App\Models\GallupParseHistory;
 use App\Models\GallupReport;
 use App\Models\GallupReportSheet;
 use App\Models\GallupReportSheetIndex;
@@ -21,6 +22,23 @@ use Spatie\Browsershot\Browsershot;
 
 class GallupController extends Controller
 {
+    /**
+     * Записать шаг в историю
+     */
+    protected function logStep(Candidate $candidate, string $step, string $status = 'in_progress', ?string $details = null): void
+    {
+        // Обновляем поле в кандидате
+        $candidate->update(['step_parse_gallup' => $step]);
+        
+        // Записываем в историю
+        GallupParseHistory::createHistory(
+            $candidate->id,
+            $step,
+            $status,
+            $details
+        );
+    }
+
     public function isGallupPdf(string $relativePath):bool
     {
         if (!Storage::disk('public')->exists($relativePath)) {
@@ -48,14 +66,22 @@ class GallupController extends Controller
 
     public function parseGallupFromCandidateFile(Candidate $candidate)
     {
+        // Шаг 1: Проверка файла
+        $this->logStep($candidate, 'Проверка файла');
+        
         if (!$candidate->gallup_pdf || !Storage::disk('public')->exists($candidate->gallup_pdf)) {
+            $this->logStep($candidate, 'Ошибка: Файл не найден', 'error', 'Файл Gallup PDF не найден в файловой системе');
             return response()->json(['error' => 'Файл не найден.'], 404);
         }
 
         if (!$this->isGallupPdf($candidate->gallup_pdf)) {
+            $this->logStep($candidate, 'Ошибка: Неверный формат PDF', 'error', 'Файл не является корректным Gallup PDF');
             return response()->json(['error' => 'Файл не является корректным Gallup PDF.'], 422);
         }
 
+        // Шаг 2: Парсинг PDF
+        $this->logStep($candidate, 'Парсинг PDF');
+        
         $fullPath = storage_path('app/public/' . $candidate->gallup_pdf);
 
         $parser = new Parser();
@@ -63,6 +89,7 @@ class GallupController extends Controller
         $pages = $pdf->getPages();
 
         if (empty($pages)) {
+            $this->logStep($candidate, 'Ошибка: PDF не содержит страниц', 'error', 'PDF файл пустой или поврежден');
             return response()->json(['error' => 'PDF не содержит страниц.'], 422);
         }
 
@@ -73,12 +100,16 @@ class GallupController extends Controller
         $talents = $matches[2] ?? [];
 
         if (count($talents) !== 34 || max($numbers) != 34 || min($numbers) != 1) {
+            $this->logStep($candidate, 'Ошибка: Найдено ' . count($talents) . ' талантов вместо 34', 'error', 'Ожидается 34 таланта, найдено: ' . count($talents));
             return response()->json([
                 'error' => 'Найдено ' . count($talents) . ' талантов. Ожидается 34.',
                 'debug' => $talents,
             ], 422);
         }
 
+        // Шаг 3: Обновление талантов
+        $this->logStep($candidate, 'Обновление талантов');
+        
         // Получаем текущие таланты из базы
         $existingTalents = $candidate->gallupTalents()
             ->orderBy('position')
@@ -101,11 +132,15 @@ class GallupController extends Controller
                 ]);
             }
 
+            // Шаг 4: Обработка отчетов
+            $this->logStep($candidate, 'Обработка отчетов');
+            
             // Получаем все активные листы отчетов из базы данных
             $reportSheets = GallupReportSheet::with('indices')->orderBy('id', 'desc')->get();
 
             foreach ($reportSheets as $reportSheet) {
-                // Обновление Google Sheets
+                // Шаг 5: Обновление Google Sheets
+                $this->logStep($candidate, "Обновление Google Sheets: {$reportSheet->name_report}");
                 $this->updateGoogleSheetByCellMap($candidate, $talents, $reportSheet);
 
                 Log::info('Перед вызовом importFormulaValues', [
@@ -113,13 +148,22 @@ class GallupController extends Controller
                     'candidate_id' => $candidate->id,
                 ]);
 
+                // Шаг 6: Импорт формул
+                $this->logStep($candidate, "Импорт формул: {$reportSheet->name_report}");
                 $this->importFormulaValues($reportSheet, $candidate);
-                // Скачивание PDF листа
+                
+                // Шаг 7: Скачивание PDF
+                $this->logStep($candidate, "Скачивание PDF: {$reportSheet->name_report}");
                 $this->downloadSheetPdf(
                     $candidate,
                     $reportSheet
                 );
             }
+            
+            // Шаг 8: Завершение
+            $this->logStep($candidate, 'Завершено успешно', 'completed', 'Все отчеты успешно обработаны');
+        } else {
+            $this->logStep($candidate, 'Изменений не обнаружено', 'completed', 'Таланты не изменились, обработка не требуется');
         }
 
         // Убираем объединение PDF из основного процесса - теперь генерируем по требованию
@@ -129,128 +173,137 @@ class GallupController extends Controller
 
         return response()->json([
             'message' => 'Данные Gallup обновлены, Google Sheet заполнен.',
+            'step' => $candidate->step_parse_gallup
         ]);
     }
 
     protected function updateGoogleSheetByCellMap(Candidate $candidate, array $talents, GallupReportSheet $reportSheet)
     {
-        $client = new \Google\Client();
-        $client->setAuthConfig(storage_path('app/google/credentials.json'));
-        $client->addScope(\Google\Service\Sheets::SPREADSHEETS);
-        $client->useApplicationDefaultCredentials();
-        $spreadsheetId = $reportSheet->spreadsheet_id;
-        $sheets = new \Google\Service\Sheets($client);
+        try {
+            $client = new \Google\Client();
+            $client->setAuthConfig(storage_path('app/google/credentials.json'));
+            $client->addScope(\Google\Service\Sheets::SPREADSHEETS);
+            $client->useApplicationDefaultCredentials();
+            $spreadsheetId = $reportSheet->spreadsheet_id;
+            $sheets = new \Google\Service\Sheets($client);
 
-        $talentOrder = [
-            'Achiever', 'Discipline', 'Arranger', 'Focus', 'Belief', 'Responsibility',
-            'Consistency', 'Restorative', 'Deliberative', 'Activator', 'Maximizer',
-            'Command', 'Self-Assurance', 'Communication', 'Significance', 'Competition', 'Woo',
-            'Adaptability', 'Includer', 'Connectedness', 'Individualization', 'Developer',
-            'Positivity', 'Empathy', 'Relator', 'Harmony', 'Analytical', 'Input',
-            'Context', 'Intellection', 'Futuristic', 'Learner', 'Ideation', 'Strategic'
-        ];
+            $talentOrder = [
+                'Achiever', 'Discipline', 'Arranger', 'Focus', 'Belief', 'Responsibility',
+                'Consistency', 'Restorative', 'Deliberative', 'Activator', 'Maximizer',
+                'Command', 'Self-Assurance', 'Communication', 'Significance', 'Competition', 'Woo',
+                'Adaptability', 'Includer', 'Connectedness', 'Individualization', 'Developer',
+                'Positivity', 'Empathy', 'Relator', 'Harmony', 'Analytical', 'Input',
+                'Context', 'Intellection', 'Futuristic', 'Learner', 'Ideation', 'Strategic'
+            ];
 
-        // Создаём строку B3:AJ3 = [Имя, 34 позиции]
-        $row = [$candidate->full_name];
+            // Создаём строку B3:AJ3 = [Имя, 34 позиции]
+            $row = [$candidate->full_name];
 
-        foreach ($talentOrder as $talentName) {
-            $index = array_search($talentName, $talents);
-            $row[] = $index !== false ? $index + 1 : '';
+            foreach ($talentOrder as $talentName) {
+                $index = array_search($talentName, $talents);
+                $row[] = $index !== false ? $index + 1 : '';
+            }
+
+            // Ограничим на всякий случай длину в 35
+            $row = array_slice($row, 0, 35);
+
+            $body = new \Google\Service\Sheets\ValueRange([
+                'range' => 'Info!B3:AJ3',
+                'values' => [$row]
+            ]);
+
+            $sheets->spreadsheets_values->update($spreadsheetId, 'Info!B3:AJ3', $body, [
+                'valueInputOption' => 'RAW'
+            ]);
+        } catch (\Exception $e) {
+            $this->logStep($candidate, "Ошибка обновления Google Sheets: " . $e->getMessage(), 'error', $e->getMessage());
+            throw $e;
         }
-
-        // Ограничим на всякий случай длину в 35
-        $row = array_slice($row, 0, 35);
-
-        $body = new \Google\Service\Sheets\ValueRange([
-            'range' => 'Info!B3:AJ3',
-            'values' => [$row]
-        ]);
-
-        $sheets->spreadsheets_values->update($spreadsheetId, 'Info!B3:AJ3', $body, [
-            'valueInputOption' => 'RAW'
-        ]);
     }
 
     protected function downloadSheetPdf(Candidate $candidate, GallupReportSheet $reportSheet)
     {
-        // 1. Настройка Google клиента
-        $client = new \Google\Client();
-        $client->setAuthConfig(storage_path('app/google/credentials.json'));
-        $client->addScope('https://www.googleapis.com/auth/drive.readonly');
-        $client->useApplicationDefaultCredentials();
+        try {
+            // 1. Настройка Google клиента
+            $client = new \Google\Client();
+            $client->setAuthConfig(storage_path('app/google/credentials.json'));
+            $client->addScope('https://www.googleapis.com/auth/drive.readonly');
+            $client->useApplicationDefaultCredentials();
 
-        $accessToken = $client->fetchAccessTokenWithAssertion()['access_token'];
+            $accessToken = $client->fetchAccessTokenWithAssertion()['access_token'];
 
-        $http_build_query = [
-            'format' => 'pdf',
-            'portrait' => 'true',
-            'size' => 'A4',
-            'fitw' => 'true',
-            'sheetnames' => 'false',
-            'printtitle' => 'false',
-            'pagenum' => 'false',
-            'gridlines' => 'false',
-            'fzr' => 'false',
-            'horizontal_alignment' => 'CENTER',
-            'top_margin' => '0.50',
-            'bottom_margin' => '0.50',
-            'left_margin' => '0.50',
-            'right_margin' => '0.50',];
+            $http_build_query = [
+                'format' => 'pdf',
+                'portrait' => 'true',
+                'size' => 'A4',
+                'fitw' => 'true',
+                'sheetnames' => 'false',
+                'printtitle' => 'false',
+                'pagenum' => 'false',
+                'gridlines' => 'false',
+                'fzr' => 'false',
+                'horizontal_alignment' => 'CENTER',
+                'top_margin' => '0.50',
+                'bottom_margin' => '0.50',
+                'left_margin' => '0.50',
+                'right_margin' => '0.50',];
 
-        // 2. PDF URL из Google Sheets
-        $url = "https://docs.google.com/spreadsheets/d/{$reportSheet->spreadsheet_id}/export?" . http_build_query($http_build_query) . "&gid={$reportSheet->gid}";
-        $url_short = "https://docs.google.com/spreadsheets/d/{$reportSheet->spreadsheet_id}/export?" . http_build_query($http_build_query) . "&gid={$reportSheet->short_gid}";
+            // 2. PDF URL из Google Sheets
+            $url = "https://docs.google.com/spreadsheets/d/{$reportSheet->spreadsheet_id}/export?" . http_build_query($http_build_query) . "&gid={$reportSheet->gid}";
+            $url_short = "https://docs.google.com/spreadsheets/d/{$reportSheet->spreadsheet_id}/export?" . http_build_query($http_build_query) . "&gid={$reportSheet->short_gid}";
 
-        $response = Http::withHeaders([
-            'Authorization' => "Bearer $accessToken"
-        ])->get($url);
+            $response = Http::withHeaders([
+                'Authorization' => "Bearer $accessToken"
+            ])->get($url);
 
-        $response_short = Http::withHeaders([
-            'Authorization' => "Bearer $accessToken"
-        ])->get($url_short);
+            $response_short = Http::withHeaders([
+                'Authorization' => "Bearer $accessToken"
+            ])->get($url_short);
 
-        if (!$response->successful() || !$response_short->successful()) {
-            throw new \Exception("Ошибка при скачивании PDF: " . $response->status());
-        }
-
-        // 3. Удаляем старый отчёт, если есть
-        $existing = GallupReport::where('candidate_id', $candidate->id)
-            ->where('type', $reportSheet->name_report)
-            ->first();
-
-        if ($existing) {
-            if ($existing->pdf_file && Storage::disk('public')->exists($existing->pdf_file)) {
-                Storage::disk('public')->delete($existing->pdf_file);
+            if (!$response->successful() || !$response_short->successful()) {
+                throw new \Exception("Ошибка при скачивании PDF: " . $response->status());
             }
 
-            if ($existing->short_area_pdf_file && Storage::disk('public')->exists($existing->short_area_pdf_file)) {
-                Storage::disk('public')->delete($existing->short_area_pdf_file);
+            // 3. Удаляем старый отчёт, если есть
+            $existing = GallupReport::where('candidate_id', $candidate->id)
+                ->where('type', $reportSheet->name_report)
+                ->first();
+
+            if ($existing) {
+                if ($existing->pdf_file && Storage::disk('public')->exists($existing->pdf_file)) {
+                    Storage::disk('public')->delete($existing->pdf_file);
+                }
+
+                if ($existing->short_area_pdf_file && Storage::disk('public')->exists($existing->short_area_pdf_file)) {
+                    Storage::disk('public')->delete($existing->short_area_pdf_file);
+                }
+
+                $existing->delete();
             }
 
-            $existing->delete();
+            // 4. Генерируем пути
+            $folder = 'reports/candidate_'.$candidate->id;
+            $pdfFileName = str_replace(' ', '_', $candidate->full_name) . "_{$reportSheet->name_report}.pdf";
+            $pdfFileName_short = str_replace(' ', '_', $candidate->full_name) . "_{$reportSheet->name_report}_short.pdf";
+
+            $pdfPath = "{$folder}/{$pdfFileName}";
+            $pdfPath_short = "{$folder}/{$pdfFileName_short}";
+
+            // 5. Сохраняем PDF
+            Storage::disk('public')->put($pdfPath, $response->body());
+            Storage::disk('public')->put($pdfPath_short, $response_short->body());
+
+            // 7. Записываем отчет
+            $report = GallupReport::create([
+                'candidate_id' => $candidate->id,
+                'type' => $reportSheet->name_report,
+                'pdf_file' => $pdfPath,
+                'short_area_pdf_file' => $pdfPath_short,
+            ]);
+        } catch (\Exception $e) {
+            $this->logStep($candidate, "Ошибка скачивания PDF: " . $e->getMessage(), 'error', $e->getMessage());
+            throw $e;
         }
-
-        // 4. Генерируем пути
-        $folder = 'reports/candidate_'.$candidate->id;
-        $pdfFileName = str_replace(' ', '_', $candidate->full_name) . "_{$reportSheet->name_report}.pdf";
-        $pdfFileName_short = str_replace(' ', '_', $candidate->full_name) . "_{$reportSheet->name_report}_short.pdf";
-
-        $pdfPath = "{$folder}/{$pdfFileName}";
-        $pdfPath_short = "{$folder}/{$pdfFileName_short}";
-
-        // 5. Сохраняем PDF
-        Storage::disk('public')->put($pdfPath, $response->body());
-        Storage::disk('public')->put($pdfPath_short, $response_short->body());
-
-        // 7. Записываем отчет
-        $report = GallupReport::create([
-            'candidate_id' => $candidate->id,
-            'type' => $reportSheet->name_report,
-            'pdf_file' => $pdfPath,
-            'short_area_pdf_file' => $pdfPath_short,
-        ]);
-
-
     }
     protected function cleanHtmlForPdf($html)
     {
@@ -462,93 +515,98 @@ class GallupController extends Controller
 
     public function importFormulaValues(GallupReportSheet $reportSheet, Candidate $candidate)
     {
-        Log::info('Импорт психотипов начат', ['report_id' => $candidate->id]);
-        $spreadsheetId = $reportSheet->spreadsheet_id;
-        $sheetName = 'Formula';
+        try {
+            Log::info('Импорт психотипов начат', ['report_id' => $candidate->id]);
+            $spreadsheetId = $reportSheet->spreadsheet_id;
+            $sheetName = 'Formula';
 
-        // Авторизация Google
-        $credentialsPath = storage_path('app/google/credentials.json');
+            // Авторизация Google
+            $credentialsPath = storage_path('app/google/credentials.json');
 
-        // Проверяем существование файла credentials
-        if (!file_exists($credentialsPath)) {
-            throw new \Exception("Файл credentials.json не найден в {$credentialsPath}. Необходимо создать Google Service Account и поместить JSON файл в эту папку.");
-        }
-
-        $client = new \Google\Client();
-        $client->setAuthConfig($credentialsPath);
-        $client->addScope(\Google\Service\Sheets::SPREADSHEETS_READONLY);
-        $client->setAccessType('offline');
-
-        $service = new Sheets($client);
-
-        // Получаем список нужных ячеек
-        $indexes = GallupReportSheetIndex::where('gallup_report_sheet_id', $reportSheet->id)->get();
-        if ($indexes->isEmpty()) return;
-
-        // Определяем минимальную и максимальную ячейку (например: O21:AJ24)
-        $minRow = $maxRow = null;
-        $minCol = $maxCol = null;
-
-        $positions = [];
-
-        foreach ($indexes as $index) {
-            [$col, $row] = $this->cellToCoordinates($index->index);
-
-            $minRow = is_null($minRow) ? $row : min($minRow, $row);
-            $maxRow = is_null($maxRow) ? $row : max($maxRow, $row);
-            $minCol = is_null($minCol) ? $col : min($minCol, $col);
-            $maxCol = is_null($maxCol) ? $col : max($maxCol, $col);
-
-            $positions[$index->index] = [
-                'row' => $row,
-                'col' => $col,
-                'type' => $index->type,
-                'name' => $index->name,
-            ];
-        }
-
-        // Преобразуем координаты обратно в строку
-        $minCell = $this->coordinatesToCell($minCol, $minRow);
-        $maxCell = $this->coordinatesToCell($maxCol, $maxRow);
-        $range = "{$sheetName}!{$minCell}:{$maxCell}";
-
-        Log::info('Запрашиваем диапазон: ' . $range);
-
-        $response = $service->spreadsheets_values->get($spreadsheetId, $range);
-        $matrix = $response->getValues();
-
-        // Удаляем старые значения
-        GallupReportSheetValue::where('gallup_report_sheet_id', $reportSheet->id)
-            ->where('candidate_id', $candidate->id)
-            ->delete();
-
-        foreach ($positions as $cell => $meta) {
-            $relativeRow = $meta['row'] - $minRow;
-            $relativeCol = $meta['col'] - $minCol;
-
-            $value = $matrix[$relativeRow][$relativeCol] ?? null;
-            if ($value === null) continue;
-
-            if (is_string($value)) {
-                $value = preg_replace('/\s*%$/', '', $value);
+            // Проверяем существование файла credentials
+            if (!file_exists($credentialsPath)) {
+                throw new \Exception("Файл credentials.json не найден в {$credentialsPath}. Необходимо создать Google Service Account и поместить JSON файл в эту папку.");
             }
 
-            GallupReportSheetValue::create([
-                'gallup_report_sheet_id' => $reportSheet->id,
-                'candidate_id' => $candidate->id,
-                'type' => $meta['type'],
-                'name' => $meta['name'],
-                'value' => (int) $value,
-            ]);
+            $client = new \Google\Client();
+            $client->setAuthConfig($credentialsPath);
+            $client->addScope(\Google\Service\Sheets::SPREADSHEETS_READONLY);
+            $client->setAccessType('offline');
 
-            Log::info('Импорт значения', [
-                'cell' => $cell,
-                'name' => $meta['name'],
-                'value' => $value,
-            ]);
+            $service = new Sheets($client);
+
+            // Получаем список нужных ячеек
+            $indexes = GallupReportSheetIndex::where('gallup_report_sheet_id', $reportSheet->id)->get();
+            if ($indexes->isEmpty()) return;
+
+            // Определяем минимальную и максимальную ячейку (например: O21:AJ24)
+            $minRow = $maxRow = null;
+            $minCol = $maxCol = null;
+
+            $positions = [];
+
+            foreach ($indexes as $index) {
+                [$col, $row] = $this->cellToCoordinates($index->index);
+
+                $minRow = is_null($minRow) ? $row : min($minRow, $row);
+                $maxRow = is_null($maxRow) ? $row : max($maxRow, $row);
+                $minCol = is_null($minCol) ? $col : min($minCol, $col);
+                $maxCol = is_null($maxCol) ? $col : max($maxCol, $col);
+
+                $positions[$index->index] = [
+                    'row' => $row,
+                    'col' => $col,
+                    'type' => $index->type,
+                    'name' => $index->name,
+                ];
+            }
+
+            // Преобразуем координаты обратно в строку
+            $minCell = $this->coordinatesToCell($minCol, $minRow);
+            $maxCell = $this->coordinatesToCell($maxCol, $maxRow);
+            $range = "{$sheetName}!{$minCell}:{$maxCell}";
+
+            Log::info('Запрашиваем диапазон: ' . $range);
+
+            $response = $service->spreadsheets_values->get($spreadsheetId, $range);
+            $matrix = $response->getValues();
+
+            // Удаляем старые значения
+            GallupReportSheetValue::where('gallup_report_sheet_id', $reportSheet->id)
+                ->where('candidate_id', $candidate->id)
+                ->delete();
+
+            foreach ($positions as $cell => $meta) {
+                $relativeRow = $meta['row'] - $minRow;
+                $relativeCol = $meta['col'] - $minCol;
+
+                $value = $matrix[$relativeRow][$relativeCol] ?? null;
+                if ($value === null) continue;
+
+                if (is_string($value)) {
+                    $value = preg_replace('/\s*%$/', '', $value);
+                }
+
+                GallupReportSheetValue::create([
+                    'gallup_report_sheet_id' => $reportSheet->id,
+                    'candidate_id' => $candidate->id,
+                    'type' => $meta['type'],
+                    'name' => $meta['name'],
+                    'value' => (int) $value,
+                ]);
+
+                Log::info('Импорт значения', [
+                    'cell' => $cell,
+                    'name' => $meta['name'],
+                    'value' => $value,
+                ]);
+            }
+
+            Log::info('Импорт психотипов завершён');
+        } catch (\Exception $e) {
+            $this->logStep($candidate, "Ошибка импорта формул: " . $e->getMessage(), 'error', $e->getMessage());
+            throw $e;
         }
-
-        Log::info('Импорт психотипов завершён');
     }
 
     protected function cellToCoordinates($cell)
@@ -611,6 +669,49 @@ class GallupController extends Controller
     {
         // Используем Queue с задержкой для удаления файла
         \App\Jobs\DeleteTempFile::dispatch($filePath)->delay(now()->addMinutes($minutes));
+    }
+
+    /**
+     * Получить историю парсинга для кандидата
+     */
+    public function getParseHistory(Candidate $candidate)
+    {
+        $history = GallupParseHistory::getHistoryForCandidate($candidate->id);
+        
+        return response()->json([
+            'candidate_id' => $candidate->id,
+            'candidate_name' => $candidate->full_name,
+            'current_step' => $candidate->step_parse_gallup,
+            'history' => $history
+        ]);
+    }
+
+    /**
+     * Получить статистику парсинга
+     */
+    public function getParseStatistics()
+    {
+        $totalRecords = GallupParseHistory::count();
+        $errorRecords = GallupParseHistory::where('status', 'error')->count();
+        $completedRecords = GallupParseHistory::where('status', 'completed')->count();
+        $inProgressRecords = GallupParseHistory::where('status', 'in_progress')->count();
+        
+        $recentErrors = GallupParseHistory::where('status', 'error')
+            ->where('created_at', '>=', now()->subHours(24))
+            ->with('candidate:id,full_name')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        return response()->json([
+            'statistics' => [
+                'total_records' => $totalRecords,
+                'error_records' => $errorRecords,
+                'completed_records' => $completedRecords,
+                'in_progress_records' => $inProgressRecords,
+            ],
+            'recent_errors' => $recentErrors
+        ]);
     }
 
 
