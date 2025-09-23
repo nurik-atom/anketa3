@@ -586,7 +586,7 @@ class GallupController extends Controller
         $mergedPath = $this->mergeCandidateReportPdfs($candidate, $version);
         
         // Создаем временный файл с уникальным именем
-        $tempFileName = "temp_anketa_{$version}_candidate_{$candidate->id}_" . date('Y-m-d_H-i-s') . ".pdf";
+        $tempFileName = "{$candidate->last_name}_{$candidate->first_name}_{$version}_{$candidate->id}_" . date('Y-m-d_H-i-s') . ".pdf";
         $tempPath = "temp_anketas/{$tempFileName}";
         
         // Копируем во временную папку
