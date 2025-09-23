@@ -219,6 +219,25 @@ class CandidateResource extends Resource
                         default => 'gray',
                     })
                     ->sortable(),
+                Tables\Columns\TextColumn::make('step_parse_gallup')
+                    ->label('Статус Gallup')
+                    ->badge()
+                    ->color(fn (?string $state): string => match (true) {
+                        str_contains($state ?? '', 'Ошибка') => 'danger',
+                        str_contains($state ?? '', 'Завершено успешно') => 'success',
+                        str_contains($state ?? '', 'Изменений не обнаружено') => 'info',
+                        str_contains($state ?? '', 'Проверка файла') => 'warning',
+                        str_contains($state ?? '', 'Парсинг PDF') => 'warning',
+                        str_contains($state ?? '', 'Обновление') => 'info',
+                        str_contains($state ?? '', 'Обработка') => 'info',
+                        str_contains($state ?? '', 'Импорт') => 'info',
+                        str_contains($state ?? '', 'Скачивание') => 'info',
+                        default => 'gray',
+                    })
+                    ->limit(30)
+                    ->tooltip(fn (?string $state): string => $state ?? 'Не начат')
+                    ->toggleable(isToggledHiddenByDefault: true)
+                    ->sortable(),
                 Tables\Columns\IconColumn::make('has_driving_license')
                     ->label('Вод. права')
                     ->boolean()
@@ -318,6 +337,27 @@ class CandidateResource extends Resource
                             $q->whereRaw('JSON_LENGTH(answers) >= 56');
                         })
                     ),
+                Tables\Filters\SelectFilter::make('step_parse_gallup')
+                    ->label('Статус парсинга Gallup')
+                    ->options([
+                        'Проверка файла' => 'Проверка файла',
+                        'Парсинг PDF' => 'Парсинг PDF',
+                        'Обновление талантов' => 'Обновление талантов',
+                        'Обработка отчетов' => 'Обработка отчетов',
+                        'Обновление Google Sheets: FMD' => 'Обновление Google Sheets: FMD',
+                        'Обновление Google Sheets: DPT' => 'Обновление Google Sheets: DPT',
+                        'Обновление Google Sheets: DPs' => 'Обновление Google Sheets: DPs',
+                        'Импорт формул: FMD' => 'Импорт формул: FMD',
+                        'Импорт формул: DPT' => 'Импорт формул: DPT',
+                        'Импорт формул: DPs' => 'Импорт формул: DPs',
+                        'Скачивание PDF: FMD' => 'Скачивание PDF: FMD',
+                        'Скачивание PDF: DPT' => 'Скачивание PDF: DPT',
+                        'Скачивание PDF: DPs' => 'Скачивание PDF: DPs',
+                        'Завершено успешно' => 'Завершено успешно',
+                        'Изменений не обнаружено' => 'Изменений не обнаружено',
+                    ])
+                    ->searchable()
+                    ->hidden(), // Скрытый фильтр, но доступный при необходимости
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
