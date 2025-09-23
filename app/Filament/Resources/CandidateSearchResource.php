@@ -255,13 +255,36 @@ class CandidateSearchResource extends Resource
                         ->visible(fn (Candidate $record): bool => 
                             $record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)
                         ),
+
+                    Tables\Actions\Action::make('downloadDPs')
+                        ->label('DPs отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('info')
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'DPs']))
+                        ->modal()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPs')->exists()),
+                    Tables\Actions\Action::make('downloadDPT')
+                        ->label('DPT отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('warning')
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'DPT']))
+                        ->modal()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'DPT')->exists()),
+                    Tables\Actions\Action::make('downloadFMD')
+                        ->label('FMD отчет')
+                        ->icon('heroicon-o-document-text')
+                        ->color('danger')
+                        ->url(fn (Candidate $record) => ViewCandidatePdf::getUrl(['candidate' => $record->id, 'type' => 'FMD']))
+                        ->modal()
+                        ->visible(fn (Candidate $record): bool => $record->gallupReports()->where('type', 'FMD')->exists()),
                 ])
                     ->label('Gallup отчеты')
                     ->icon('heroicon-o-document-arrow-down')
                     ->color('success')
                     ->button()
                     ->visible(fn (Candidate $record): bool =>
-                        $record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)
+                        ($record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)) || 
+                        $record->gallupReports()->exists()
                     ),
             ])
             ->bulkActions([
