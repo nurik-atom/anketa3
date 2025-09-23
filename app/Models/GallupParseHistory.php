@@ -12,6 +12,9 @@ class GallupParseHistory extends Model
 
     protected $table = 'gallup_parse_history';
 
+    // Отключаем автоматическое управление updated_at
+    public $timestamps = false;
+
     protected $fillable = [
         'candidate_id',
         'step',
@@ -41,6 +44,7 @@ class GallupParseHistory extends Model
             'step' => $step,
             'status' => $status,
             'details' => $details,
+            'created_at' => now(),
         ]);
     }
 
