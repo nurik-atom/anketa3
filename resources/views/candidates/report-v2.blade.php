@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Отчет о кандидате - {{ $candidate->full_name }}</title>
+    <title>@if($isReducedReport)Урезанный отчет о кандидате@elseОтчет о кандидате@endif - {{ $candidate->full_name }}</title>
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -258,7 +258,13 @@
         <div class="p-6 border-b border-gray-200">
             <div class="flex items-start gap-8">
                 <div class="flex-1">
-                    <h1 class="text-3xl font-bold text-gray-800 mb-4">{{ $candidate->full_name }}</h1>
+                        @if($isReducedReport)
+                            <span class="text-lg text-gray-500 font-normal">(урезанная версия)</span>
+                        @endif
+                    <h1 class="text-3xl font-bold text-gray-800 mb-4">
+                        {{ $candidate->full_name }}
+                    </h1>
+                     @if($isFullReport)
                      <div class="text-base mb-6">
                          <div class="mb-4">
                              <!-- <span class="font-medium text-gray-800"></span> -->
@@ -270,6 +276,7 @@
                              @endif
                          </div>
                      </div>
+                     @endif
 
                      <!-- Основная информация -->
                      <div class="space-y-3">
@@ -313,6 +320,7 @@
                              $family = $candidate->getFamilyStructured();
                          @endphp
                          
+                         @if($isFullReport)
                          <!-- Дети -->
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Дети:</span>
@@ -327,7 +335,9 @@
                                  @endif
                              </span>
                          </div>
+                         @endif
 
+                         @if($isFullReport)
                          <!-- Родители -->
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Родители:</span>
@@ -347,7 +357,9 @@
                                  @endif
                              </span>
                          </div>
+                         @endif
 
+                         @if($isFullReport)
                          <!-- Братья и сестры -->
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Кол-во братьев-сестер:</span>
@@ -362,6 +374,7 @@
                                  @endif
                              </span>
                          </div>
+                         @endif
 
                      </div>
                 </div>
@@ -476,6 +489,7 @@
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Прочая информация</h2>
                 <div class="space-y-2">
+                    @if($isFullReport)
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Религия:</span>
                         <span class="text-base font-medium">{{ $candidate->religion ?: 'Не указано' }}</span>
@@ -484,6 +498,7 @@
                         <span class="w-60 text-base text-gray-600">Рел. практика:</span>
                         <span class="text-base font-medium">{{ $candidate->is_practicing ? 'Да' : 'Нет' }}</span>
                     </div>
+                    @endif
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Водительские права:</span>
                         <span class="text-base font-medium">{{ $candidate->has_driving_license ? 'Есть' : 'Нет' }}</span>

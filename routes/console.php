@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 // Schedule::command('import:candidate-one')->everyMinute();
 Schedule::command('telescope:prune --hours=6')->hourly();
+Schedule::command('cleanup:temp-files')->hourly();

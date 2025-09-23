@@ -25,7 +25,7 @@ class CandidateReportController extends Controller
         return view('candidates.report', compact('candidate', 'photoUrl'));
     }
 
-    public function showV2(Candidate $candidate)
+    public function showV2(Candidate $candidate, $version = null)
     {
         // Загружаем связанные данные
         $candidate->load(['gallupTalents', 'gallupReports', 'user.gardnerTestResult']);
@@ -36,8 +36,12 @@ class CandidateReportController extends Controller
             $photoUrl = Storage::disk('public')->url($candidate->photo);
         }
 
+        // Определяем тип отчета на основе URL
+        $isFullReport = $version === 'full' || $version === null;
+        $isReducedReport = $version === 'reduced';
+
         // Подготавливаем данные для отображения (новая версия)
-        return view('candidates.report-v2', compact('candidate','photoUrl'));
+        return view('candidates.report-v2', compact('candidate', 'photoUrl', 'isFullReport', 'isReducedReport'));
     }
 
     public function pdf(Candidate $candidate)

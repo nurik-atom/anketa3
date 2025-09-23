@@ -17,18 +17,17 @@ class ViewCandidatePdf extends Page
     {
         $this->candidate = $candidate;
         $this->type = strtoupper($type); // для отображения в заголовке
-        if ($type == 'anketa'){
-            $this->url = Storage::disk('public')->url($candidate->anketa_pdf);
-//            dd($this->url);
-        }else{
+        
+        if ($type == 'anketa') {
+            // Генерируем PDF по требованию
+            $gallupController = app(\App\Http\Controllers\GallupController::class);
+            $pdfPath = $gallupController->generateAnketaPdfOnDemand($candidate);
+            $this->url = Storage::disk('public')->url($pdfPath);
+        } else {
             $report = $candidate->gallupReportByType($type);
-
-//            dd($report->pdf_file);
-
             abort_if(!$report || !Storage::disk('public')->exists($report->pdf_file), 404);
             $this->url = Storage::url($report->pdf_file);
         }
-
     }
 
     public function getTitle(): string

@@ -63,6 +63,7 @@ Route::post('/reset-password', function (Illuminate\Http\Request $request) {
 })->name('password.update');
 
 Route::get('/candidate/{candidate}/report', [CandidateReportController::class, 'showV2'])->name('candidate.report');
+Route::get('/candidate/{candidate}/report/{version}', [CandidateReportController::class, 'showV2'])->name('candidate.report.version');
 
 Route::middleware([
     'auth:sanctum',

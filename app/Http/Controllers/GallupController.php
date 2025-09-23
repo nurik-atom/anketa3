@@ -122,15 +122,13 @@ class GallupController extends Controller
             }
         }
 
-        // 👇 Объединение всех PDF после скачивания
-        $mergedPath = $this->mergeCandidateReportPdfs($candidate);
-
-        // если надо сохранить путь в модель:
-        $candidate->anketa_pdf = $mergedPath;
-        $candidate->save();
+        // Убираем объединение PDF из основного процесса - теперь генерируем по требованию
+        // $mergedPath = $this->mergeCandidateReportPdfs($candidate);
+        // $candidate->anketa_pdf = $mergedPath;
+        // $candidate->save();
 
         return response()->json([
-            'message' => 'Данные Gallup обновлены, Google Sheet заполнен, PDF сохранён.',
+            'message' => 'Данные Gallup обновлены, Google Sheet заполнен.',
         ]);
     }
 
@@ -577,6 +575,42 @@ class GallupController extends Controller
         }
 
         return $letters . $row;
+    }
+
+    /**
+     * Генерирует объединенную анкету по требованию с временным хранением
+     */
+    public function generateAnketaPdfOnDemand(Candidate $candidate)
+    {
+        // Генерируем объединенный PDF
+        $mergedPath = $this->mergeCandidateReportPdfs($candidate);
+        
+        // Создаем временный файл с уникальным именем
+        $tempFileName = "temp_anketa_candidate_{$candidate->id}_" . date('Y-m-d_H-i-s') . ".pdf";
+        $tempPath = "temp_anketas/{$tempFileName}";
+        
+        // Копируем во временную папку
+        $tempFullPath = Storage::disk('public')->path($tempPath);
+        Storage::disk('public')->makeDirectory(dirname($tempPath));
+        
+        copy(Storage::disk('public')->path($mergedPath), $tempFullPath);
+        
+        // Удаляем оригинальный объединенный файл
+        Storage::disk('public')->delete($mergedPath);
+        
+        // Планируем удаление временного файла через 30 минут
+        $this->scheduleTempFileDeletion($tempPath, 30);
+        
+        return $tempPath;
+    }
+
+    /**
+     * Планирует удаление временного файла
+     */
+    protected function scheduleTempFileDeletion(string $filePath, int $minutes)
+    {
+        // Используем Queue с задержкой для удаления файла
+        \App\Jobs\DeleteTempFile::dispatch($filePath)->delay(now()->addMinutes($minutes));
     }
 
 
