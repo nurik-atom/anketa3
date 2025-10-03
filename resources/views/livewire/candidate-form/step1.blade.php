@@ -158,6 +158,18 @@
             @error('email') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
 
+        <!-- Инстаграм -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">
+                Инстаграм <span class="text-gray-500">(в формате @username)</span>
+            </label>
+            <input type="text"
+                   wire:model="instagram"
+                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                   placeholder="username (знак @ добавится автоматически)">
+            @error('instagram') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+        </div>
+
         <!-- Телефон -->
         <div>
             <label class="block text-sm font-medium text-gray-700">
@@ -234,6 +246,22 @@
                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                    placeholder="г. Москва">
             @error('current_city') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+        </div>
+
+        <!-- Готов к переезду -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700">
+                Готов к переезду
+            </label>
+            <div class="mt-2">
+                <label class="inline-flex items-center">
+                    <input type="checkbox"
+                           wire:model="ready_to_relocate"
+                           class="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <span class="ml-2 text-sm text-gray-700">Да, готов к переезду</span>
+                </label>
+            </div>
+            @error('ready_to_relocate') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
         </div>
     </div>
 </div>
