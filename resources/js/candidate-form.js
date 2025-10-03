@@ -58,15 +58,19 @@ export function initPhoneMask() {
                     const end = next.length;
                     phoneInput.setSelectionRange(end, end);
                 }, 0);
-                // Синхронизируем с Livewire
-                phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
-                phoneInput.dispatchEvent(new Event('change', { bubbles: true }));
+                // Синхронизируем с Livewire только если это не автоматическая установка '+'
+                // Проверяем, что это не просто добавление '+' к пустому полю
+                if (raw !== '' || next !== '+') {
+                    phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    phoneInput.dispatchEvent(new Event('change', { bubbles: true }));
+                }
             }
         };
 
-        // Инициализация значения
+        // Инициализация значения (без отправки событий в Livewire)
         if (!phoneInput.value || !phoneInput.value.startsWith('+')) {
             phoneInput.value = '+' + (phoneInput.value || '').replace(/^\+/, '');
+            // Не отправляем события при инициализации, чтобы не вызвать валидацию
         }
 
         // Блокируем удаление '+'
@@ -86,11 +90,13 @@ export function initPhoneMask() {
             }
         });
 
-        // При фокусе ставим '+' если пусто
+        // При фокусе ставим '+' если пусто, но не отправляем события в Livewire при первой загрузке
         phoneInput.addEventListener('focus', () => {
             if (!phoneInput.value || !phoneInput.value.startsWith('+')) {
                 phoneInput.value = '+';
                 setTimeout(() => phoneInput.setSelectionRange(1, 1), 0);
+                // Не отправляем события в Livewire при автоматической установке '+'
+                // Это предотвращает валидацию при первой загрузке страницы
             }
         });
 
@@ -100,10 +106,13 @@ export function initPhoneMask() {
             setTimeout(ensurePlusPrefix, 0);
         });
 
-        // Синхронизация с Livewire
+        // Синхронизация с Livewire (только при реальных изменениях пользователя)
         phoneMask.on('accept', function() {
-            phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
-            phoneInput.dispatchEvent(new Event('change', { bubbles: true }));
+            // Отправляем события только если это не автоматическая установка '+'
+            if (phoneInput.value !== '+') {
+                phoneInput.dispatchEvent(new Event('input', { bubbles: true }));
+                phoneInput.dispatchEvent(new Event('change', { bubbles: true }));
+            }
         });
 
         // Если в поле уже есть значение, применяем маску

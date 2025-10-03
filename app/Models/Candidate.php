@@ -26,6 +26,8 @@ class Candidate extends Model
         'birth_date',
         'birth_place',
         'current_city',
+        'ready_to_relocate',
+        'instagram',
         'photo',
 
         // Additional Information
@@ -51,6 +53,7 @@ class Candidate extends Model
         'total_experience_years',
         'job_satisfaction',
         'desired_position',
+        'activity_sphere',
         'expected_salary',
         'employer_requirements',
 
@@ -63,6 +66,7 @@ class Candidate extends Model
     protected $casts = [
         'birth_date' => 'date',
         'is_practicing' => 'boolean',
+        'ready_to_relocate' => 'boolean',
         'family_members' => 'array',
         'visited_countries' => 'array',
         'favorite_sports' => 'array',
