@@ -29,7 +29,7 @@ class GallupController extends Controller
     {
         // Обновляем поле в кандидате
         $candidate->update(['step_parse_gallup' => $step]);
-        
+
         // Записываем в историю
         GallupParseHistory::createHistory(
             $candidate->id,
@@ -68,7 +68,7 @@ class GallupController extends Controller
     {
         // Шаг 1: Проверка файла
         $this->logStep($candidate, 'Проверка файла');
-        
+
         if (!$candidate->gallup_pdf || !Storage::disk('public')->exists($candidate->gallup_pdf)) {
             $this->logStep($candidate, 'Ошибка: Файл не найден', 'error', 'Файл Gallup PDF не найден в файловой системе');
             return response()->json(['error' => 'Файл не найден.'], 404);
@@ -81,7 +81,7 @@ class GallupController extends Controller
 
         // Шаг 2: Парсинг PDF
         $this->logStep($candidate, 'Парсинг PDF');
-        
+
         $fullPath = storage_path('app/public/' . $candidate->gallup_pdf);
 
         $parser = new Parser();
@@ -109,7 +109,7 @@ class GallupController extends Controller
 
         // Шаг 3: Обновление талантов
         $this->logStep($candidate, 'Обновление талантов');
-        
+
         // Получаем текущие таланты из базы
         $existingTalents = $candidate->gallupTalents()
             ->orderBy('position')
@@ -118,7 +118,7 @@ class GallupController extends Controller
 
         // Проверка на изменения
         $hasChanged = $existingTalents !== $talents;
-        
+
         //TODO: Убрать после тестирования
         $hasChanged = true;
         //! Если изменения есть, то обновляем таланты
@@ -134,7 +134,7 @@ class GallupController extends Controller
 
             // Шаг 4: Обработка отчетов
             $this->logStep($candidate, 'Обработка отчетов');
-            
+
             // Получаем все активные листы отчетов из базы данных
             $reportSheets = GallupReportSheet::with('indices')->orderBy('id', 'desc')->get();
 
@@ -151,7 +151,7 @@ class GallupController extends Controller
                 // Шаг 6: Импорт формул
                 $this->logStep($candidate, "Импорт формул: {$reportSheet->name_report}");
                 $this->importFormulaValues($reportSheet, $candidate);
-                
+
                 // Шаг 7: Скачивание PDF
                 $this->logStep($candidate, "Скачивание PDF: {$reportSheet->name_report}");
                 $this->downloadSheetPdf(
@@ -159,7 +159,7 @@ class GallupController extends Controller
                     $reportSheet
                 );
             }
-            
+
             // Шаг 8: Завершение
             $this->logStep($candidate, 'Завершено успешно', 'completed', 'Все отчеты успешно обработаны');
         } else {
@@ -436,11 +436,11 @@ class GallupController extends Controller
 
         Storage::disk('public')->makeDirectory(dirname($outputRelative));
 
-        
-        if (Storage::disk('public')->exists($candidate->anketa_pdf)) {
-            Storage::disk('public')->delete($candidate->anketa_pdf);
+        if ($candidate->anketa_pdf){
+            if (Storage::disk('public')->exists($candidate->anketa_pdf)) {
+                Storage::disk('public')->delete($candidate->anketa_pdf);
+            }
         }
-
         $pdf = new Fpdi();
 
         foreach ($pdfPaths as $path) {
@@ -642,7 +642,7 @@ class GallupController extends Controller
     {
         // Генерируем объединенный PDF
         $mergedPath = $this->mergeCandidateReportPdfs($candidate, $version);
-        
+
         // Создаем временный файл с уникальным именем
         // Формат: {full_name} - TL{G/B}{YY}-{ID}
         // TL - TalentsLab, G - girl, B - boy, YY - год рождения (2 цифры), ID - id с ведущими нулями
@@ -650,21 +650,21 @@ class GallupController extends Controller
         $birthYear = $candidate->birth_date ? substr(date('Y', strtotime($candidate->birth_date)), -2) : '00';
         $candidateId = str_pad($candidate->id, 4, '0', STR_PAD_LEFT);
         $tempFileName = "{$candidate->full_name} - TL{$genderCode}{$birthYear}-{$candidateId}.pdf";
-        
+
         $tempPath = "temp_anketas/{$tempFileName}";
-        
+
         // Копируем во временную папку
         $tempFullPath = Storage::disk('public')->path($tempPath);
         Storage::disk('public')->makeDirectory(dirname($tempPath));
-        
+
         copy(Storage::disk('public')->path($mergedPath), $tempFullPath);
-        
+
         // Удаляем оригинальный объединенный файл
         Storage::disk('public')->delete($mergedPath);
-        
+
         // Планируем удаление временного файла через 30 минут
         $this->scheduleTempFileDeletion($tempPath, 30);
-        
+
         return $tempPath;
     }
 
@@ -683,7 +683,7 @@ class GallupController extends Controller
     public function getParseHistory(Candidate $candidate)
     {
         $history = GallupParseHistory::getHistoryForCandidate($candidate->id);
-        
+
         return response()->json([
             'candidate_id' => $candidate->id,
             'candidate_name' => $candidate->full_name,
@@ -701,7 +701,7 @@ class GallupController extends Controller
         $errorRecords = GallupParseHistory::where('status', 'error')->count();
         $completedRecords = GallupParseHistory::where('status', 'completed')->count();
         $inProgressRecords = GallupParseHistory::where('status', 'in_progress')->count();
-        
+
         $recentErrors = GallupParseHistory::where('status', 'error')
             ->where('created_at', '>=', now()->subHours(24))
             ->with('candidate:id,full_name')
