@@ -65,6 +65,12 @@ return [
         'marketing_advertising' => 'Маркетинг и реклама',
         'hr_recruitment' => 'HR и рекрутинг',
         'sales_business' => 'Продажи и бизнес-развитие',
+        'telecommunications' => 'Телекоммуникации',
+        'pharmaceuticals' => 'Фармацевтика',
+        'beauty_cosmetology' => 'Красота и косметология',
+        'sports_fitness' => 'Спорт и фитнес',
+        'design_creative' => 'Дизайн и творчество',
+        'insurance' => 'Страхование',
         'other' => 'Другое'
     ]
 ]; 

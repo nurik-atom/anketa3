@@ -644,7 +644,13 @@ class GallupController extends Controller
         $mergedPath = $this->mergeCandidateReportPdfs($candidate, $version);
         
         // Создаем временный файл с уникальным именем
-        $tempFileName = "{$candidate->full_name}_{$version}_{$candidate->id}_" . date('d.m.Y') . ".pdf";
+        // Формат: {full_name} - TL{G/B}{YY}-{ID}
+        // TL - TalentsLab, G - girl, B - boy, YY - год рождения (2 цифры), ID - id с ведущими нулями
+        $genderCode = ($candidate->gender === 'Женский' || $candidate->gender === 'female') ? 'G' : 'B';
+        $birthYear = $candidate->birth_date ? substr(date('Y', strtotime($candidate->birth_date)), -2) : '00';
+        $candidateId = str_pad($candidate->id, 4, '0', STR_PAD_LEFT);
+        $tempFileName = "{$candidate->full_name} - TL{$genderCode}{$birthYear}-{$candidateId}.pdf";
+        
         $tempPath = "temp_anketas/{$tempFileName}";
         
         // Копируем во временную папку

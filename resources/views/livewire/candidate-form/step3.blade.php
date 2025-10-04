@@ -25,14 +25,14 @@
 
         <!-- Университеты -->
         <div>
-            <label class="block text-sm font-medium text-gray-700">Университеты</label>
+            <label class="block text-sm font-medium text-gray-700">Университет | Колледж</label>
             <div class="space-y-4">
                 @foreach($universities as $index => $university)
                     <div class="p-4 bg-gray-50 rounded-lg">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">
-                                    Название университета <span class="text-red-500">*</span>
+                                    Название университета | колледжа <span class="text-red-500">*</span>
                                 </label>
                                 <input type="text" 
                                        wire:model="universities.{{ $index }}.name" 
@@ -54,17 +54,19 @@
                                 <label class="block text-sm font-medium text-gray-700">
                                     Год окончания <span class="text-red-500">*</span>
                                 </label>
-                                <input type="number" 
-                                       wire:model="universities.{{ $index }}.graduation_year" 
-                                       min="1950"
-                                       placeholder="например: {{ date('Y') + 2 }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <select wire:model="universities.{{ $index }}.graduation_year" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="" selected disabled>Выберите год</option>
+                                    @for($year = 1970; $year <= 2035; $year++)
+                                        <option value="{{ $year }}">{{ $year }}</option>
+                                    @endfor
+                                </select>
                                 @error("universities.{$index}.graduation_year") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">
-                                    GPA
+                                    GPA <span class="text-gray-500">(не обязательно)</span>
                                 </label>
                                 <input type="number" 
                                        wire:model="universities.{{ $index }}.gpa"
@@ -88,7 +90,10 @@
 
                 <button type="button" 
                         wire:click="addUniversity" 
-                        class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        class="group mt-4 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50">
+                    <svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
                     Добавить университет
                 </button>
             </div>
@@ -265,7 +270,10 @@
 
                 <button type="button" 
                         wire:click="addWorkExperience" 
-                        class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        class="group mt-4 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-indigo-300 focus:ring-opacity-50">
+                    <svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
                     Добавить место работы
                 </button>
             </div>
@@ -280,59 +288,13 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Язык</label>
-                                <div class="mt-1">
-                                    <!-- Объединенный select с поиском -->
-                                    <div class="relative" x-data="languageSearch({{ $index }}, '{{ $skill['language'] ?? '' }}')">
-                                        <input 
-                                            type="text" 
-                                            x-model="search"
-                                            @click="showDropdown = true"
-                                            @keydown.escape="showDropdown = false"
-                                            @keydown.arrow-down.prevent="highlightNext()"
-                                            @keydown.arrow-up.prevent="highlightPrev()"
-                                            @keydown.enter.prevent="selectHighlighted()"
-                                            :placeholder="selectedLanguage ? '' : 'Поиск языка...'"
-                                            :value="selectedLanguage || search"
-                                            @input="search = $event.target.value; selectedLanguage = ''"
-                                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10"
-                                            autocomplete="off"
-                                            x-ref="languageInput"
-                                        >
-                                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                            <button type="button" 
-                                                    @click="clearLanguage()" 
-                                                    x-show="selectedLanguage"
-                                                    class="text-gray-400 hover:text-gray-600 mr-2">
-                                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                            </svg>
-                                        </div>
-                                        
-                                        <!-- Выпадающий список -->
-                                        <div x-show="showDropdown && filteredLanguages.length > 0" 
-                                             x-transition
-                                             @click.away="showDropdown = false"
-                                             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                                            <template x-for="(language, langIndex) in filteredLanguages" :key="language">
-                                                <div @click="selectLanguage(language)" 
-                                                     :class="{'bg-blue-100': langIndex === highlightedIndex}"
-                                                     class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-50">
-                                                    <span x-text="language" class="font-normal block truncate"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-                                        
-                                        <!-- Скрытое поле для синхронизации с Livewire -->
-                                        <input type="hidden" 
-                                               wire:model="language_skills.{{ $index }}.language" 
-                                               name="language_skills[{{ $index }}][language]"
-                                               :value="selectedLanguage">
-                                    </div>
-                                </div>
+                                <select wire:model="language_skills.{{ $index }}.language" 
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <option value="">Выберите язык</option>
+                                    @foreach($languages ?? [] as $language)
+                                        <option value="{{ $language }}">{{ $language }}</option>
+                                    @endforeach
+                                </select>
                                 @error("language_skills.{$index}.language") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
@@ -360,7 +322,10 @@
 
                 <button type="button" 
                         wire:click="addLanguage" 
-                        class="mt-2 inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        class="group mt-4 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out focus:outline-none focus:ring-4 focus:ring-purple-300 focus:ring-opacity-50">
+                    <svg class="w-5 h-5 mr-2 group-hover:rotate-90 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5h12M9 3v2m1.048 9.5A18.022 18.022 0 016.412 9m6.088 9h7M11 21l5-10 5 10M12.751 5C11.783 10.77 8.07 15.61 3 18.129" />
+                    </svg>
                     Добавить язык
                 </button>
             </div>
@@ -368,6 +333,22 @@
 
         <!-- Желаемая должность, Сфера деятельности и Ожидаемая зарплата -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
+
+            <!-- Сфера деятельности -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700">
+                    Сфера деятельности <span class="text-red-500">*</span>
+                </label>
+                <select wire:model="activity_sphere" 
+                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">Выберите сферу деятельности</option>
+                    @foreach($activitySpheres as $key => $sphere)
+                        <option value="{{ $sphere }}">{{ $sphere }}</option>
+                    @endforeach
+                </select>
+                @error('activity_sphere') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+            </div>
+
             <!-- Желаемая должность -->
             <div>
                 <label class="block text-sm font-medium text-gray-700">
@@ -380,43 +361,7 @@
                 @error('desired_position') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
             </div>
 
-            <!-- Сфера деятельности -->
-            <div wire:key="activity-sphere-container-{{ $activity_sphere }}-{{ $activity_sphere_other }}" 
-                 x-data="{ 
-                showOther: @entangle('activity_sphere').live === 'Другое',
-                init() {
-                    // Обновляем состояние при изменении Livewire
-                    this.$watch('$wire.activity_sphere', (value) => {
-                        this.showOther = value === 'Другое';
-                    });
-                    // Устанавливаем начальное состояние
-                    this.showOther = this.$wire.activity_sphere === 'Другое';
-                }
-            }">
-                <label class="block text-sm font-medium text-gray-700">
-                    Сфера деятельности <span class="text-red-500">*</span>
-                </label>
-                <div class="mt-1">
-                    <select wire:model.live="activity_sphere" 
-                            x-on:change="showOther = $event.target.value === 'Другое'"
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                        <option value="">Выберите сферу деятельности</option>
-                        @foreach($activitySpheres as $key => $sphere)
-                            <option value="{{ $sphere }}">{{ $sphere }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                
-                <div x-show="showOther" x-transition class="mt-2" wire:key="activity-sphere-other-field-{{ $activity_sphere_other }}">
-                    <input type="text" 
-                           wire:model.live="activity_sphere_other" 
-                           class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                           placeholder="Введите свою сферу деятельности">
-                    @error('activity_sphere_other') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                </div>
-                
-                @error('activity_sphere') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-            </div>
+
 
             <!-- Ожидаемая зарплата -->
             <div>
@@ -978,96 +923,5 @@ const visibilityInterval = setInterval(function() {
 }, 500);
 </script>
 
-<script>
-function languageSearch(index, initialLanguage = '') {
-    return {
-        search: '',
-        selectedLanguage: initialLanguage,
-        showDropdown: false,
-        highlightedIndex: -1,
-        languages: @json($languages ?? []),
-        
-        get filteredLanguages() {
-            if (!this.search.trim()) {
-                return this.languages.slice(0, 10); // Показываем первые 10 языков по умолчанию
-            }
-            
-            const searchTerm = this.search.toLowerCase();
-            return this.languages.filter(language => 
-                language.toLowerCase().includes(searchTerm)
-            ).slice(0, 20); // Ограничиваем до 20 результатов
-        },
-        
-        selectLanguage(language) {
-            // Устанавливаем выбранный язык
-            this.selectedLanguage = language;
-            this.search = '';
-            
-            // Добавляем язык через Livewire
-            @this.call('setLanguageForSkill', index, language);
-            
-            // Закрываем dropdown
-            this.showDropdown = false;
-            this.highlightedIndex = -1;
-        },
-        
-        clearLanguage() {
-            this.selectedLanguage = '';
-            this.search = '';
-            this.showDropdown = false;
-            
-            // Удаляем язык через Livewire
-            @this.call('removeLanguageFromSkill', index);
-        },
-        
-        highlightNext() {
-            if (this.highlightedIndex < this.filteredLanguages.length - 1) {
-                this.highlightedIndex++;
-            }
-        },
-        
-        highlightPrev() {
-            if (this.highlightedIndex > 0) {
-                this.highlightedIndex--;
-            }
-        },
-        
-        selectHighlighted() {
-            if (this.highlightedIndex >= 0 && this.filteredLanguages[this.highlightedIndex]) {
-                this.selectLanguage(this.filteredLanguages[this.highlightedIndex]);
-            }
-        },
-        
-        init() {
-            // Принудительно обновляем поле ввода
-            this.$nextTick(() => {
-                if (this.$refs.languageInput && this.selectedLanguage) {
-                    this.$refs.languageInput.value = this.selectedLanguage;
-                }
-            });
-            
-            // Сбрасываем индекс при изменении поиска
-            this.$watch('search', () => {
-                this.highlightedIndex = -1;
-                this.showDropdown = this.search.length > 0 || this.search === '';
-            });
-            
-            // Следим за изменениями в Livewire
-            this.$watch('selectedLanguage', () => {
-                if (this.selectedLanguage) {
-                    this.showDropdown = false;
-                    // Принудительно обновляем поле ввода
-                    this.$nextTick(() => {
-                        if (this.$refs.languageInput) {
-                            this.$refs.languageInput.value = this.selectedLanguage;
-                        }
-                    });
-                }
-            });
-        }
-    }
-}
-
-</script>
 
  

@@ -74,7 +74,6 @@ class CandidateForm extends Component
     public $job_satisfaction;
     public $desired_position;
     public $activity_sphere;
-    public $activity_sphere_other = '';
     public $expected_salary;
     public $employer_requirements;
 
@@ -186,7 +185,7 @@ class CandidateForm extends Component
         $this->religions = config('lists.religions');
         $this->sports = config('lists.sports');
         $this->activitySpheres = config('lists.activity_spheres');
-        
+
 
         // Инициализируем массивы
         $this->universities = [];
@@ -214,13 +213,13 @@ class CandidateForm extends Component
 
         if ($candidateId) {
             $this->candidate = Candidate::findOrFail($candidateId);
-            
+
             // Дополнительная проверка прав доступа на уровне Livewire компонента
             // Пользователь может редактировать только свои анкеты, администратор - любые
             if ($this->candidate->user_id !== auth()->id() && !auth()->user()->is_admin) {
                 abort(403, 'У вас нет прав для редактирования этой анкеты.');
             }
-            
+
             $this->loadCandidateData();
             // Если анкета завершена (step >= 5), показываем первый шаг для редактирования
             $this->currentStep = $this->candidate->step >= 5 ? 1 : $this->candidate->step;
@@ -250,7 +249,7 @@ class CandidateForm extends Component
 
         // Инициализируем валидацию для текущего шага
         $this->reinitializeValidation();
-        
+
         // Если загружаем существующего кандидата, это не первая загрузка
         if ($this->candidate) {
             $this->isFirstLoad = false;
@@ -293,10 +292,10 @@ class CandidateForm extends Component
         logger()->debug('Loading candidate religion:', ['original' => $this->candidate->religion, 'converted' => $this->religion]);
         $this->is_practicing = $this->candidate->is_practicing;
         $this->family_members = $this->candidate->family_members ?? [];
-        
+
         // Инициализируем новые категории семьи
         $this->loadFamilyCategories();
-        
+
         $this->hobbies = $this->candidate->hobbies;
         $this->interests = $this->candidate->interests;
         $this->visited_countries = $this->candidate->visited_countries ?? [];
@@ -321,18 +320,7 @@ class CandidateForm extends Component
         $this->total_experience_years = $this->candidate->total_experience_years;
         $this->job_satisfaction = $this->candidate->job_satisfaction;
         $this->desired_position = $this->candidate->desired_position;
-        // Проверяем, есть ли сохраненное значение в списке сфер деятельности
-        $savedSphere = $this->candidate->activity_sphere;
-        $availableSpheres = array_values($this->activitySpheres);
-        
-        if ($savedSphere && !in_array($savedSphere, $availableSpheres)) {
-            // Если сохраненное значение не в списке, устанавливаем "Другое" и значение в поле other
-            $this->activity_sphere = 'Другое';
-            $this->activity_sphere_other = $savedSphere;
-        } else {
-            $this->activity_sphere = $savedSphere;
-            $this->activity_sphere_other = '';
-        }
+        $this->activity_sphere = $this->candidate->activity_sphere;
         $this->expected_salary = $this->candidate->expected_salary;
         $this->employer_requirements = $this->candidate->employer_requirements;
 
@@ -370,10 +358,10 @@ class CandidateForm extends Component
             // 'family_members.*.type' => 'required|string|in:Отец,Мать,Брат,Сестра,Жена,Муж,Сын,Дочь',
             // 'family_members.*.birth_year' => 'required|integer|min:1900|max:' . date('Y'),
             // 'family_members.*.profession' => ['required', 'string', 'max:255'],
-            
+
             // Новые правила валидации для категорий семьи - полностью убираем правила
             'parents' => 'sometimes|array|max:2',
-            'siblings' => 'sometimes|array', 
+            'siblings' => 'sometimes|array',
             'children' => 'sometimes|array',
             'hobbies' => ['required', 'string', 'max:1000'],
             'interests' => ['required', 'string', 'max:1000'],
@@ -414,7 +402,6 @@ class CandidateForm extends Component
             'job_satisfaction' => 'required|integer|min:1|max:5',
             'desired_position' => ['required', 'string', 'max:255'],
             'activity_sphere' => ['required', 'string', 'max:255'],
-            'activity_sphere_other' => ['nullable', 'string', 'max:255', 'required_if:activity_sphere,Другое'],
             'expected_salary' => 'required|numeric|min:0|max:999999999999',
             'employer_requirements' => ['required', 'string', 'max:2000', new CyrillicRule()],
 
@@ -474,8 +461,6 @@ class CandidateForm extends Component
         'desired_position.max' => 'Желаемая должность не должна превышать 255 символов',
         'activity_sphere.required' => 'Сфера деятельности обязательна для заполнения',
         'activity_sphere.max' => 'Сфера деятельности не должна превышать 255 символов',
-        'activity_sphere_other.required_if' => 'При выборе "Другое" необходимо указать сферу деятельности',
-        'activity_sphere_other.max' => 'Дополнительная сфера деятельности не должна превышать 255 символов',
         'instagram.max' => 'Инстаграм не должен превышать 255 символов',
 
         // Сообщения для CyrillicRule
@@ -527,23 +512,23 @@ class CandidateForm extends Component
 
         // Шаг 2
         'has_driving_license' => 'Водительские права',
-        'religion' => 'Религия',
+        'religion' => 'Вероисповедание',
         'is_practicing' => 'Практикующий',
         'family_members' => 'Члены семьи',
         'family_members.*.type' => 'Тип родства',
         'family_members.*.birth_year' => 'Год рождения',
         'family_members.*.profession' => 'Профессия',
-        
+
         // Новые атрибуты для категорий семьи
         'parents' => 'Родители',
         'parents.*.relation' => 'Родство',
         'parents.*.birth_year' => 'Год рождения',
         'parents.*.profession' => 'Профессия',
-        
+
         'siblings' => 'Братья и сестры',
         'siblings.*.relation' => 'Родство',
         'siblings.*.birth_year' => 'Год рождения',
-        
+
         'children' => 'Дети',
         'children.*.name' => 'Имя ребенка',
         'children.*.birth_year' => 'Год рождения',
@@ -582,7 +567,6 @@ class CandidateForm extends Component
         'job_satisfaction' => 'Удовлетворенность работой',
         'desired_position' => 'Желаемая должность',
         'activity_sphere' => 'Сфера деятельности',
-        'activity_sphere_other' => 'Дополнительная сфера деятельности',
         'expected_salary' => 'Ожидаемая зарплата',
         'employer_requirements' => 'Требования к работодателю',
 
@@ -633,8 +617,8 @@ class CandidateForm extends Component
         }
 
         // Если обновляется поле новых категорий семьи - отключаем live валидацию
-        if (strpos($propertyName, 'parents.') === 0 || 
-            strpos($propertyName, 'siblings.') === 0 || 
+        if (strpos($propertyName, 'parents.') === 0 ||
+            strpos($propertyName, 'siblings.') === 0 ||
             strpos($propertyName, 'children.') === 0) {
             // Просто сбрасываем ошибки для этого поля без валидации
             $this->resetErrorBag($propertyName);
@@ -706,7 +690,7 @@ class CandidateForm extends Component
 
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'ready_to_relocate', 'instagram', 'photo'];
         $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year_min', 'books_per_year_max', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
-        $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'activity_sphere', 'activity_sphere_other', 'expected_salary', 'employer_requirements'];
+        $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'activity_sphere', 'expected_salary', 'employer_requirements'];
         $step4Fields = ['gallup_pdf', 'mbti_type'];
 
         return match($this->currentStep) {
@@ -728,11 +712,11 @@ class CandidateForm extends Component
             $this->filterEmptyFamilyElements();
 
             $rules = $this->getStepRules();
-            
+
             logger()->debug('Validation rules for step ' . $this->currentStep . ':', $rules);
             logger()->debug('Current family data:', [
                 'parents' => $this->parents,
-                'siblings' => $this->siblings, 
+                'siblings' => $this->siblings,
                 'children' => $this->children
             ]);
 
@@ -822,12 +806,12 @@ class CandidateForm extends Component
                 'religion' => $allRules['religion'],
                 'is_practicing' => $allRules['is_practicing'],
                 // Убираем валидацию старой структуры family_members
-                
+
                 // Добавляем новые правила валидации для категорий семьи
                 'parents' => $allRules['parents'],
                 'siblings' => $allRules['siblings'],
                 'children' => $allRules['children'],
-                
+
                 'hobbies' => $allRules['hobbies'],
                 'interests' => $allRules['interests'],
                 'visited_countries' => $allRules['visited_countries'],
@@ -889,7 +873,7 @@ class CandidateForm extends Component
 
         $step1Fields = ['last_name', 'first_name', 'middle_name', 'email', 'phone', 'gender', 'marital_status', 'birth_date', 'birth_place', 'current_city', 'ready_to_relocate', 'instagram', 'photo'];
         $step2Fields = ['religion', 'is_practicing', 'family_members', 'parents', 'siblings', 'children', 'hobbies', 'interests', 'visited_countries', 'books_per_year_min', 'books_per_year_max', 'favorite_sports', 'entertainment_hours_weekly', 'educational_hours_weekly', 'social_media_hours_weekly', 'has_driving_license', 'newCountry'];
-        $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'activity_sphere', 'activity_sphere_other', 'expected_salary', 'employer_requirements'];
+        $step3Fields = ['school', 'universities', 'language_skills', 'computer_skills', 'work_experience', 'total_experience_years', 'job_satisfaction', 'desired_position', 'activity_sphere', 'expected_salary', 'employer_requirements'];
         $step4Fields = ['gallup_pdf', 'mbti_type'];
 
         if (in_array($baseField, $step1Fields, true)) return 1;
@@ -916,13 +900,13 @@ class CandidateForm extends Component
             'current_parents_count' => count($this->parents),
             'parents_before' => $this->parents
         ]);
-        
+
         $this->parents[] = [
             'relation' => '',
             'birth_year' => '',
             'profession' => ''
         ];
-        
+
         logger()->debug('addParent completed', [
             'new_parents_count' => count($this->parents),
             'parents_after' => $this->parents
@@ -936,10 +920,10 @@ class CandidateForm extends Component
             'parents_before' => $this->parents,
             'count_before' => count($this->parents)
         ]);
-        
+
         unset($this->parents[$index]);
         $this->parents = array_values($this->parents);
-        
+
         logger()->debug('removeParent completed', [
             'parents_after' => $this->parents,
             'count_after' => count($this->parents)
@@ -1048,7 +1032,7 @@ class CandidateForm extends Component
     {
         // Проверяем, есть ли новые поля в JSON структуре
         $familyData = $this->candidate->family_members ?? [];
-        
+
         if (is_array($familyData) && isset($familyData['parents'])) {
             // Новая структура - загружаем как есть
             $this->parents = $familyData['parents'] ?? [];
@@ -1059,10 +1043,10 @@ class CandidateForm extends Component
             $this->parents = [];
             $this->siblings = [];
             $this->children = [];
-            
+
             foreach ($familyData as $member) {
                 if (!is_array($member)) continue;
-                
+
                 $type = $member['type'] ?? '';
                 switch ($type) {
                     case 'Отец':
@@ -1111,10 +1095,10 @@ class CandidateForm extends Component
     {
         // Фильтруем семью перед любой валидацией
         $this->filterEmptyFamilyElements();
-        
+
         // Добавляем кастомную валидацию для семьи
         $this->validateFamilyData();
-        
+
         // Вызываем родительский метод с оригинальными правилами
         return parent::validate($rules, $messages, $attributes);
     }
@@ -1126,7 +1110,7 @@ class CandidateForm extends Component
     {
         // Создаем новые правила для каждого заполненного элемента
         $modifiedRules = $rules;
-        
+
         // Удаляем старые правила для массивов семьи
         unset($modifiedRules['parents.*.relation']);
         unset($modifiedRules['parents.*.birth_year']);
@@ -1135,24 +1119,24 @@ class CandidateForm extends Component
         unset($modifiedRules['siblings.*.birth_year']);
         unset($modifiedRules['children.*.name']);
         unset($modifiedRules['children.*.birth_year']);
-        
+
         // Добавляем правила для каждого конкретного элемента
         foreach ($this->parents as $index => $parent) {
             $modifiedRules["parents.{$index}.relation"] = 'required|string|in:Отец,Мать';
             $modifiedRules["parents.{$index}.birth_year"] = 'required|integer|min:1900|max:' . date('Y');
             $modifiedRules["parents.{$index}.profession"] = 'required|string|max:255';
         }
-        
+
         foreach ($this->siblings as $index => $sibling) {
             $modifiedRules["siblings.{$index}.relation"] = 'required|string|in:Брат,Сестра';
             $modifiedRules["siblings.{$index}.birth_year"] = 'required|integer|min:1900|max:' . date('Y');
         }
-        
+
         foreach ($this->children as $index => $child) {
             $modifiedRules["children.{$index}.name"] = 'required|string|max:255';
             $modifiedRules["children.{$index}.birth_year"] = 'required|integer|min:1900|max:' . date('Y');
         }
-        
+
         return $modifiedRules;
     }
 
@@ -1228,18 +1212,18 @@ class CandidateForm extends Component
     public function validateOnly($field, $rules = null, $messages = [], $attributes = [], $dataOverrides = [])
     {
         // Если валидируем поля семьи, сначала фильтруем
-        if (strpos($field, 'parents.') === 0 || 
-            strpos($field, 'siblings.') === 0 || 
+        if (strpos($field, 'parents.') === 0 ||
+            strpos($field, 'siblings.') === 0 ||
             strpos($field, 'children.') === 0) {
             $this->filterEmptyFamilyElements();
-            
+
             // Если правила не переданы, получаем правила и модифицируем их
             if ($rules === null) {
                 $allRules = $this->rules();
                 $rules = $this->modifyFamilyValidationRules($allRules);
             }
         }
-        
+
         // Вызываем родительский метод
         return parent::validateOnly($field, $rules, $messages, $attributes, $dataOverrides);
     }
@@ -1362,22 +1346,6 @@ class CandidateForm extends Component
         $this->language_skills = array_values($this->language_skills);
     }
 
-    public function setLanguageForSkill($index, $language)
-    {
-        if (isset($this->language_skills[$index])) {
-            $this->language_skills[$index]['language'] = $language;
-        }
-    }
-
-    public function removeLanguageFromSkill($index)
-    {
-        if (isset($this->language_skills[$index])) {
-            $this->language_skills[$index]['language'] = '';
-        }
-    }
-
-
-
     public function addWorkExperience()
     {
         $this->work_experience[] = [
@@ -1490,14 +1458,6 @@ class CandidateForm extends Component
         } catch (\Exception $e) {
             logger()->error('Error removing photo: ' . $e->getMessage());
             session()->flash('error', 'Ошибка при удалении фото');
-        }
-    }
-
-    public function updatedActivitySphere()
-    {
-        // Если выбрано "Другое", очищаем поле activity_sphere_other
-        if ($this->activity_sphere !== 'Другое') {
-            $this->activity_sphere_other = '';
         }
     }
 
@@ -1656,10 +1616,10 @@ class CandidateForm extends Component
             // Additional Information
             $this->candidate->religion = $this->religion;
             $this->candidate->is_practicing = $this->is_practicing;
-            
+
             // Сохраняем новую структуру семьи в JSON
             $this->candidate->family_members = $this->buildFamilyStructure();
-            
+
             $this->candidate->hobbies = $this->hobbies;
             $this->candidate->interests = $this->interests;
             $this->candidate->visited_countries = $this->visited_countries;
@@ -1688,12 +1648,7 @@ class CandidateForm extends Component
             $this->candidate->total_experience_years = $this->total_experience_years;
             $this->candidate->job_satisfaction = $this->job_satisfaction;
             $this->candidate->desired_position = $this->desired_position;
-            // Если выбрано "Другое", сохраняем значение из поля activity_sphere_other
-            if ($this->activity_sphere === 'Другое' && $this->activity_sphere_other) {
-                $this->candidate->activity_sphere = $this->activity_sphere_other;
-            } else {
-                $this->candidate->activity_sphere = $this->activity_sphere;
-            }
+            $this->candidate->activity_sphere = $this->activity_sphere;
             $this->candidate->expected_salary = $this->expected_salary;
             $this->candidate->employer_requirements = $this->employer_requirements;
 
@@ -1794,10 +1749,10 @@ class CandidateForm extends Component
         if ($this->religion !== null) $this->candidate->religion = $this->religion;
         if ($this->is_practicing !== null) $this->candidate->is_practicing = $this->is_practicing;
 
-        // Сохраняем новую структуру семьи 
+        // Сохраняем новую структуру семьи
         $familyStructure = $this->buildFamilyStructure();
-        if (!empty($familyStructure['parents']) || 
-            !empty($familyStructure['siblings']) || 
+        if (!empty($familyStructure['parents']) ||
+            !empty($familyStructure['siblings']) ||
             !empty($familyStructure['children'])) {
             $this->candidate->family_members = $familyStructure;
         } else {
@@ -1848,14 +1803,7 @@ class CandidateForm extends Component
         if ($this->total_experience_years !== null) $this->candidate->total_experience_years = $this->total_experience_years;
         if ($this->job_satisfaction !== null) $this->candidate->job_satisfaction = $this->job_satisfaction;
         if ($this->desired_position) $this->candidate->desired_position = $this->desired_position;
-        if ($this->activity_sphere) {
-            // Если выбрано "Другое", сохраняем значение из поля activity_sphere_other
-            if ($this->activity_sphere === 'Другое' && $this->activity_sphere_other) {
-                $this->candidate->activity_sphere = $this->activity_sphere_other;
-            } else {
-                $this->candidate->activity_sphere = $this->activity_sphere;
-            }
-        }
+        if ($this->activity_sphere) $this->candidate->activity_sphere = $this->activity_sphere;
         if ($this->expected_salary !== null) $this->candidate->expected_salary = $this->expected_salary;
         if ($this->employer_requirements !== null) $this->candidate->employer_requirements = $this->employer_requirements;
 
@@ -1922,7 +1870,7 @@ class CandidateForm extends Component
     {
         if ($countryName && !in_array($countryName, $this->visited_countries)) {
             $this->visited_countries[] = $countryName;
-            
+
             logger()->debug('Country added by name:', [
                 'country_name' => $countryName,
                 'visited_countries' => $this->visited_countries
@@ -2105,14 +2053,14 @@ class CandidateForm extends Component
                 // Конвертируем даты в значения ползунков
                 $startPeriod = 240; // Значение по умолчанию
                 $endPeriod = 300;   // Значение по умолчанию
-                
+
                 if (isset($experience['start_date'])) {
                     $startDate = strtotime($experience['start_date']);
                     $startYear = date('Y', $startDate);
                     $startMonth = date('n', $startDate);
                     $startPeriod = ($startYear - 1990) * 12 + ($startMonth - 1);
                 }
-                
+
                 if (isset($experience['end_date'])) {
                     $endDate = strtotime($experience['end_date']);
                     $endYear = date('Y', $endDate);
@@ -2125,13 +2073,13 @@ class CandidateForm extends Component
                 $startYear = '';
                 $endMonth = '';
                 $endYear = '';
-                
+
                 if (isset($experience['start_date'])) {
                     $startDate = strtotime($experience['start_date']);
                     $startMonth = date('n', $startDate) - 1; // Преобразуем в 0-11
                     $startYear = date('Y', $startDate);
                 }
-                
+
                 if (isset($experience['end_date'])) {
                     $endDate = strtotime($experience['end_date']);
                     $endMonth = date('n', $endDate) - 1; // Преобразуем в 0-11
@@ -2218,6 +2166,51 @@ class CandidateForm extends Component
             $this->books_per_year_min = $single_value;
             $this->books_per_year_max = $single_value;
         }
+    }
+
+    /**
+     * Группирует ошибки по шагам
+     */
+    public function getErrorsByStep()
+    {
+        $errorsByStep = [
+            1 => [],
+            2 => [],
+            3 => [],
+            4 => []
+        ];
+
+        foreach ($this->getErrorBag()->keys() as $errorKey) {
+            $step = $this->getFieldStep($errorKey);
+            if ($step) {
+                $errorsByStep[$step][] = $errorKey;
+            }
+        }
+
+        return $errorsByStep;
+    }
+
+    /**
+     * Проверяет есть ли ошибки на конкретном шаге
+     */
+    public function hasErrorsOnStep($step)
+    {
+        $errorsByStep = $this->getErrorsByStep();
+        return !empty($errorsByStep[$step]);
+    }
+
+    /**
+     * Возвращает названия шагов на русском
+     */
+    public function getStepTitle($step)
+    {
+        return match($step) {
+            1 => 'Основная информация',
+            2 => 'Дополнительная информация',
+            3 => 'Образование и работа',
+            4 => 'Тесты',
+            default => 'Шаг ' . $step
+        };
     }
 
     public function render()

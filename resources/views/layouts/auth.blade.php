@@ -4,15 +4,15 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>@yield('title', 'Divergents - Learning Management System')</title>
-        
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-        
+
         <!-- Styles -->
         <link href="{{ asset('css/auth-pages.css') }}" rel="stylesheet">
-        
+
         @stack('styles')
     </head>
     <body>
@@ -45,7 +45,8 @@
                         <img src="{{ asset('logos/talents_lab_logo.png') }}" alt="Talents Lab Logo" class="brand-logo brand-logo-right">
                     </div>
                     <p class="brand-description">
-                        Инновационная платформа для управления обучением и комплексной оценки персонала с использованием современных методик
+                        Добро пожаловать!<br>
+                        Войдите на онлайн-портал Talents Lab — современную платформу с базой резюме
                     </p>
 
                     <div class="features-list">
@@ -55,23 +56,12 @@
                         </div>
                         <div class="feature-item">
                             <div class="feature-icon">🧠</div>
-                            <span>Психологические тесты и оценки</span>
+                            <span>Психометрические тесты для оценки потенциала кандидатов</span>
                         </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">📊</div>
-                            <span>Аналитика и детальные отчеты</span>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">👥</div>
-                            <span>Управление кандидатами</span>
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">⚡</div>
-                            <span>Быстрая обработка результатов</span>
-                        </div>
+
                         <div class="feature-item">
                             <div class="feature-icon">🎯</div>
-                            <span>Персонализированный подход</span>
+                            <span>Индивидуальный подбор вакансий на основе способностей</span>
                         </div>
                     </div>
                 </div>
