@@ -404,18 +404,18 @@
                              <span class="text-base font-medium flex-1">                
                                 @if($candidate->universities && count($candidate->universities) > 0)
                                     @foreach($candidate->universities as $index => $university)
-                                        <div class="text-base">
-                                            @if(!$loop->first)<br>@endif
-                                                <span class="font-medium">{{ $university['name'] ?? 'Не указано' }}</span> /
-                                                <span class="font-medium">{{ $university['speciality'] ?? 'Не указано' }}</span> /
-                                                <span>{{ $university['graduation_year'] ?? 'Не указано' }}</span>
-                                                @if(!empty($university['gpa']))
-                                                    / <span>{{ $university['gpa'] }}</span>
-                                                @endif
-                                        </div>
+                                        <span>
+                                            <span class="font-medium">{{ $university['name'] ?? 'Не указано' }}</span> /
+                                            <span class="font-medium">{{ $university['speciality'] ?? 'Не указано' }}</span> /
+                                            <span>{{ $university['graduation_year'] ?? 'Не указано' }}</span>
+                                            @if(!empty($university['gpa']))
+                                                / <span>{{ $university['gpa'] }}</span>
+                                            @endif
+                                        </span>
+                                        @if(!$loop->last)<br>@endif
                                     @endforeach
                                 @else
-                                    <p class="text-base text-gray-500">Информация об образовании не указана</p>
+                                    Не указано
                                 @endif
                             </span>
                          </div>
@@ -433,34 +433,31 @@
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Опыт работы</h2>
                 @if($candidate->work_experience && count($candidate->work_experience) > 0)
                     <div class="space-y-1">
-                        <div class="text-base">
-                            <span class="text-gray-600">Компании и должности:</span>
-                            <div class="mt-1 space-y-1">
-                                @foreach($candidate->work_experience as $experience)
-                                    <div class="font-medium">
+                        <div class="flex items-start">
+                            <span class="w-60 text-base text-gray-600">Компании и должности:</span>
+                            <div class="text-base font-medium flex-1 space-y-1">
+                                @foreach($candidate->work_experience as $index => $experience)
+                                    <div>
+                                        {{ $index + 1 }}. 
                                         @if(!empty($experience['years']))
-                                            {{ $experience['years'] }} /
+                                            {{ $experience['years'] }} - 
                                         @endif
-                                        {{ $experience['company'] ?? 'Не указано' }} / 
+                                        {{ $experience['company'] ?? 'Не указано' }}
                                         @if(!empty($experience['city']))
-                                            {{ $experience['city'] }} / 
+                                            ({{ $experience['city'] }})
                                         @endif
-                                        {{ $experience['position'] ?? 'Не указано' }}
-
-
+                                         - {{ $experience['position'] ?? 'Не указано' }}
                                     </div>
                                 @endforeach
                             </div>
                         </div>
-                        <div class="mt-2 grid grid-cols-2 gap-6">
-                            <div>
-                                <span class="text-base text-gray-600">Общий стаж работы (лет):</span>
-                                <span class="text-base font-medium">{{ $candidate->total_experience_years ?? 0 }}</span>
-                            </div>
-                            <div>
-                                <span class="text-base text-gray-600">Любит свою работу на (из 5):</span>
-                                <span class="text-base font-medium">{{ $candidate->job_satisfaction ?? 'Не указано' }}</span>
-                            </div>
+                        <div class="flex" style="margin-top: 1rem;">
+                            <span class="w-60 text-base text-gray-600">Общий стаж работы (лет):</span>
+                            <span class="text-base font-medium">{{ $candidate->total_experience_years ?? 0 }}</span>
+                        </div>
+                        <div class="flex">
+                            <span class="w-60 text-base text-gray-600">Любит свою работу на (из 5):</span>
+                            <span class="text-base font-medium">{{ $candidate->job_satisfaction ?? 'Не указано' }}</span>
                         </div>
                     </div>
                 @else
