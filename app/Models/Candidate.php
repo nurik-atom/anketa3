@@ -42,7 +42,7 @@ class Candidate extends Model
         'entertainment_hours_weekly',
         'educational_hours_weekly',
         'social_media_hours_weekly',
-        'driving_license_type',
+        'has_driving_license',
 
         // Education and Work
         'school',
@@ -67,6 +67,7 @@ class Candidate extends Model
         'birth_date' => 'date',
         'is_practicing' => 'boolean',
         'ready_to_relocate' => 'boolean',
+        'has_driving_license' => 'boolean',
         'family_members' => 'array',
         'visited_countries' => 'array',
         'favorite_sports' => 'array',

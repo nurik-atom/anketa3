@@ -288,13 +288,18 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700">Язык</label>
-                                <select wire:model="language_skills.{{ $index }}.language" 
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <option value="">Выберите язык</option>
-                                    @foreach($languages ?? [] as $language)
-                                        <option value="{{ $language }}">{{ $language }}</option>
-                                    @endforeach
-                                </select>
+                                <div wire:ignore>
+                                    <select id="language-select-{{ $index }}" 
+                                            class="language-select-field mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            data-index="{{ $index }}">
+                                        <option value="">Выберите язык</option>
+                                        @foreach($languages ?? [] as $language)
+                                            <option value="{{ $language }}" {{ ($skill['language'] ?? '') == $language ? 'selected' : '' }}>
+                                                {{ $language }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
                                 @error("language_skills.{$index}.language") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
                             </div>
 
@@ -923,5 +928,279 @@ const visibilityInterval = setInterval(function() {
 }, 500);
 </script>
 
+<!-- Select2 CSS для языков (загружается только на шаге 3) -->
+@if($currentStep === 3)
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
+<!-- Кастомные стили для Select2 языков -->
+<style>
+/* Контейнер Select2 для языков */
+.select2-container--default .select2-selection--single {
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    height: 38px;
+    padding: 4px 8px;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 28px;
+    color: #374151;
+}
+
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 36px;
+}
+
+/* Стили при фокусе */
+.select2-container--default.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--open .select2-selection--single {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* Dropdown */
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: #3b82f6;
+    color: white;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field {
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    padding: 6px 12px;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Dropdown результаты */
+.select2-results__option {
+    padding: 8px 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Placeholder */
+.select2-container--default .select2-selection--single .select2-selection__placeholder {
+    color: #9ca3af;
+}
+
+/* Width fix */
+.select2-container {
+    width: 100% !important;
+}
+
+/* Dropdown container - убираем горизонтальный скролл */
+.select2-dropdown {
+    overflow-x: hidden !important;
+}
+
+.select2-results__options {
+    overflow-x: hidden !important;
+}
+
+.select2-results__option {
+    white-space: normal !important;
+    word-wrap: break-word !important;
+}
+</style>
+@endif
+
+<!-- jQuery и Select2 JS для языков (загружается всегда, но проверяем наличие jQuery) -->
+<script>
+// Загружаем jQuery только если его еще нет
+if (typeof jQuery === 'undefined') {
+    console.log('📦 Loading jQuery for Language Select2...');
+    const jQueryScript = document.createElement('script');
+    jQueryScript.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+    jQueryScript.onload = function() {
+        console.log('✅ jQuery loaded for Language Select2');
+        loadSelect2ForLanguages();
+    };
+    document.head.appendChild(jQueryScript);
+} else {
+    console.log('✅ jQuery already loaded, proceeding with Language Select2');
+    loadSelect2ForLanguages();
+}
+
+function loadSelect2ForLanguages() {
+    // Загружаем Select2 только если его еще нет
+    if (typeof $.fn.select2 === 'undefined') {
+        console.log('📦 Loading Select2 library for languages...');
+        const select2Script = document.createElement('script');
+        select2Script.src = 'https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js';
+        select2Script.onload = function() {
+            console.log('✅ Select2 library loaded for languages');
+            initLanguageSelect2System();
+        };
+        document.head.appendChild(select2Script);
+    } else {
+        console.log('✅ Select2 already loaded, initializing language fields');
+        initLanguageSelect2System();
+    }
+}
+
+function initLanguageSelect2System() {
+    console.log('🌐 Language Select2 system initialization started');
+    
+    // Функция инициализации Select2 для всех полей языков
+    window.initLanguageSelect2 = function() {
+        console.log('✨ Initializing Language Select2 fields');
+        
+        // Находим все поля языка
+        const languageSelects = document.querySelectorAll('.language-select-field');
+        console.log(`📋 Found ${languageSelects.length} language select fields`);
+        
+        if (languageSelects.length === 0) {
+            console.log('ℹ️ No language select fields found (probably not on step 3)');
+            return;
+        }
+        
+        languageSelects.forEach(function(selectElement) {
+            const $select = $(selectElement);
+            
+            // Проверяем, не инициализирован ли уже Select2
+            if ($select.hasClass('select2-hidden-accessible')) {
+                console.log(`ℹ️ Select2 already initialized for ${selectElement.id}`);
+                return;
+            }
+            
+            const index = selectElement.getAttribute('data-index');
+            console.log(`🔄 Initializing Select2 for language-select-${index}`);
+            
+            try {
+                // Инициализируем Select2
+                $select.select2({
+                    placeholder: 'Выберите язык',
+                    allowClear: false,
+                    width: '100%',
+                    language: {
+                        noResults: function() {
+                            return "Язык не найден";
+                        },
+                        searching: function() {
+                            return "Поиск...";
+                        }
+                    }
+                });
+                
+                // Обработчик выбора языка
+                $select.on('select2:select', function(e) {
+                    const selectedLanguage = e.params.data.id;
+                    console.log(`✅ Language selected for index ${index}:`, selectedLanguage);
+                    
+                    // Находим компонент Livewire
+                    const livewireComponent = selectElement.closest('[wire\\:id]');
+                    if (livewireComponent && window.Livewire) {
+                        const componentId = livewireComponent.getAttribute('wire:id');
+                        const component = window.Livewire.find(componentId);
+                        
+                        if (component) {
+                            // Обновляем значение в Livewire
+                            component.set(`language_skills.${index}.language`, selectedLanguage);
+                            console.log(`🔄 Updated Livewire: language_skills.${index}.language = ${selectedLanguage}`);
+                        } else {
+                            console.error('❌ Livewire component not found');
+                        }
+                    } else {
+                        console.error('❌ Livewire component element not found');
+                    }
+                });
+                
+                console.log(`✅ Select2 initialized successfully for language-select-${index}`);
+            } catch (error) {
+                console.error(`❌ Error initializing Select2 for language-select-${index}:`, error);
+            }
+        });
+    };
+    
+    // Инициализация при загрузке
+    setTimeout(() => window.initLanguageSelect2(), 100);
+    setTimeout(() => window.initLanguageSelect2(), 300);
+    setTimeout(() => window.initLanguageSelect2(), 500);
+    setTimeout(() => window.initLanguageSelect2(), 1000);
+    
+    // Слушаем Livewire событие смены шага
+    if (typeof Livewire !== 'undefined') {
+        document.addEventListener('livewire:initialized', () => {
+            Livewire.on('step-changed', (event) => {
+                console.log('🔄 Step changed event received (Language Select2):', event);
+                const step = event.step || event[0]?.step || event[0];
+                console.log('📍 Current step:', step);
+                
+                if (step === 3) {
+                    console.log('✅ Moved to step 3, will initialize Language Select2');
+                    setTimeout(() => window.initLanguageSelect2(), 100);
+                    setTimeout(() => window.initLanguageSelect2(), 300);
+                    setTimeout(() => window.initLanguageSelect2(), 500);
+                    setTimeout(() => window.initLanguageSelect2(), 800);
+                }
+            });
+            
+            console.log('✅ Livewire event listener registered for languages');
+        });
+        
+        // Переинициализация при обновлении Livewire (ловит добавление/удаление языков)
+        Livewire.hook('message.processed', (message, component) => {
+            // Пробуем с разными задержками для надежности
+            const delays = [50, 100, 200, 300, 500];
+            
+            delays.forEach(delay => {
+                setTimeout(() => {
+                    // Проверяем наличие неинициализированных полей языка
+                    const languageSelects = document.querySelectorAll('.language-select-field');
+                    
+                    if (languageSelects.length === 0) {
+                        return; // Нет полей - выходим
+                    }
+                    
+                    let hasUninitialized = false;
+                    
+                    languageSelects.forEach(function(selectElement) {
+                        const $select = $(selectElement);
+                        if (!$select.hasClass('select2-hidden-accessible')) {
+                            hasUninitialized = true;
+                        }
+                    });
+                    
+                    if (hasUninitialized) {
+                        console.log(`🔄 Livewire message.processed (delay ${delay}ms): Initializing uninitialized Language Select2 fields`);
+                        window.initLanguageSelect2();
+                    }
+                }, delay);
+            });
+        });
+    }
+    
+    // Дополнительный механизм: следим за изменениями DOM постоянно
+    setInterval(() => {
+        const languageSelects = document.querySelectorAll('.language-select-field');
+        
+        if (languageSelects.length === 0) {
+            return; // Нет полей - выходим
+        }
+        
+        let needsInit = false;
+        
+        languageSelects.forEach(function(selectElement) {
+            const $select = $(selectElement);
+            if (!$select.hasClass('select2-hidden-accessible')) {
+                needsInit = true;
+            }
+        });
+        
+        if (needsInit) {
+            console.log('⏰ Interval check: Found uninitialized Language Select2, initializing...');
+            window.initLanguageSelect2();
+        }
+    }, 1000); // Проверяем каждую секунду
+    
+    console.log('✅ Language Select2 system loaded and ready');
+}
+</script>
  

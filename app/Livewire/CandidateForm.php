@@ -620,6 +620,14 @@ class CandidateForm extends Component
         if (strpos($propertyName, 'parents.') === 0 ||
             strpos($propertyName, 'siblings.') === 0 ||
             strpos($propertyName, 'children.') === 0) {
+            // Логируем обновление данных семьи
+            logger()->info('Family field updated', [
+                'property' => $propertyName,
+                'value' => $this->{explode('.', $propertyName)[0]} ?? 'not set',
+                'parents_count' => count($this->parents),
+                'siblings_count' => count($this->siblings),
+                'children_count' => count($this->children)
+            ]);
             // Просто сбрасываем ошибки для этого поля без валидации
             $this->resetErrorBag($propertyName);
             return;
@@ -959,6 +967,36 @@ class CandidateForm extends Component
     }
 
     /**
+     * Хук для отслеживания изменений в родителях
+     */
+    public function updatedParents()
+    {
+        logger()->info('updatedParents hook called', [
+            'parents' => $this->parents
+        ]);
+    }
+
+    /**
+     * Хук для отслеживания изменений в братьях/сестрах
+     */
+    public function updatedSiblings()
+    {
+        logger()->info('updatedSiblings hook called', [
+            'siblings' => $this->siblings
+        ]);
+    }
+
+    /**
+     * Хук для отслеживания изменений в детях
+     */
+    public function updatedChildren()
+    {
+        logger()->info('updatedChildren hook called', [
+            'children' => $this->children
+        ]);
+    }
+
+    /**
      * Фильтрует пустые элементы из массивов семьи перед валидацией
      */
     private function filterEmptyFamilyElements()
@@ -1081,11 +1119,20 @@ class CandidateForm extends Component
      */
     private function buildFamilyStructure()
     {
-        return [
+        $structure = [
             'parents' => $this->parents ?? [],
             'siblings' => $this->siblings ?? [],
             'children' => $this->children ?? []
         ];
+        
+        logger()->info('buildFamilyStructure called', [
+            'input_parents' => $this->parents,
+            'input_siblings' => $this->siblings,
+            'input_children' => $this->children,
+            'output_structure' => $structure
+        ]);
+        
+        return $structure;
     }
 
     /**
@@ -1262,9 +1309,21 @@ class CandidateForm extends Component
         }
     }
 
-    public function removeCountry($index)
+    public function removeCountry($countryOrIndex)
     {
-        unset($this->visited_countries[$index]);
+        // Если передано число, считаем что это индекс (для обратной совместимости)
+        if (is_numeric($countryOrIndex)) {
+            unset($this->visited_countries[$countryOrIndex]);
+        } else {
+            // Иначе это название страны - удаляем по значению
+            $this->visited_countries = array_values(
+                array_filter($this->visited_countries, function($country) use ($countryOrIndex) {
+                    return $country !== $countryOrIndex;
+                })
+            );
+            return;
+        }
+        
         $this->visited_countries = array_values($this->visited_countries);
     }
 
@@ -1618,7 +1677,14 @@ class CandidateForm extends Component
             $this->candidate->is_practicing = $this->is_practicing;
 
             // Сохраняем новую структуру семьи в JSON
-            $this->candidate->family_members = $this->buildFamilyStructure();
+            $familyStructure = $this->buildFamilyStructure();
+            logger()->info('Saving family structure in submit', [
+                'family_structure' => $familyStructure,
+                'parents_from_component' => $this->parents,
+                'siblings_from_component' => $this->siblings,
+                'children_from_component' => $this->children
+            ]);
+            $this->candidate->family_members = $familyStructure;
 
             $this->candidate->hobbies = $this->hobbies;
             $this->candidate->interests = $this->interests;
@@ -1751,23 +1817,14 @@ class CandidateForm extends Component
 
         // Сохраняем новую структуру семьи
         $familyStructure = $this->buildFamilyStructure();
-        if (!empty($familyStructure['parents']) ||
-            !empty($familyStructure['siblings']) ||
-            !empty($familyStructure['children'])) {
-            $this->candidate->family_members = $familyStructure;
-        } else {
-            // Если используем старую структуру
-            if (!empty($this->family_members)) {
-                $validMembers = array_filter($this->family_members, function($member) {
-                    return !empty($member['type']) &&
-                           !empty($member['birth_year']) &&
-                           !empty($member['profession']);
-                });
-                if (!empty($validMembers)) {
-                    $this->candidate->family_members = array_values($validMembers);
-                }
-            }
-        }
+        logger()->info('Saving family structure in saveProgress', [
+            'family_structure' => $familyStructure,
+            'parents_from_component' => $this->parents,
+            'siblings_from_component' => $this->siblings,
+            'children_from_component' => $this->children
+        ]);
+        // Всегда сохраняем структуру семьи, даже если она пустая
+        $this->candidate->family_members = $familyStructure;
 
         if ($this->hobbies !== null) $this->candidate->hobbies = $this->hobbies;
         if ($this->interests !== null) $this->candidate->interests = $this->interests;
@@ -1846,19 +1903,22 @@ class CandidateForm extends Component
         session()->flash('message', 'Прогресс сохранен');
     }
 
-    public function addCountry()
+    public function addCountry($country = null)
     {
+        // Если страна передана как параметр (из live search), используем её
+        $countryToAdd = $country ?? $this->newCountry;
+        
         logger()->debug('Adding country:', [
+            'country_param' => $country,
             'newCountry' => $this->newCountry,
-            'visited_countries' => $this->visited_countries,
-            'countries_count' => count($this->countries),
-            'first_country' => $this->countries[0] ?? null
+            'countryToAdd' => $countryToAdd,
+            'visited_countries' => $this->visited_countries
         ]);
 
-        if ($this->newCountry && !in_array($this->newCountry, $this->visited_countries)) {
-            $this->visited_countries[] = $this->newCountry;
-            $this->newCountry = '';
-
+        if ($countryToAdd && !in_array($countryToAdd, $this->visited_countries)) {
+            $this->visited_countries[] = $countryToAdd;
+            $this->newCountry = ''; // Сбрасываем
+            
             logger()->debug('Country added:', [
                 'visited_countries' => $this->visited_countries,
                 'last_added' => end($this->visited_countries)
@@ -1866,17 +1926,6 @@ class CandidateForm extends Component
         }
     }
 
-    public function addCountryByName($countryName)
-    {
-        if ($countryName && !in_array($countryName, $this->visited_countries)) {
-            $this->visited_countries[] = $countryName;
-
-            logger()->debug('Country added by name:', [
-                'country_name' => $countryName,
-                'visited_countries' => $this->visited_countries
-            ]);
-        }
-    }
 
     public function getGallupPdfUrl()
     {

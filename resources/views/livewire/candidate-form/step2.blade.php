@@ -47,17 +47,17 @@
         <!-- Новая структура семьи -->
         <div class="space-y-6">
             <!-- Родители -->
-            <div wire:ignore.self>
+            <div>
                 <label class="block text-sm font-medium text-gray-700 mb-3">Родители</label>
                 <div class="space-y-4">
                     @foreach($parents as $index => $parent)
-                        <div class="p-4 bg-gray-50 rounded-lg">
+                        <div wire:key="parent-{{ $index }}" class="p-4 bg-gray-50 rounded-lg">
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">
                                         Родство <span class="text-red-500">*</span>
                                     </label>
-                                    <select wire:model="parents.{{ $index }}.relation" 
+                                    <select wire:model.live="parents.{{ $index }}.relation" 
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Выберите</option>
                                         <option value="Отец">Отец</option>
@@ -70,7 +70,7 @@
                                     <label class="block text-sm font-medium text-gray-700">
                                         Год рождения <span class="text-red-500">*</span>
                                     </label>
-                                    <select wire:model="parents.{{ $index }}.birth_year" 
+                                    <select wire:model.live="parents.{{ $index }}.birth_year" 
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Год рождения</option>
                                         @foreach($familyYears as $year)
@@ -85,7 +85,7 @@
                                         Профессия <span class="text-red-500">*</span>
                                     </label>
                                     <input type="text" 
-                                           wire:model="parents.{{ $index }}.profession" 
+                                           wire:model.live.debounce.500ms="parents.{{ $index }}.profession" 
                                            placeholder="Профессия"
                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     @error("parents.{$index}.profession") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -122,13 +122,13 @@
                 <label class="block text-sm font-medium text-gray-700 mb-3">Братья и сестры</label>
                 <div class="space-y-4">
                     @foreach($siblings as $index => $sibling)
-                        <div class="p-4 bg-gray-50 rounded-lg">
+                        <div wire:key="sibling-{{ $index }}" class="p-4 bg-gray-50 rounded-lg">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">
                                         Родство <span class="text-red-500">*</span>
                                     </label>
-                                    <select wire:model="siblings.{{ $index }}.relation" 
+                                    <select wire:model.live="siblings.{{ $index }}.relation" 
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Выберите</option>
                                         <option value="Брат">Брат</option>
@@ -141,7 +141,7 @@
                                     <label class="block text-sm font-medium text-gray-700">
                                         Год рождения <span class="text-red-500">*</span>
                                     </label>
-                                    <select wire:model="siblings.{{ $index }}.birth_year" 
+                                    <select wire:model.live="siblings.{{ $index }}.birth_year" 
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Год рождения</option>
                                         @foreach($familyYears as $year)
@@ -175,14 +175,14 @@
                 <label class="block text-sm font-medium text-gray-700 mb-3">Дети</label>
                 <div class="space-y-4">
                     @foreach($children as $index => $child)
-                        <div class="p-4 bg-gray-50 rounded-lg">
+                        <div wire:key="child-{{ $index }}" class="p-4 bg-gray-50 rounded-lg">
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700">
                                         Имя ребенка <span class="text-red-500">*</span>
                                     </label>
                                     <input type="text" 
-                                           wire:model="children.{{ $index }}.name" 
+                                           wire:model.live.debounce.500ms="children.{{ $index }}.name" 
                                            placeholder="Имя ребенка"
                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                     @error("children.{$index}.name") <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
@@ -192,7 +192,7 @@
                                     <label class="block text-sm font-medium text-gray-700">
                                         Год рождения <span class="text-red-500">*</span>
                                     </label>
-                                    <select wire:model="children.{{ $index }}.birth_year" 
+                                    <select wire:model.live="children.{{ $index }}.birth_year" 
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                                         <option value="">Год рождения</option>
                                         @foreach($familyYears as $year)
@@ -241,22 +241,25 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Посещенные страны -->
             <div>
-                <label class="block text-sm font-medium text-gray-700">Посещенные страны</label>
-                <div class="mt-1">
-                    <!-- Выбранные страны -->
-                    <div class="flex flex-wrap gap-2 mb-2 min-h-[2.5rem] bg-gray-50 p-2 rounded-md">
-                        @foreach($visited_countries as $index => $country)
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Посещенные страны</label>
+                
+                <!-- Выбранные страны (badges) -->
+                @if(count($visited_countries) > 0)
+                    <div class="flex flex-wrap gap-2 mb-3" id="selected-countries-badges">
+                        @foreach($visited_countries as $country)
+                            <span class="inline-flex items-center px-3 py-1.5 rounded-lg text-sm font-medium bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-sm hover:shadow-md transition-shadow">
                                 @php
                                     $countryData = collect($countries)->firstWhere('name_ru', $country);
                                 @endphp
                                 @if($countryData && isset($countryData['flag_url']))
                                     <img src="{{ $countryData['flag_url'] }}" 
                                          alt="flag" 
-                                         class="inline w-4 h-4 mr-1 align-middle">
+                                         class="w-5 h-4 mr-2 rounded border border-white/30 object-cover">
                                 @endif
                                 {{ $country }}
-                                <button type="button" wire:click="removeCountry({{ $index }})" class="ml-1 text-blue-400 hover:text-blue-600">
+                                <button type="button" 
+                                        wire:click="removeCountry('{{ $country }}')"
+                                        class="ml-2 text-white/80 hover:text-white focus:outline-none">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                                     </svg>
@@ -264,49 +267,21 @@
                             </span>
                         @endforeach
                     </div>
-                    
-                    <!-- Поиск стран -->
-                    <div class="relative" x-data="countrySearch()">
-                        <input 
-                            type="text" 
-                            x-model="search"
-                            @click="showDropdown = true"
-                            @keydown.escape="showDropdown = false"
-                            @keydown.arrow-down.prevent="highlightNext()"
-                            @keydown.arrow-up.prevent="highlightPrev()"
-                            @keydown.enter.prevent="selectHighlighted()"
-                            placeholder="Поиск страны..."
-                            class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 pr-10"
-                            autocomplete="off"
-                        >
-                        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                            <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                        
-                        <!-- Выпадающий список -->
-                        <div x-show="showDropdown && filteredCountries.length > 0" 
-                             x-transition
-                             @click.away="showDropdown = false"
-                             class="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none">
-                            <template x-for="(country, index) in filteredCountries" :key="country.name_ru">
-                                <div @click="selectCountry(country)" 
-                                     :class="{'bg-blue-100': index === highlightedIndex}"
-                                     class="cursor-pointer select-none relative py-2 pl-3 pr-9 hover:bg-blue-50">
-                                    <div class="flex items-center">
-                                        <img :src="country.flag_url" 
-                                             :alt="country.name_ru + ' flag'"
-                                             class="inline w-4 h-4 mr-2 align-middle"
-                                             x-show="country.flag_url">
-                                        <span x-text="country.name_ru" class="font-normal block truncate"></span>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
+                @endif
+                
+                <!-- Select2 для выбора стран -->
+                <div wire:ignore>
+                    <select id="country-select-2" class="block w-full rounded-lg border-gray-300 shadow-sm">
+                        <option value="">Выберите страну для добавления</option>
+                        @foreach($countries as $country)
+                            <option value="{{ $country['name_ru'] }}" 
+                                    data-flag="{{ $country['flag_url'] ?? '' }}">
+                                {{ $country['name_ru'] }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
-                @error('visited_countries') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
+                @error('visited_countries') <span class="text-red-500 text-sm mt-1 block">{{ $message }}</span> @enderror
             </div>
 
             <!-- Спорт -->
@@ -466,65 +441,70 @@
 </div>
 @endif
 
-<script>
-function countrySearch() {
-    return {
-        search: '',
-        showDropdown: false,
-        highlightedIndex: -1,
-        countries: @json($countries ?? []),
-        
-        get filteredCountries() {
-            if (!this.search.trim()) {
-                return this.countries.slice(0, 10); // Показываем первые 10 стран по умолчанию
-            }
-            
-            const searchTerm = this.search.toLowerCase();
-            return this.countries.filter(country => 
-                country.name_ru.toLowerCase().includes(searchTerm)
-            ).slice(0, 20); // Ограничиваем до 20 результатов
-        },
-        
-        selectCountry(country) {
-            // Добавляем страну через Livewire
-            @this.call('addCountryByName', country.name_ru);
-            
-            // Очищаем поиск и закрываем dropdown
-            this.search = '';
-            this.showDropdown = false;
-            this.highlightedIndex = -1;
-        },
-        
-        highlightNext() {
-            if (this.highlightedIndex < this.filteredCountries.length - 1) {
-                this.highlightedIndex++;
-            }
-        },
-        
-        highlightPrev() {
-            if (this.highlightedIndex > 0) {
-                this.highlightedIndex--;
-            }
-        },
-        
-        selectHighlighted() {
-            if (this.highlightedIndex >= 0 && this.filteredCountries[this.highlightedIndex]) {
-                this.selectCountry(this.filteredCountries[this.highlightedIndex]);
-            }
-        },
-        
-        init() {
-            // Сбрасываем индекс при изменении поиска
-            this.$watch('search', () => {
-                this.highlightedIndex = -1;
-                this.showDropdown = this.search.length > 0 || this.search === '';
-            });
-        }
-    }
-}
-</script>
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
-<!-- Удаляем дублирующиеся скрипты Tom Select --> 
+<!-- Select2 Кастомные стили -->
+<style>
+    /* Select2 контейнер */
+    .select2-container--default .select2-selection--single {
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        height: 42px;
+        padding: 4px 8px;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__rendered {
+        line-height: 32px;
+        padding-left: 8px;
+        color: #374151;
+    }
+    
+    .select2-container--default .select2-selection--single .select2-selection__arrow {
+        height: 40px;
+        right: 8px;
+    }
+    
+    /* Dropdown */
+    .select2-container--default .select2-results__option {
+        padding: 10px 12px;
+    }
+    
+    .select2-container--default .select2-results__option--highlighted[aria-selected] {
+        background-color: #eff6ff;
+        color: #1e40af;
+    }
+    
+    .select2-container--default .select2-results__option[aria-selected=true] {
+        background-color: #dbeafe;
+    }
+    
+    /* Search field */
+    .select2-search--dropdown .select2-search__field {
+        border: 1px solid #d1d5db;
+        border-radius: 0.375rem;
+        padding: 8px 12px;
+    }
+    
+    .select2-search--dropdown .select2-search__field:focus {
+        border-color: #3b82f6;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    /* Dropdown container */
+    .select2-dropdown {
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Флаги в опциях */
+    .select2-results__option img {
+        margin-right: 8px;
+        vertical-align: middle;
+    }
+</style>
 
 <style>
 /* Dual Range Slider Styles */
@@ -615,13 +595,222 @@ document.addEventListener('DOMContentLoaded', function() {
     // Слушаем изменения Livewire
     document.addEventListener('livewire:updated', updateDualRangeSlider);
     
-    // Слушаем события input для мгновенного обновления
+    // Слушаем события input для мгновенного обновления ТОЛЬКО для слайдеров
     document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('range-slider')) {
+        // Проверяем что это слайдер и не блокируем другие поля
+        if (e.target && e.target.classList && e.target.classList.contains('range-slider')) {
             updateDualRangeSlider();
         }
-    });
+        // НЕ останавливаем распространение события для других полей!
+    }, false); // passive: false для лучшей совместимости
 });
 </script>
 
+<script>
+// Отладочный скрипт для проверки Livewire синхронизации
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔍 Step2 Family Debug Script Loaded');
+    
+    // Отслеживаем все изменения в полях семьи
+    document.addEventListener('input', function(e) {
+        if (e.target && e.target.getAttribute && e.target.getAttribute('wire:model.blur')) {
+            const wireModel = e.target.getAttribute('wire:model.blur');
+            if (wireModel && (wireModel.includes('parents') || wireModel.includes('siblings') || wireModel.includes('children'))) {
+                console.log('📝 Family field changed:', {
+                    field: wireModel,
+                    value: e.target.value,
+                    type: e.target.tagName
+                });
+            }
+        }
+    }, true); // capture phase
+    
+    // Отслеживаем blur события
+    document.addEventListener('blur', function(e) {
+        if (e.target && e.target.getAttribute && e.target.getAttribute('wire:model.blur')) {
+            const wireModel = e.target.getAttribute('wire:model.blur');
+            if (wireModel && (wireModel.includes('parents') || wireModel.includes('siblings') || wireModel.includes('children'))) {
+                console.log('💨 Family field blur (sync triggered):', {
+                    field: wireModel,
+                    value: e.target.value
+                });
+            }
+        }
+    }, true); // capture phase
+    
+    // Проверяем состояние Livewire компонента
+    window.debugFamilyData = function() {
+        console.log('🔍 Debugging Livewire Family Data...');
+        const componentEl = document.querySelector('[wire\\:id]');
+        if (componentEl) {
+            const componentId = componentEl.getAttribute('wire:id');
+            console.log('Component ID:', componentId);
+            
+            if (window.Livewire) {
+                const component = window.Livewire.find(componentId);
+                if (component) {
+                    console.log('📊 Current family data in Livewire:', {
+                        parents: component.get('parents'),
+                        siblings: component.get('siblings'),
+                        children: component.get('children')
+                    });
+                } else {
+                    console.error('❌ Livewire component not found');
+                }
+            } else {
+                console.error('❌ Livewire not available');
+            }
+        } else {
+            console.error('❌ Component element not found');
+        }
+    };
+    
+    console.log('✅ Family debug script ready. Use window.debugFamilyData() to check state');
+});
+</script>
+
+<!-- jQuery (требуется для Select2) -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌍 Select2 Country Selector initialization started');
+    
+    function initSelect2() {
+        const selectElement = $('#country-select-2');
+        
+        if (!selectElement.length) {
+            console.log('ℹ️ Country select element not found (probably not on step 2)');
+            return false;
+        }
+        
+        // Уничтожаем предыдущий экземпляр если есть
+        if (selectElement.hasClass('select2-hidden-accessible')) {
+            console.log('⚠️ Select2 already initialized, skipping');
+            return true; // Уже инициализирован
+        }
+        
+        try {
+            console.log('✨ Initializing Select2');
+            
+            // Инициализируем Select2
+            selectElement.select2({
+                placeholder: 'Начните вводить название страны...',
+                allowClear: true,
+                width: '100%',
+                templateResult: formatCountryOption,
+                templateSelection: formatCountrySelection,
+                language: {
+                    noResults: function() {
+                        return "Страна не найдена";
+                    },
+                    searching: function() {
+                        return "Поиск...";
+                    }
+                }
+            });
+            
+            // Убираем старые обработчики чтобы не было дублей
+            selectElement.off('select2:select');
+            
+            // Обработчик выбора страны
+            selectElement.on('select2:select', function(e) {
+                const country = e.params.data.id;
+                console.log('📍 Country selected:', country);
+                
+                if (country) {
+                    // Вызываем Livewire метод
+                    @this.call('addCountry', country).then(() => {
+                        console.log('✅ Country added via Livewire');
+                        // Сбрасываем Select2
+                        selectElement.val(null).trigger('change');
+                    }).catch((error) => {
+                        console.error('❌ Error adding country:', error);
+                    });
+                }
+            });
+            
+            console.log('✅ Select2 initialized successfully');
+            return true;
+        } catch (error) {
+            console.error('❌ Error initializing Select2:', error);
+            return false;
+        }
+    }
+    
+    // Форматирование опций с флагами
+    function formatCountryOption(country) {
+        if (!country.id) {
+            return country.text;
+        }
+        
+        const $country = $(
+            '<span><img src="' + $(country.element).data('flag') + '" class="inline-block w-6 h-4 mr-2 rounded" onerror="this.style.display=\'none\'" /> ' + country.text + '</span>'
+        );
+        
+        return $country;
+    }
+    
+    // Форматирование выбранной опции
+    function formatCountrySelection(country) {
+        return country.text || 'Выберите страну...';
+    }
+    
+    // Пытаемся инициализировать при загрузке
+    initSelect2();
+    
+    // Слушаем Livewire событие смены шага - ГЛАВНЫЙ механизм
+    document.addEventListener('livewire:initialized', () => {
+        Livewire.on('step-changed', (event) => {
+            console.log('🔄 Step changed event received (Livewire):', event);
+            
+            const step = event.step || event[0]?.step || event[0];
+            console.log('📍 Current step:', step);
+            
+            if (step === 2) {
+                console.log('✅ Moved to step 2, will initialize Select2');
+                
+                // Пробуем несколько раз с увеличивающейся задержкой
+                setTimeout(() => initSelect2(), 100);
+                setTimeout(() => initSelect2(), 300);
+                setTimeout(() => initSelect2(), 500);
+            }
+        });
+        
+        console.log('✅ Livewire event listener registered');
+    });
+    
+    // Переинициализация при обновлении Livewire (ловит все изменения, включая клики на индикаторы)
+    Livewire.hook('message.processed', (message, component) => {
+        // Пробуем множество раз с разными задержками для надежности
+        const delays = [50, 100, 200, 300, 500];
+        
+        delays.forEach(delay => {
+            setTimeout(() => {
+                const selectElement = $('#country-select-2');
+                
+                // Если элемент есть и не инициализирован - инициализируем
+                if (selectElement.length && !selectElement.hasClass('select2-hidden-accessible')) {
+                    console.log(`🔄 Livewire message.processed (delay ${delay}ms): Initializing Select2`);
+                    initSelect2();
+                }
+            }, delay);
+        });
+    });
+    
+    // Дополнительный механизм: следим за изменениями DOM постоянно
+    setInterval(() => {
+        const selectElement = $('#country-select-2');
+        if (selectElement.length && !selectElement.hasClass('select2-hidden-accessible')) {
+            console.log('⏰ Interval check: Found uninitialized Select2, initializing...');
+            initSelect2();
+        }
+    }, 1000); // Проверяем каждую секунду
+    
+    console.log('✅ Select2 script loaded and ready');
+});
+</script>
  
