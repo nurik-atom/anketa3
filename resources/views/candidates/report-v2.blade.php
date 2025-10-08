@@ -10,10 +10,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         @page {
-            margin-top: 5mm; /* Задаём отступы для всех страниц */
-            margin-bottom: 5mm; /* Задаём отступы для всех страниц */
-            margin-left: 7mm; /* Задаём отступы для всех страниц */
-            margin-right: 7mm; /* Задаём отступы для всех страниц */
+            margin-top: 5mm;
+            margin-bottom: 5mm;
+            margin-left: 3mm;
+            margin-right: 3mm;
         }
         @media print {
             body { font-size: 15px; }
