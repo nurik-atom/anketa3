@@ -392,8 +392,8 @@ class GallupController extends Controller
             'no-outline' => true,
             'margin-top' => '10mm',
             'margin-bottom' => '10mm',
-            'margin-left' => '10mm',
-            'margin-right' => '10mm',
+            'margin-left' => '3mm',
+            'margin-right' => '3mm',
             'disable-smart-shrinking' => true,
             'print-media-type' => true,
             // Добавляем опции для лучшей работы с UTF-8
@@ -649,7 +649,7 @@ class GallupController extends Controller
         $genderCode = ($candidate->gender === 'Женский' || $candidate->gender === 'female') ? 'G' : 'B';
         $birthYear = $candidate->birth_date ? substr(date('Y', strtotime($candidate->birth_date)), -2) : '00';
         $candidateId = str_pad($candidate->id, 4, '0', STR_PAD_LEFT);
-$version_text = $version === 'full' ? 'полная' : 'урезанная';
+        $version_text = $version === 'full' ? 'полная' : 'урезанная';
         
         $tempFileName = "{$candidate->full_name} - TL{$genderCode}{$birthYear}-{$candidateId}-{$version_text}.pdf";
 
