@@ -61,6 +61,7 @@
         .gap-8 { gap: 2rem; }
         .space-y-3 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.75rem; }
         .space-y-2 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.5rem; }
+        .space-y-1 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.25rem; }
         .items-start { align-items: flex-start; }
         .items-center { align-items: center; }
         .justify-between { justify-content: space-between; }
@@ -294,7 +295,7 @@
                      @endif
 
                      <!-- Основная информация -->
-                     <div class="space-y-3">
+                     <div class="space-y-1">
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Текущий город:</span>
                              <span class="text-base font-medium">{{ $candidate->current_city }}</span>
@@ -402,18 +403,17 @@
                              <span class="w-60 text-base text-gray-600">Образование:</span>
                              <span class="text-base font-medium flex-1">                
                                 @if($candidate->universities && count($candidate->universities) > 0)
-                                    <div class="space-y-2">
-                                        @foreach($candidate->universities as $index => $university)
-                                            <div class="text-base">
+                                    @foreach($candidate->universities as $index => $university)
+                                        <div class="text-base">
+                                            @if(!$loop->first)<br>@endif
                                                 <span class="font-medium">{{ $university['name'] ?? 'Не указано' }}</span> /
                                                 <span class="font-medium">{{ $university['speciality'] ?? 'Не указано' }}</span> /
                                                 <span>{{ $university['graduation_year'] ?? 'Не указано' }}</span>
                                                 @if(!empty($university['gpa']))
                                                     / <span>{{ $university['gpa'] }}</span>
                                                 @endif
-                                            </div>
-                                        @endforeach
-                                    </div>
+                                        </div>
+                                    @endforeach
                                 @else
                                     <p class="text-base text-gray-500">Информация об образовании не указана</p>
                                 @endif
@@ -426,14 +426,16 @@
             </div>
         </div>
 
+        <!-- Main Content -->
+        <div class="p-6">
             <!-- Опыт работы -->
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Опыт работы</h2>
                 @if($candidate->work_experience && count($candidate->work_experience) > 0)
-                    <div class="space-y-2">
+                    <div class="space-y-1">
                         <div class="text-base">
                             <span class="text-gray-600">Компании и должности:</span>
-                            <div class="mt-2 space-y-1">
+                            <div class="mt-1 space-y-1">
                                 @foreach($candidate->work_experience as $experience)
                                     <div class="font-medium">
                                         @if(!empty($experience['years']))
@@ -450,7 +452,7 @@
                                 @endforeach
                             </div>
                         </div>
-                        <div class="mt-4 grid grid-cols-2 gap-6">
+                        <div class="mt-2 grid grid-cols-2 gap-6">
                             <div>
                                 <span class="text-base text-gray-600">Общий стаж работы (лет):</span>
                                 <span class="text-base font-medium">{{ $candidate->total_experience_years ?? 0 }}</span>
@@ -469,7 +471,7 @@
             <!-- Прочая информация -->
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Прочая информация</h2>
-                <div class="space-y-2">
+                <div class="space-y-1">
                     @if($isFullReport)
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Религия:</span>
@@ -580,7 +582,7 @@
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Языковые навыки</h2>
                 @if($candidate->language_skills && count($candidate->language_skills) > 0)
-                    <div class="space-y-2">
+                    <div class="space-y-1">
                         @foreach($candidate->language_skills as $skill)
                             <div class="flex text-base">
                                 <span class="w-32 font-medium">{{ $skill['language'] ?? 'Не указано' }}</span>
@@ -658,6 +660,7 @@
                 </div>
             </div>
             @endif
+        </div>
         </div>
 
         <!-- Footer -->
