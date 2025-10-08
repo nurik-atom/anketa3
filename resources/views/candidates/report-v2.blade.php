@@ -112,6 +112,9 @@
         .flex-col { flex-direction: column; }
         .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
         .font-extrabold { font-weight: 800; }
+        .float-right { float: right; }
+        .clear-both { clear: both; }
+        .ml-6 { margin-left: 1.5rem; }
 
         /* Стили для PDF содержимого */
         .pdf-content {
@@ -256,8 +259,20 @@
 
         <!-- Candidate Header -->
         <div class="p-6 border-b border-gray-200">
-            <div class="flex items-start gap-8">
-                <div class="flex-1">
+            <div>
+                <!-- Фото справа с обтеканием -->
+                <div class="float-right ml-6 flex-shrink-0">
+                    @if($photoUrl)
+                        <img src="{{$photoUrl}}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">
+{{--                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($photoUrl)) }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
+                    @else
+                        <div class="w-48 h-60 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
+                            <span class="text-gray-500 text-sm">Фото</span>
+                        </div>
+                    @endif
+                </div>
+
+                <div>
                         @if($isReducedReport)
                             <span class="text-lg text-gray-500 font-normal">(урезанная версия)</span>
                         @endif
@@ -288,14 +303,14 @@
                              <span class="w-60 text-base text-gray-600">Готов к переезду:</span>
                              <span class="text-base font-medium">{{ $candidate->ready_to_relocate ? 'Да' : 'Нет' }}</span>
                          </div>
-                         <div class="flex">
+                         <div class="flex items-start">
                              <span class="w-60 text-base text-gray-600">Сфера деятельности:</span>
-                             <span class="text-base font-medium">{{ $candidate->activity_sphere ?: 'Не указано' }}</span>
+                             <span class="text-base font-medium flex-1">{{ $candidate->activity_sphere ?: 'Не указано' }}</span>
                          </div>
-                         <div class="flex">
-                             <span class="w-60 text-base text-gray-600">Желаемая должность:</span>
-                             <span class="text-base font-medium">{{ $candidate->desired_position ?: 'Не указано' }}</span>
-                         </div>
+                        <div class="flex items-start">
+                            <span class="w-60 text-base text-gray-600">Желаемая должность:</span>
+                            <span class="text-base font-medium flex-1">{{ $candidate->desired_position ?: 'Не указано' }}</span>
+                        </div>
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Ожидаемая заработная плата:</span>
                              <span class="text-base font-medium">{{ number_format($candidate->expected_salary) }} тг.</span>
@@ -304,9 +319,9 @@
                              <span class="w-60 text-base text-gray-600">Дата рождения:</span>
                              <span class="text-base font-medium">{{ $candidate->birth_date?->format('d.m.Y') ?: 'Не указано' }}</span>
                          </div>
-                         <div class="flex">
+                         <div class="flex items-start">
                              <span class="w-60 text-base text-gray-600">Место рождения:</span>
-                             <span class="text-base font-medium">{{ $candidate->birth_place ?: 'Не указано' }}</span>
+                             <span class="text-base font-medium flex-1">{{ $candidate->birth_place ?: 'Не указано' }}</span>
                          </div>
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Пол:</span>
@@ -322,9 +337,9 @@
                          
                          @if($isFullReport)
                          <!-- Дети -->
-                         <div class="flex">
+                         <div class="flex items-start">
                              <span class="w-60 text-base text-gray-600">Дети:</span>
-                             <span class="text-base font-medium">
+                             <span class="text-base font-medium flex-1">
                                  @if(!empty($family['children']))
                                      @foreach($family['children'] as $child)
                                          <span>{{ $child['name'] ?? 'Не указано' }} - {{ $child['birth_year'] ?? 'Не указано' }}</span>
@@ -337,33 +352,33 @@
                          </div>
                          @endif
 
-                         @if($isFullReport)
-                         <!-- Родители -->
-                         <div class="flex">
-                             <span class="w-60 text-base text-gray-600">Родители:</span>
-                             <span class="text-base font-medium">
-                                 @if(!empty($family['parents']))
-                                     @foreach($family['parents'] as $parent)
-                                         <span>
-                                             {{ $parent['relation'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
-                                             @if(!empty($parent['profession']))
-                                                 - {{ $parent['profession'] }}
-                                             @endif
-                                         </span>
-                                         @if(!$loop->last)<br>@endif
-                                     @endforeach
-                                 @else
-                                     Не указано
-                                 @endif
-                             </span>
-                         </div>
-                         @endif
+                        @if($isFullReport)
+                        <!-- Родители -->
+                        <div class="flex items-start">
+                            <span class="w-60 text-base text-gray-600">Родители:</span>
+                            <span class="text-base font-medium flex-1">
+                                @if(!empty($family['parents']))
+                                    @foreach($family['parents'] as $parent)
+                                        <span>
+                                            {{ $parent['relation'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}
+                                            @if(!empty($parent['profession']))
+                                                - {{ $parent['profession'] }}
+                                            @endif
+                                        </span>
+                                        @if(!$loop->last)<br>@endif
+                                    @endforeach
+                                @else
+                                    Не указано
+                                @endif
+                            </span>
+                        </div>
+                        @endif
 
                          @if($isFullReport)
                          <!-- Братья и сестры -->
-                         <div class="flex">
+                         <div class="flex items-start">
                              <span class="w-60 text-base text-gray-600">Кол-во братьев-сестер:</span>
-                             <span class="text-base font-medium">
+                             <span class="text-base font-medium flex-1">
                                  @if(!empty($family['siblings']))
                                      {{ count($family['siblings']) }}
                                      @foreach($family['siblings'] as $sibling)
@@ -376,74 +391,40 @@
                          </div>
                          @endif
 
-                     </div>
-                </div>
-                <div class="flex-shrink-0">
-                    @if($photoUrl)
-                        <img src="{{$photoUrl}}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">
-{{--                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($photoUrl)) }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
-                    @else
-                        <div class="w-48 h-60 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
-                            <span class="text-gray-500 text-sm">Фото</span>
-                        </div>
-                    @endif
-                </div>
+                        <!-- Школа -->
+                         <div class="flex items-start">
+                             <span class="w-60 text-base text-gray-600">Школа:</span>
+                             <span class="text-base font-medium flex-1">{{ $candidate->school ?: 'Не указано' }}</span>
+                         </div>
+
+                        <!-- Образование -->
+                        <div class="flex items-start">
+                             <span class="w-60 text-base text-gray-600">Образование:</span>
+                             <span class="text-base font-medium flex-1">                
+                                @if($candidate->universities && count($candidate->universities) > 0)
+                                    <div class="space-y-2">
+                                        @foreach($candidate->universities as $index => $university)
+                                            <div class="text-base">
+                                                <span class="font-medium">{{ $university['name'] ?? 'Не указано' }}</span> /
+                                                <span class="font-medium">{{ $university['speciality'] ?? 'Не указано' }}</span> /
+                                                <span>{{ $university['graduation_year'] ?? 'Не указано' }}</span>
+                                                @if(!empty($university['gpa']))
+                                                    / <span>{{ $university['gpa'] }}</span>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <p class="text-base text-gray-500">Информация об образовании не указана</p>
+                                @endif
+                            </span>
+                         </div>
+                    </div>
+               </div>
+               
+               <div class="clear-both"></div>
             </div>
         </div>
-
-        <!-- Main Content -->
-        <div class="p-6">
-{{--            @if($candidate->family_members && count($candidate->family_members) > 0)--}}
-{{--            <!-- Родители/Братья-сестры -->--}}
-{{--            <div class="mb-8">--}}
-
-{{--                    <span class="text-base text-gray-600">Родители:</span>--}}
-{{--                    <div class="mt-2 space-y-1">--}}
-{{--                        @php--}}
-{{--                            $parents = collect($candidate->family_members)->whereIn('type', ['Отец', 'Мать']);--}}
-{{--                        @endphp--}}
-{{--                        @if($parents->count() > 0)--}}
-{{--                            @foreach($parents as $parent)--}}
-{{--                                <div class="text-base font-medium">--}}
-{{--                                    {{ $parent['type'] ?? 'Не указано' }} - {{ $parent['birth_year'] ?? 'Не указано' }}--}}
-{{--                                    @if(!empty($parent['profession']))--}}
-{{--                                        - {{ $parent['profession'] }}--}}
-{{--                                    @endif--}}
-{{--                                </div>--}}
-{{--                            @endforeach--}}
-{{--                        @else--}}
-{{--                            <span class="text-base font-medium">Информация не указана</span>--}}
-{{--                        @endif--}}
-{{--                    </div>--}}
-{{--            </div>--}}
-{{--            @endif--}}
-
-            <!-- Образование -->
-            <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Образование</h2>
-                <div class="space-y-2">
-                    <div>
-                        <span class="text-base text-gray-600">Школа:</span>
-                        <span class="text-base font-medium">{{ $candidate->school ?: 'Не указано' }}</span>
-                    </div>
-                </div>
-                @if($candidate->universities && count($candidate->universities) > 0)
-                    <div class="space-y-2">
-                        @foreach($candidate->universities as $index => $university)
-                            <div class="text-base">
-                                <span class="font-medium">{{ $university['name'] ?? 'Не указано' }}</span> /
-                                <span class="font-medium">{{ $university['speciality'] ?? 'Не указано' }}</span> /
-                                <span>{{ $university['graduation_year'] ?? 'Не указано' }}</span>
-                                @if(!empty($university['gpa']))
-                                    / <span>{{ $university['gpa'] }}</span>
-                                @endif
-                            </div>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-base text-gray-500">Информация об образовании не указана</p>
-                @endif
-            </div>
 
             <!-- Опыт работы -->
             <div class="mb-8">
@@ -456,11 +437,11 @@
                                 @foreach($candidate->work_experience as $experience)
                                     <div class="font-medium">
                                         @if(!empty($experience['years']))
-                                            {{ $experience['years'] }} |
+                                            {{ $experience['years'] }} /
                                         @endif
-                                        {{ $experience['company'] ?? 'Не указано' }} | 
+                                        {{ $experience['company'] ?? 'Не указано' }} / 
                                         @if(!empty($experience['city']))
-                                            {{ $experience['city'] }} |
+                                            {{ $experience['city'] }} / 
                                         @endif
                                         {{ $experience['position'] ?? 'Не указано' }}
 
@@ -503,17 +484,17 @@
                         <span class="w-60 text-base text-gray-600">Водительские права:</span>
                         <span class="text-base font-medium">{{ $candidate->has_driving_license ? 'Есть' : 'Нет' }}</span>
                     </div>
-                    <div class="flex">
+                    <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Хобби:</span>
-                        <span class="text-base">{{ $candidate->hobbies ?: 'Не указано' }}</span>
+                        <span class="text-base flex-1">{{ $candidate->hobbies ?: 'Не указано' }}</span>
                     </div>
-                    <div class="flex">
+                    <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Интересы:</span>
-                        <span class="text-base">{{ $candidate->interests && trim($candidate->interests) ? mb_convert_case(trim($candidate->interests), MB_CASE_TITLE, 'UTF-8') : 'Не указано' }}</span>
+                        <span class="text-base flex-1">{{ $candidate->interests && trim($candidate->interests) ? mb_convert_case(trim($candidate->interests), MB_CASE_TITLE, 'UTF-8') : 'Не указано' }}</span>
                     </div>
-                    <div class="flex">
+                    <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Любимые виды спорта:</span>
-                        <span class="text-base">
+                        <span class="text-base flex-1">
                             @if($candidate->favorite_sports)
                                 @if(is_array($candidate->favorite_sports))
                                     {{ implode(', ', mb_convert_case(trim($candidate->favorite_sports), MB_CASE_TITLE, 'UTF-8')) }}
@@ -525,9 +506,9 @@
                             @endif
                         </span>
                     </div>
-                    <div class="flex">
+                    <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Посещенные страны:</span>
-                        <span class="text-base">
+                        <span class="text-base flex-1">
                             @if($candidate->visited_countries)
                                 @if(is_array($candidate->visited_countries))
                                     {{ implode(', ', $candidate->visited_countries) }}
