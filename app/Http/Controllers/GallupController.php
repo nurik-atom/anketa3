@@ -649,7 +649,9 @@ class GallupController extends Controller
         $genderCode = ($candidate->gender === 'Женский' || $candidate->gender === 'female') ? 'G' : 'B';
         $birthYear = $candidate->birth_date ? substr(date('Y', strtotime($candidate->birth_date)), -2) : '00';
         $candidateId = str_pad($candidate->id, 4, '0', STR_PAD_LEFT);
-        $tempFileName = "{$candidate->full_name} - TL{$genderCode}{$birthYear}-{$candidateId}.pdf";
+$version_text = $version === 'full' ? 'полная' : 'урезанная';
+        
+        $tempFileName = "{$candidate->full_name} - TL{$genderCode}{$birthYear}-{$candidateId}-{$version_text}.pdf";
 
         $tempPath = "temp_anketas/{$tempFileName}";
 
