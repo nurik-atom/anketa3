@@ -12,8 +12,7 @@
         @page {
             margin-top: 5mm;
             margin-bottom: 5mm;
-            margin-left: 3mm;
-            margin-right: 3mm;
+            /* margin управляется через wkhtmltopdf настройки */
         }
         @media print {
             body { font-size: 15px; }
@@ -247,7 +246,7 @@
 <body class="">
     <div class="max-w-4xl mx-auto bg-white ">
         <!-- Header -->
-        <div class="logo-header p-6">
+        <div class="logo-header p-3">
             <div class="flex justify-between items-center">
                 <div>
                <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logos/divergents_logo.png'))) }}" alt="DIVERGENTS talent laboratory" class="h-14 w-auto">
@@ -259,7 +258,7 @@
         </div>
 
         <!-- Candidate Header -->
-        <div class="p-6 border-b border-gray-200">
+        <div class="p-3 border-b border-gray-200">
             <div>
                 <!-- Фото справа с обтеканием -->
                 <div class="float-right ml-6 flex-shrink-0">
@@ -427,7 +426,7 @@
         </div>
 
         <!-- Main Content -->
-        <div class="p-6">
+        <div class="p-3">
             <!-- Опыт работы -->
             <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-4">Опыт работы</h2>
