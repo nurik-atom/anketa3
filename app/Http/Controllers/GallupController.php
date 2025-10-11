@@ -391,29 +391,17 @@ class GallupController extends Controller
             'no-outline' => true,
             'margin-top' => '10mm',
             'margin-bottom' => '10mm',
-            'margin-left' => '0mm',
-            'margin-right' => '0mm',
+            'margin-left' => '10mm',
+            'margin-right' => '10mm',
+            '-T' => '20',  // top
+            '-B' => '20',  // bottom
+            '-L' => '10',  // left
+            '-R' => '10',  // right
             'disable-smart-shrinking' => true,
             'print-media-type' => true,
-            // Добавляем опции для лучшей работы с UTF-8
             'load-error-handling' => 'ignore',
             'load-media-error-handling' => 'ignore',
         ];
-
-        $snappy->setOptions([
-            'encoding' => 'utf-8',
-            'page-size' => 'A4',
-            'no-outline' => true,
-            'margin-top' => '10mm',
-            'margin-bottom' => '10mm',
-            'margin-left' => '0mm',
-            'margin-right' => '0mm',
-            'disable-smart-shrinking' => true,
-            'print-media-type' => true,
-            // Добавляем опции для лучшей работы с UTF-8
-            'load-error-handling' => 'ignore',
-            'load-media-error-handling' => 'ignore',
-        ]);
 
         try {
             $snappy->generateFromHtml($html, $tempHtmlPdf, $s_options, true);

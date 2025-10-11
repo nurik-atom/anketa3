@@ -10,9 +10,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         @page {
-            margin-top: 5mm;
-            margin-bottom: 5mm;
-            /* margin управляется через wkhtmltopdf настройки */
+            margin: 5mm 10mm;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            margin: 0 !important;
+            padding: 0 !important;
         }
         @media print {
             body { font-size: 15px; }
