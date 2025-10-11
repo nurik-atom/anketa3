@@ -385,6 +385,20 @@ class GallupController extends Controller
 
         $snappy = new Pdf('/usr/bin/wkhtmltopdf');
 
+        $s_options = [
+            'encoding' => 'utf-8',
+            'page-size' => 'A4',
+            'no-outline' => true,
+            'margin-top' => '10mm',
+            'margin-bottom' => '10mm',
+            'margin-left' => '0mm',
+            'margin-right' => '0mm',
+            'disable-smart-shrinking' => true,
+            'print-media-type' => true,
+            // Добавляем опции для лучшей работы с UTF-8
+            'load-error-handling' => 'ignore',
+            'load-media-error-handling' => 'ignore',
+        ];
 
         $snappy->setOptions([
             'encoding' => 'utf-8',
@@ -402,7 +416,7 @@ class GallupController extends Controller
         ]);
 
         try {
-            $snappy->generateFromHtml($html, $tempHtmlPdf);
+            $snappy->generateFromHtml($html, $tempHtmlPdf, $s_options, true);
         } catch (\Exception $e) {
             dd([
                 'message' => $e->getMessage(),
@@ -650,7 +664,7 @@ class GallupController extends Controller
         $birthYear = $candidate->birth_date ? substr(date('Y', strtotime($candidate->birth_date)), -2) : '00';
         $candidateId = str_pad($candidate->id, 4, '0', STR_PAD_LEFT);
         $version_text = $version === 'full' ? 'полная' : 'урезанная';
-        
+
         $tempFileName = "{$candidate->full_name} - TL{$genderCode}{$birthYear}-{$candidateId}-{$version_text}.pdf";
 
         $tempPath = "temp_anketas/{$tempFileName}";
