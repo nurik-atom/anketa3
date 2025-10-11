@@ -243,7 +243,7 @@
         }
     </style>
 </head>
-<body class="">
+<body style="margin: 0; padding: 0;">
     <div class="max-w-4xl mx-auto bg-white ">
         <!-- Header -->
         <div class="logo-header p-3">
