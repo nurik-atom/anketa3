@@ -392,8 +392,8 @@ class GallupController extends Controller
             'no-outline' => true,
             'margin-top' => '10mm',
             'margin-bottom' => '10mm',
-            'margin-left' => '3mm',
-            'margin-right' => '3mm',
+            'margin-left' => '0mm',
+            'margin-right' => '0mm',
             'disable-smart-shrinking' => true,
             'print-media-type' => true,
             // Добавляем опции для лучшей работы с UTF-8
