@@ -10,15 +10,17 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         @page {
-            margin: 5mm 10mm;
+            margin: 0;
+            size: A4;
         }
         * {
             margin: 0;
             padding: 0;
         }
         body {
-            margin: 0 !important;
+            margin: 5mm 10mm !important;
             padding: 0 !important;
+            box-sizing: border-box;
         }
         @media print {
             body { font-size: 15px; }
