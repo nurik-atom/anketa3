@@ -13,8 +13,8 @@
             margin: 10mm 0mm 10mm 0mm !important;
         }
         body {
-            padding-left: 10mm !important;
-            padding-right: 10mm !important;
+            /*padding-left: 10mm !important;*/
+            /*padding-right: 10mm !important;*/
             margin: 0 !important;
         }
         * {
@@ -81,14 +81,18 @@
         .w-8 { width: 2rem; }
         .w-72 { width: 18rem; }
         .w-48 { width: 12rem; }
-        .w-60 { width: 17rem; }
+        .w-60 { width: 19rem; }
         .w-auto { width: auto; }
         .h-14 { height: 3.5rem; }
+        .h-4 { height: 1.5rem; }
+        .h-8 { height: 2rem; }
         .h-12 { height: 3rem; }
         .h-90 { height: 22.5rem; }
         .h-60 { height: 15rem; }
         .h-80 { height: 20rem; }
         .w-64 { width: 16rem; }
+        .w-47 { width: 11.75rem; }
+        .h-69 { height: 17.25rem; }
         .flex-1 { flex: 1 1 0%; }
         .flex-shrink-0 { flex-shrink: 0; }
         .border-b { border-bottom-width: 1px; }
@@ -250,7 +254,7 @@
         }
     </style>
 </head>
-<body style="margin: 0; padding: 0;">
+<body>
     <div class="max-w-4xl mx-auto bg-white ">
         <!-- Header -->
         <div class="logo-header p-3">
@@ -259,7 +263,7 @@
                <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logos/divergents_logo.png'))) }}" alt="DIVERGENTS talent laboratory" class="h-14 w-auto">
                 </div>
                 <div class="text-right">
-                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logos/talents_lab_logo.png'))) }}" alt="talents lab" class="h-12 w-auto">
+                    <img src="data:image/png;base64,{{ base64_encode(file_get_contents(public_path('logos/talents_lab_logo.png'))) }}" alt="talents lab" class="h-4 w-auto">
                 </div>
             </div>
         </div>
@@ -270,10 +274,10 @@
                 <!-- Фото справа с обтеканием -->
                 <div class="float-right ml-6 flex-shrink-0">
                     @if($photoUrl)
-                        <img src="{{$photoUrl}}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">
-{{--                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($photoUrl)) }}" alt="Фото кандидата" class="w-64 h-80 object-cover rounded border-2 border-gray-300">--}}
+                        <img src="{{$photoUrl}}" alt="Фото кандидата" class="w-47 h-69 object-cover rounded border-2 border-gray-300">
+{{--                        <img src="data:image/png;base64,{{ base64_encode(file_get_contents($photoUrl)) }}" alt="Фото кандидата" class="w-47 h-69 object-cover rounded border-2 border-gray-300">--}}
                     @else
-                        <div class="w-48 h-60 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
+                        <div class="w-47 h-69 bg-gray-300 rounded border-2 border-gray-300 flex items-center justify-center">
                             <span class="text-gray-500 text-sm">Фото</span>
                         </div>
                     @endif
@@ -299,7 +303,7 @@
                          </div>
                      </div>
                      @endif
-
+                    <h2 class="text-xl font-bold text-gray-800 mb-2">Основная информация</h2>
                      <!-- Основная информация -->
                      <div class="space-y-1">
                          <div class="flex">
@@ -435,8 +439,8 @@
         <!-- Main Content -->
         <div class="p-3">
             <!-- Опыт работы -->
-            <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Опыт работы</h2>
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Опыт работы</h2>
                 @if($candidate->work_experience && count($candidate->work_experience) > 0)
                     <div class="space-y-1">
                         <div class="flex items-start">
@@ -472,8 +476,8 @@
             </div>
 
             <!-- Прочая информация -->
-            <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Прочая информация</h2>
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Прочая информация</h2>
                 <div class="space-y-1">
                     @if($isFullReport)
                     <div class="flex">
@@ -582,8 +586,8 @@
             </div>
 
             <!-- Языковые навыки -->
-            <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Языковые навыки</h2>
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Языковые навыки</h2>
                 @if($candidate->language_skills && count($candidate->language_skills) > 0)
                     <div class="space-y-1">
                         @foreach($candidate->language_skills as $skill)
@@ -603,14 +607,14 @@
             </div>
 
             <!-- Компьютерные навыки -->
-            <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4"></h2>
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-2"></h2>
                 <p class="text-base text-gray-800"></p>
             </div>
 
             <!-- Психометрические данные -->
-            <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Психометрические данные</h2>
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Психометрические данные</h2>
                 <div class="flex">
                     <span class="text-base text-gray-600 w-60">Тип личности по MBTI:</span>
                     <span class="text-base font-medium text-blue-600">{{ $candidate->mbti_type ?: 'Не указано' }}</span>
@@ -633,8 +637,8 @@
                     }
                 }
             @endphp
-            <div class="mb-8">
-                <h2 class="text-xl font-bold text-gray-800 mb-4">Тест типов интеллекта (Гарднер)</h2>
+            <div class="mb-4">
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Тест типов интеллекта (Гарднер)</h2>
                 <div class="grid grid-cols-2 gap-6">
                     @foreach($candidate->user->gardnerTestResult->results as $intelligenceType => $percentage)
                     @php

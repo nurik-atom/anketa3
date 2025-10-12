@@ -303,13 +303,13 @@ body {
 }
 
 .brand-logo-left {
-    height: 65px;
+    height: 50px;
     width: auto;
     max-width: 215px;
 }
 
 .brand-logo-right {
-    height: 65px;
+    height: 25px;
     width: auto;
     max-width: 200px;
 }
@@ -587,7 +587,7 @@ body {
     .password-toggle {
         color: #9ca3af;
     }
-    
+
     .password-toggle:hover {
         background-color: rgba(255, 255, 255, 0.1);
         color: #d1d5db;
@@ -600,7 +600,7 @@ body {
         right: 12px;
         padding: 8px;
     }
-    
+
     .password-input {
         padding-right: 45px !important;
     }
@@ -616,8 +616,8 @@ body {
 
     .brand-logo-left,
     .brand-logo-right {
-        height: 40px;
-        max-width: 130px;
+        height: 30px;
+        max-width: 100px;
     }
 
     .brand-description {
