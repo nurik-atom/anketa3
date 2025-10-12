@@ -10,17 +10,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         @page {
-            margin: 10mm 2mm 10mm 2mm; /* top right bottom left - минимум 2mm */
-            size: A4;
+            margin: 10mm 0mm 10mm 0mm !important;
+        }
+        body {
+            padding-left: 10mm !important;
+            padding-right: 10mm !important;
+            margin: 0 !important;
         }
         * {
             margin: 0;
             padding: 0;
-        }
-        body {
-            margin: 0 -10mm 0 -10mm;
-            padding: 0 !important;
-            box-sizing: border-box;
         }
         @media print {
             body { font-size: 15px; }
@@ -293,7 +292,7 @@
                              <!-- <span class="font-medium text-gray-800"></span> -->
                              <span class="font-medium text-gray-800 ml-8">{{ $candidate->email }}</span>
                              <span class="font-medium text-gray-800 ml-8">{{ $candidate->phone }}</span>
-                             
+
                              @if($candidate->instagram)
                                  <span class="font-medium text-gray-800 ml-8">{{ $candidate->instagram }}</span>
                              @endif
@@ -342,7 +341,7 @@
                          @php
                              $family = $candidate->getFamilyStructured();
                          @endphp
-                         
+
                          @if($isFullReport)
                          <!-- Дети -->
                          <div class="flex items-start">
@@ -408,7 +407,7 @@
                         <!-- Образование -->
                         <div class="flex items-start">
                              <span class="w-60 text-base text-gray-600">Образование:</span>
-                             <span class="text-base font-medium flex-1">                
+                             <span class="text-base font-medium flex-1">
                                 @if($candidate->universities && count($candidate->universities) > 0)
                                     @foreach($candidate->universities as $index => $university)
                                         <span>
@@ -428,7 +427,7 @@
                          </div>
                     </div>
                </div>
-               
+
                <div class="clear-both"></div>
             </div>
         </div>
@@ -445,9 +444,9 @@
                             <div class="text-base font-medium flex-1 space-y-1">
                                 @foreach($candidate->work_experience as $index => $experience)
                                     <div>
-                                        {{ $index + 1 }}. 
+                                        {{ $index + 1 }}.
                                         @if(!empty($experience['years']))
-                                            {{ $experience['years'] }} - 
+                                            {{ $experience['years'] }} -
                                         @endif
                                         {{ $experience['company'] ?? 'Не указано' }}
                                         @if(!empty($experience['city']))
