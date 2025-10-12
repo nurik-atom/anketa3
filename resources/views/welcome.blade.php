@@ -4,7 +4,7 @@
 
 @section('content')
 <h1>Добро пожаловать</h1>
-<p>Войдите в систему управления обучением Divergents</p>
+<p>Войдите в систему управления обучением Talents Lab</p>
 
 @if (session('status'))
     <div class="success-message">
@@ -92,7 +92,7 @@ function togglePassword(inputId) {
     const button = input.nextElementSibling;
     const showIcon = button.querySelector('.show-icon');
     const hideIcon = button.querySelector('.hide-icon');
-    
+
     if (input.type === 'password') {
         input.type = 'text';
         showIcon.style.display = 'none';

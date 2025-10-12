@@ -45,7 +45,7 @@
                         <img src="{{ asset('logos/talents_lab_logo.png') }}" alt="Talents Lab Logo" class="brand-logo brand-logo-right">
                     </div>
                     <p class="brand-description">
-                        Добро пожаловать!<br>
+{{--                        Добро пожаловать!<br>--}}
                         Войдите на онлайн-портал Talents Lab — современную платформу с базой резюме
                     </p>
 
