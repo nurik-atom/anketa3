@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         @page {
-            margin: 0;
+            margin: 10mm 2mm 10mm 2mm; /* top right bottom left - минимум 2mm */
             size: A4;
         }
         * {
@@ -18,7 +18,7 @@
             padding: 0;
         }
         body {
-            margin: 5mm 10mm !important;
+            margin: 0 -10mm 0 -10mm;
             padding: 0 !important;
             box-sizing: border-box;
         }
