@@ -383,30 +383,38 @@ class GallupController extends Controller
         // Финальная очистка
         $html = $this->sanitizeUtf8($html);
 
-        $snappy = new Pdf('/usr/bin/wkhtmltopdf');
+//        $snappy = new Pdf('/usr/bin/wkhtmltopdf');
+//
+//        $s_options = [
+//            'encoding' => 'utf-8',
+//            'page-size' => 'A4',
+//            'margin-top' => '10mm',
+//            'margin-bottom' => '10mm',
+//            'margin-left' => '2mm',
+//            'margin-right' => '2mm',
+//            'zoom' => 1.30,
+//            'disable-smart-shrinking' => true,
+//            'print-media-type' => true,
+//            'load-error-handling' => 'ignore',
+//            'load-media-error-handling' => 'ignore',
+//        ];
+//
+//        try {
+//            $snappy->generateFromHtml($html, $tempHtmlPdf, $s_options, true);
+//        } catch (\Exception $e) {
+//            dd([
+//                'message' => $e->getMessage(),
+//                'snippet' => mb_substr($html, 0, 1000),
+//            ]);
+//        }
 
-        $s_options = [
-            'encoding' => 'utf-8',
-            'page-size' => 'A4',
-            'margin-top' => '10mm',
-            'margin-bottom' => '10mm',
-            'margin-left' => '2mm',
-            'margin-right' => '2mm',
-            'zoom' => 1.30,
-            'disable-smart-shrinking' => true,
-            'print-media-type' => true,
-            'load-error-handling' => 'ignore',
-            'load-media-error-handling' => 'ignore',
-        ];
-
-        try {
-            $snappy->generateFromHtml($html, $tempHtmlPdf, $s_options, true);
-        } catch (\Exception $e) {
-            dd([
-                'message' => $e->getMessage(),
-                'snippet' => mb_substr($html, 0, 1000),
-            ]);
-        }
+        Browsershot::html($html)
+            ->setOption('margin.top', '10mm')
+            ->setOption('margin.bottom', '10mm')
+            ->setOption('margin.left', '10mm')  // здесь можно 10mm!
+            ->setOption('margin.right', '10mm')
+            ->format('A4')
+            ->save($tempHtmlPdf);
 
         // 2️⃣ Получаем все файлы для объединения
         $pdfPaths = [$tempHtmlPdf];
