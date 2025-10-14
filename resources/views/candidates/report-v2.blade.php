@@ -270,7 +270,7 @@
 
         <!-- Candidate Header -->
         <div class="p-3 border-b border-gray-200">
-            <div>
+            <div class="mb-8">
                 <!-- Фото справа с обтеканием -->
                 <div class="float-right ml-6 flex-shrink-0">
                     @if($photoUrl)
@@ -291,17 +291,17 @@
                         {{ $candidate->full_name }}
                     </h1>
                      @if($isFullReport)
-                     <div class="text-base mb-6">
-                         <div class="mb-4">
-                             <!-- <span class="font-medium text-gray-800"></span> -->
-                             <span class="font-medium text-gray-800 ml-8">{{ $candidate->email }}</span>
-                             <span class="font-medium text-gray-800 ml-8">{{ $candidate->phone }}</span>
+                    <div class="text-base mb-6">
+                        <div class="mb-4 space-y-1">
+                            <!-- <span class="font-medium text-gray-800"></span> -->
+                            <span class="font-medium text-gray-800">{{ $candidate->email }}</span>
+                            <span class="font-medium text-gray-800 ml-8">{{ $candidate->phone }}</span>
 
-                             @if($candidate->instagram)
-                                 <span class="font-medium text-gray-800 ml-8">{{ $candidate->instagram }}</span>
-                             @endif
-                         </div>
-                     </div>
+                            @if($candidate->instagram)
+                                <span class="font-medium text-gray-800 ml-8">{{ $candidate->instagram }}</span>
+                            @endif
+                        </div>
+                    </div>
                      @endif
                     <h2 class="text-xl font-bold text-gray-800 mb-2">Основная информация</h2>
                      <!-- Основная информация -->
@@ -324,7 +324,7 @@
                         </div>
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Ожидаемая заработная плата:</span>
-                             <span class="text-base font-medium">{{ number_format($candidate->expected_salary) }} тг.</span>
+                             <span class="text-base font-medium">{{ number_format($candidate->expected_salary) }} тг</span>
                          </div>
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Дата рождения:</span>
@@ -439,7 +439,7 @@
         <!-- Main Content -->
         <div class="p-3">
             <!-- Опыт работы -->
-            <div class="mb-4">
+            <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Опыт работы</h2>
                 @if($candidate->work_experience && count($candidate->work_experience) > 0)
                     <div class="space-y-1">
@@ -476,7 +476,7 @@
             </div>
 
             <!-- Прочая информация -->
-            <div class="mb-4">
+            <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Прочая информация</h2>
                 <div class="space-y-1">
                     @if($isFullReport)
@@ -586,7 +586,7 @@
             </div>
 
             <!-- Языковые навыки -->
-            <div class="mb-4">
+            <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Языковые навыки</h2>
                 @if($candidate->language_skills && count($candidate->language_skills) > 0)
                     <div class="space-y-1">
@@ -607,13 +607,13 @@
             </div>
 
             <!-- Компьютерные навыки -->
-            <div class="mb-4">
+            <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-2"></h2>
                 <p class="text-base text-gray-800"></p>
             </div>
 
             <!-- Психометрические данные -->
-            <div class="mb-4">
+            <div class="mb-8">
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Психометрические данные</h2>
                 <div class="flex">
                     <span class="text-base text-gray-600 w-60">Тип личности по MBTI:</span>
