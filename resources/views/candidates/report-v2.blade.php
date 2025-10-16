@@ -252,6 +252,40 @@
         .pdf-content, .pdf-viewer {
             transition: opacity 0.3s ease-in-out;
         }
+
+        /* Предотвращение разрывов страниц */
+        .mb-8 {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .mb-4 {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        h2 {
+            page-break-after: avoid;
+            break-after: avoid;
+        }
+
+        /* Держим заголовок и следующий элемент вместе */
+        h2 + * {
+            page-break-before: avoid;
+            break-before: avoid;
+        }
+
+        /* Для flex контейнеров с данными */
+        .flex {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        /* Для grid контейнеров */
+        .grid {
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
     </style>
 </head>
 <body>
