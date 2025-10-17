@@ -558,7 +558,7 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Хобби:</span>
-                        <span class="text-base flex-1">
+                        <span class="text-base font-medium flex-1">
                             @php
                                 $hobbies = trim($candidate->hobbies ?? '');
                                 if ($hobbies !== '') {
@@ -575,7 +575,7 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Интересы:</span>
-                        <span class="text-base flex-1">
+                        <span class="text-base font-medium flex-1">
                             @php
                                 $interests = trim($candidate->interests ?? '');
                                 if ($interests !== '') {
@@ -592,7 +592,7 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Любимые виды спорта:</span>
-                        <span class="text-base flex-1">
+                        <span class="text-base font-medium flex-1">
                             @if($candidate->favorite_sports)
                                 @if(is_array($candidate->favorite_sports))
                                     {{ implode(', ', mb_convert_case(trim($candidate->favorite_sports), MB_CASE_TITLE, 'UTF-8')) }}
@@ -606,7 +606,7 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Посещенные страны:</span>
-                        <span class="text-base flex-1">
+                        <span class="text-base font-medium flex-1">
                             @if($candidate->visited_countries)
                                 @if(is_array($candidate->visited_countries))
                                     {{ implode(', ', $candidate->visited_countries) }}
@@ -620,11 +620,11 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Кол-во книг в год:</span>
-                        <span class="text-base">{{ $candidate->books_per_year ?? 'Не указано' }}</span>
+                        <span class="text-base font-medium">{{ $candidate->books_per_year ?? 'Не указано' }}</span>
                     </div>
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Часы на разв. видео в неделю:</span>
-                        <span class="text-base">
+                        <span class="text-base font-medium">
                             @if($candidate->entertainment_hours_weekly)
                                 {{ $candidate->entertainment_hours_weekly }} час{{ $candidate->entertainment_hours_weekly == 1 ? '' : ($candidate->entertainment_hours_weekly < 5 ? 'а' : 'ов') }}
                             @else
@@ -634,7 +634,7 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Часы на обра. видео в неделю:</span>
-                        <span class="text-base">
+                        <span class="text-base font-medium">
                             @if($candidate->educational_hours_weekly)
                                 {{ $candidate->educational_hours_weekly }} час{{ $candidate->educational_hours_weekly == 1 ? '' : ($candidate->educational_hours_weekly < 5 ? 'а' : 'ов') }}
                             @else
@@ -644,7 +644,7 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex">
                         <span class="w-60 text-base text-gray-600">Часы на соц. сети в неделю:</span>
-                        <span class="text-base">
+                        <span class="text-base font-medium">
                             @if($candidate->social_media_hours_weekly)
                                 {{ $candidate->social_media_hours_weekly }} час{{ $candidate->social_media_hours_weekly == 1 ? '' : ($candidate->social_media_hours_weekly < 5 ? 'а' : 'ов') }}
                             @else
@@ -654,7 +654,7 @@ if (! function_exists('mb_ucfirst')) {
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Пожелания на рабочем месте:</span>
-                        <span class="text-base flex-1">
+                        <span class="text-base font-medium flex-1">
                             @php
                                 $workplace = trim($candidate->workplace_preferences ?? '');
                                 if ($workplace !== '') {
@@ -672,7 +672,7 @@ if (! function_exists('mb_ucfirst')) {
                     @if($candidate->computer_skills)
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Компьютерные навыки:</span>
-                        <span class="text-base flex-1">
+                        <span class="text-base font-medium flex-1">
                             @php
                                 $computer = trim($candidate->computer_skills ?? '');
                                 if ($computer !== '') {
