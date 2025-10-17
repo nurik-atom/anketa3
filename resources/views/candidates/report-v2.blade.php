@@ -289,6 +289,21 @@
     </style>
 </head>
 <body>
+@php
+if (! function_exists('mb_ucfirst')) {
+    function mb_ucfirst(mixed $value): string
+    {
+        $text = trim((string) ($value ?? ''));
+        if ($text === '') {
+            return '';
+        }
+        $lower = mb_strtolower($text, 'UTF-8');
+        $first = mb_strtoupper(mb_substr($lower, 0, 1, 'UTF-8'), 'UTF-8');
+        return $first . mb_substr($lower, 1, null, 'UTF-8');
+    }
+}
+@endphp
+
     <div class="max-w-4xl mx-auto bg-white ">
         <!-- Header -->
         <div class="logo-header p-3">
@@ -354,7 +369,20 @@
                          </div>
                         <div class="flex items-start">
                             <span class="w-60 text-base text-gray-600">Желаемая должность:</span>
-                            <span class="text-base font-medium flex-1">{{ $candidate->desired_position ?: 'Не указано' }}</span>
+                            <span class="text-base font-medium flex-1">
+                                @php
+                                    $desired = trim($candidate->desired_position ?? '');
+                                    if ($desired !== '') {
+                                        $dLower = mb_strtolower($desired, 'UTF-8');
+                                        $dFirst = mb_strtoupper(mb_substr($dLower, 0, 1, 'UTF-8'), 'UTF-8');
+                                        $dRest = mb_substr($dLower, 1, null, 'UTF-8');
+                                        $desired = $dFirst . $dRest;
+                                    } else {
+                                        $desired = 'Не указано';
+                                    }
+                                @endphp
+                                {{ $desired }}
+                            </span>
                         </div>
                          <div class="flex">
                              <span class="w-60 text-base text-gray-600">Ожидаемая заработная плата:</span>
@@ -483,8 +511,9 @@
                                 @foreach($candidate->work_experience as $index => $experience)
                                     <div>
                                         {{ $index + 1 }}.
-                                        @if(!empty($experience['years']))
-                                            {{ $experience['years'] }} -
+                                        @php $years = trim($experience['years'] ?? ''); @endphp
+                                        @if($years !== '')
+                                            {{ implode(' - ', array_map('mb_ucfirst', explode(' - ', $years))) }} -
                                         @endif
                                         {{ $experience['company'] ?? 'Не указано' }}
                                         @if(!empty($experience['city']))
@@ -529,11 +558,37 @@
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Хобби:</span>
-                        <span class="text-base flex-1">{{ $candidate->hobbies ?: 'Не указано' }}</span>
+                        <span class="text-base flex-1">
+                            @php
+                                $hobbies = trim($candidate->hobbies ?? '');
+                                if ($hobbies !== '') {
+                                    $hLower = mb_strtolower($hobbies, 'UTF-8');
+                                    $hFirst = mb_strtoupper(mb_substr($hLower, 0, 1, 'UTF-8'), 'UTF-8');
+                                    $hRest = mb_substr($hLower, 1, null, 'UTF-8');
+                                    $hobbies = $hFirst . $hRest;
+                                } else {
+                                    $hobbies = 'Не указано';
+                                }
+                            @endphp
+                            {{ $hobbies }}
+                        </span>
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Интересы:</span>
-                        <span class="text-base flex-1">{{ $candidate->interests && trim($candidate->interests) ? mb_convert_case(trim($candidate->interests), MB_CASE_TITLE, 'UTF-8') : 'Не указано' }}</span>
+                        <span class="text-base flex-1">
+                            @php
+                                $interests = trim($candidate->interests ?? '');
+                                if ($interests !== '') {
+                                    $lower = mb_strtolower($interests, 'UTF-8');
+                                    $first = mb_strtoupper(mb_substr($lower, 0, 1, 'UTF-8'), 'UTF-8');
+                                    $rest = mb_substr($lower, 1, null, 'UTF-8');
+                                    $interests = $first . $rest;
+                                } else {
+                                    $interests = 'Не указано';
+                                }
+                            @endphp
+                            {{ $interests }}
+                        </span>
                     </div>
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Любимые виды спорта:</span>
@@ -600,18 +655,36 @@
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Пожелания на рабочем месте:</span>
                         <span class="text-base flex-1">
-                            @if($candidate->workplace_preferences)
-                                {{ $candidate->workplace_preferences }}
-                            @else
-                                Не указано
-                            @endif
+                            @php
+                                $workplace = trim($candidate->workplace_preferences ?? '');
+                                if ($workplace !== '') {
+                                    $wLower = mb_strtolower($workplace, 'UTF-8');
+                                    $wFirst = mb_strtoupper(mb_substr($wLower, 0, 1, 'UTF-8'), 'UTF-8');
+                                    $wRest = mb_substr($wLower, 1, null, 'UTF-8');
+                                    $workplace = $wFirst . $wRest;
+                                } else {
+                                    $workplace = 'Не указано';
+                                }
+                            @endphp
+                            {{ $workplace }}
                         </span>
                     </div>
                     @if($candidate->computer_skills)
                     <div class="flex items-start">
                         <span class="w-60 text-base text-gray-600">Компьютерные навыки:</span>
                         <span class="text-base flex-1">
-                                {{ $candidate->computer_skills}}
+                            @php
+                                $computer = trim($candidate->computer_skills ?? '');
+                                if ($computer !== '') {
+                                    $cLower = mb_strtolower($computer, 'UTF-8');
+                                    $cFirst = mb_strtoupper(mb_substr($cLower, 0, 1, 'UTF-8'), 'UTF-8');
+                                    $cRest = mb_substr($cLower, 1, null, 'UTF-8');
+                                    $computer = $cFirst . $cRest;
+                                } else {
+                                    $computer = 'Не указано';
+                                }
+                            @endphp
+                            {{ $computer }}
                         </span>
                     </div>
                     @else
@@ -701,7 +774,6 @@
                 </div>
             </div>
             @endif
-        </div>
         </div>
 
         <!-- Footer -->
