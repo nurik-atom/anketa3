@@ -18,7 +18,8 @@ class NotifyCandidatesAccountCreated extends Command
                         {--limit=100 : Количество кандидатов для обработки за раз} 
                         {--dry-run : Только показать кандидатов без отправки email}
                         {--email= : Отправить только конкретному email}
-                        {--candidate-id= : Отправить только конкретному кандидату по ID}';
+                        {--candidate-id= : Отправить только конкретному кандидату по ID}
+                        {--test-email= : Отправить тестовый email на указанный адрес (использует первого кандидата)}';
 
     /**
      * The console command description.
@@ -36,29 +37,38 @@ class NotifyCandidatesAccountCreated extends Command
         $dryRun = $this->option('dry-run');
         $email = $this->option('email');
         $candidateId = $this->option('candidate-id');
+        $testEmail = $this->option('test-email');
 
         $this->info('Начинаю отправку уведомлений кандидатам...');
 
-        // Строим запрос для получения кандидатов
-        $query = Candidate::whereNotNull('email')
-            ->whereNull('user_id');
+        // Если указан test-email, берем первого кандидата для теста
+        if ($testEmail) {
+            $candidates = collect([Candidate::whereNotNull('email')->first()]);
+            if ($candidates->first()) {
+                $this->info("Режим тестирования: будет отправлено на {$testEmail}");
+            }
+        } else {
+            // Строим запрос для получения кандидатов
+            $query = Candidate::whereNotNull('email')
+                ->whereNull('user_id');
 
-        // Фильтруем по email если указан
-        if ($email) {
-            $query->where('email', $email);
+            // Фильтруем по email если указан
+            if ($email) {
+                $query->where('email', $email);
+            }
+
+            // Фильтруем по ID кандидата если указан
+            if ($candidateId) {
+                $query->where('id', $candidateId);
+            }
+
+            // Применяем лимит только если не указаны конкретные фильтры
+            if (!$email && !$candidateId) {
+                $query->limit($limit);
+            }
+
+            $candidates = $query->get();
         }
-
-        // Фильтруем по ID кандидата если указан
-        if ($candidateId) {
-            $query->where('id', $candidateId);
-        }
-
-        // Применяем лимит только если не указаны конкретные фильтры
-        if (!$email && !$candidateId) {
-            $query->limit($limit);
-        }
-
-        $candidates = $query->get();
 
         if ($candidates->isEmpty()) {
             $this->info('Нет кандидатов для отправки уведомлений.');
@@ -90,15 +100,19 @@ class NotifyCandidatesAccountCreated extends Command
 
         foreach ($candidates as $candidate) {
             try {
+                // Определяем адрес получателя (тестовый или реальный)
+                $recipientEmail = $testEmail ?: $candidate->email;
+                
                 // Отправляем email с учетными данными
-                Mail::to($candidate->email)->send(new CandidateAccountCreated($candidate, 'A123456a'));
+                // В тестовом режиме передаем тестовый email для отображения в письме
+                Mail::to($recipientEmail)->send(new CandidateAccountCreated($candidate, 'A123456a', $testEmail));
                 
                 $sent++;
                 $progressBar->advance();
 
             } catch (\Exception $e) {
                 $errors++;
-                $this->error("\nОшибка при отправке email для {$candidate->email}: " . $e->getMessage());
+                $this->error("\nОшибка при отправке email для {$recipientEmail}: " . $e->getMessage());
                 $progressBar->advance();
             }
         }

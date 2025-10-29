@@ -16,14 +16,16 @@ class CandidateAccountCreated extends Mailable
 
     public $candidate;
     public $password;
+    public $displayEmail;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Candidate $candidate, string $password)
+    public function __construct(Candidate $candidate, string $password, ?string $displayEmail = null)
     {
         $this->candidate = $candidate;
         $this->password = $password;
+        $this->displayEmail = $displayEmail ?: $candidate->email;
     }
 
     /**
@@ -32,7 +34,7 @@ class CandidateAccountCreated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Ваш аккаунт создан - Доступ к системе Anketa',
+            subject: 'Заполни анкету заново на новом сайте Talents Lab 🚀',
         );
     }
 
