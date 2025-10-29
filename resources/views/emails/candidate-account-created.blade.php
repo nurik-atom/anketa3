@@ -10,10 +10,10 @@
         
         <!-- Header -->
         <div style="background-color: #ffffff; padding: 30px; text-align: center; border-bottom: 1px solid #ddd;">
-            <div style="margin-bottom: 20px;">
+            <!-- <div style="margin-bottom: 20px;">
                 <img src="{{ config('app.url') }}/logos/divergents_logo.png" alt="Divergents" style="height: 50px; margin-right: 20px; vertical-align: middle;">
                 <img src="{{ config('app.url') }}/logos/talents_lab_logo.png" alt="Talents Lab" style="height: 40px; vertical-align: middle;">
-            </div>
+            </div> -->
             <h1 style="color: #333; font-size: 28px; margin: 0; font-weight: bold;">Привет, Талант!🚀</h1>
         </div>
 
