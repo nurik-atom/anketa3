@@ -134,6 +134,17 @@ class NotifyCandidatesAccountCreated extends Command
             $recipientEmail = $testEmail ?: $c->email;
 
             try {
+                // Если email в данных некорректный — помечаем как отправленный и пропускаем
+                if (!filter_var($c->email, FILTER_VALIDATE_EMAIL)) {
+                    DB::table('import_candidates')->where('id', $c->id)->update(['email_sended' => 1]);
+                    Log::channel('email_send')->warning("Invalid email format; marked as sent", [
+                        'import_candidate_id' => $c->id,
+                        'raw_email' => $c->email,
+                    ]);
+                    $progressBar->advance();
+                    continue;
+                }
+
                 // Сформируем временного кандидата для Mailable (тип ожидается Candidate)
                 $tempCandidate = new Candidate();
                 $tempCandidate->email = $c->email;
