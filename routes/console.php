@@ -12,3 +12,9 @@ Artisan::command('inspire', function () {
 Schedule::command('telescope:prune --hours=6')->hourly();
 Schedule::command('cleanup:temp-files')->hourly();
 Schedule::command('gallup:clean-history --days=7')->daily();
+
+// Send one email per minute from import_candidates
+Schedule::command('candidates:notify --limit=1')
+    ->everyMinute()
+    ->withoutOverlapping()
+    ->onOneServer();

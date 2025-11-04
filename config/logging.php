@@ -127,6 +127,14 @@ return [
             'path' => storage_path('logs/laravel.log'),
         ],
 
+        // Custom channel for email send logs
+        'email_send' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/email_send.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
     ],
 
 ];
