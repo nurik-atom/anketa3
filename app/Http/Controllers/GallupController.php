@@ -119,9 +119,7 @@ class GallupController extends Controller
         // Проверка на изменения
         $hasChanged = $existingTalents !== $talents;
 
-        //TODO: Убрать после тестирования
-        $hasChanged = true;
-        //! Если изменения есть, то обновляем таланты
+        // Если таланты изменились — обновляем их
         if ($hasChanged) {
             $candidate->gallupTalents()->delete();
 
@@ -131,40 +129,38 @@ class GallupController extends Controller
                     'position' => $index + 1,
                 ]);
             }
-
-            // Шаг 4: Обработка отчетов
-            $this->logStep($candidate, 'Обработка отчетов');
-
-            // Получаем все активные листы отчетов из базы данных
-            $reportSheets = GallupReportSheet::with('indices')->orderBy('id', 'desc')->get();
-
-            foreach ($reportSheets as $reportSheet) {
-                // Шаг 5: Обновление Google Sheets
-                $this->logStep($candidate, "Обновление Google Sheets: {$reportSheet->name_report}");
-                $this->updateGoogleSheetByCellMap($candidate, $talents, $reportSheet);
-
-                Log::info('Перед вызовом importFormulaValues', [
-                    'reportSheet_id' => $reportSheet->id,
-                    'candidate_id' => $candidate->id,
-                ]);
-
-                // Шаг 6: Импорт формул
-                $this->logStep($candidate, "Импорт формул: {$reportSheet->name_report}");
-                $this->importFormulaValues($reportSheet, $candidate);
-
-                // Шаг 7: Скачивание PDF
-                $this->logStep($candidate, "Скачивание PDF: {$reportSheet->name_report}");
-                $this->downloadSheetPdf(
-                    $candidate,
-                    $reportSheet
-                );
-            }
-
-            // Шаг 8: Завершение
-            $this->logStep($candidate, 'Завершено успешно', 'completed', 'Все отчеты успешно обработаны');
-        } else {
-            $this->logStep($candidate, 'Изменений не обнаружено', 'completed', 'Таланты не изменились, обработка не требуется');
         }
+
+        // Шаг 4: Обработка отчетов (всегда выполняем, даже если таланты не изменились)
+        $this->logStep($candidate, 'Обработка отчетов');
+
+        // Получаем все активные листы отчетов из базы данных
+        $reportSheets = GallupReportSheet::with('indices')->orderBy('id', 'desc')->get();
+
+        foreach ($reportSheets as $reportSheet) {
+            // Шаг 5: Обновление Google Sheets
+            $this->logStep($candidate, "Обновление Google Sheets: {$reportSheet->name_report}");
+            $this->updateGoogleSheetByCellMap($candidate, $talents, $reportSheet);
+
+            Log::info('Перед вызовом importFormulaValues', [
+                'reportSheet_id' => $reportSheet->id,
+                'candidate_id' => $candidate->id,
+            ]);
+
+            // Шаг 6: Импорт формул
+            $this->logStep($candidate, "Импорт формул: {$reportSheet->name_report}");
+            $this->importFormulaValues($reportSheet, $candidate);
+
+            // Шаг 7: Скачивание PDF
+            $this->logStep($candidate, "Скачивание PDF: {$reportSheet->name_report}");
+            $this->downloadSheetPdf(
+                $candidate,
+                $reportSheet
+            );
+        }
+
+        // Шаг 8: Завершение
+        $this->logStep($candidate, 'Завершено успешно', 'completed', 'Все отчеты успешно обработаны');
 
         // Убираем объединение PDF из основного процесса - теперь генерируем по требованию
         // $mergedPath = $this->mergeCandidateReportPdfs($candidate);

@@ -8,6 +8,7 @@ use App\Filament\Resources\CandidateResource\RelationManagers;
 use App\Models\Candidate;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -411,6 +412,30 @@ class CandidateResource extends Resource
                     ->visible(fn (Candidate $record): bool =>
                         ($record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)) || 
                         $record->gallupReports()->exists()
+                    ),
+                    
+                Tables\Actions\Action::make('refresh_gallup_report')
+                    ->label('Обновить gallup Отчет')
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('primary')
+                    ->requiresConfirmation()
+                    ->action(function (Candidate $record) {
+                        try {
+                            app(\App\Http\Controllers\GallupController::class)->parseGallupFromCandidateFile($record);
+                            Notification::make()
+                                ->title('Gallup обновлён')
+                                ->success()
+                                ->send();
+                        } catch (\Throwable $e) {
+                            Notification::make()
+                                ->title('Ошибка обновления')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->visible(fn (Candidate $record): bool => 
+                        $record->gallup_pdf && Storage::disk('public')->exists($record->gallup_pdf)
                     ),
                     
                 // Кнопка редактирования анкеты (доступна только администраторам)
